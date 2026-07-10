@@ -46,12 +46,27 @@ const T_USUARIOS = process.env.TABELA_USUARIOS || 'usuarios';
 const T_DISCIPLINAS = process.env.TABELA_DISCIPLINAS || 'disciplinas';
 const T_PARTIDAS = process.env.TABELA_PARTIDAS || 'partidas';
 
-/* ---- dados de demonstração para o MODO MOCK ---- */
-const DEMO = {
-  cpf: (process.env.DEMO_CPF || '00000000000').replace(/\D/g, ''),
-  nascimento: process.env.DEMO_NASCIMENTO || '2000-01-01',
-  nome: process.env.DEMO_NOME || 'Aluno de demonstração'
+/* ---- USUÁRIO FIXO (login por env, sem banco) ----
+   Configurado por USUARIO_FIXO_CPF / USUARIO_FIXO_NASCIMENTO. Quando
+   definido, entra em qualquer modo (funciona já, sem banco; e continua
+   como conta de teste "break-glass" mesmo depois que o Postgres entrar —
+   basta remover as variáveis para desligá-lo).
+   Sem nada configurado e sem banco, cai num demo padrão (00000000000 /
+   2000-01-01) para o jogo subir jogável de imediato. */
+const FIXO = {
+  cpf: soNumeros(process.env.USUARIO_FIXO_CPF || ''),
+  nascimento: normalizarData(process.env.USUARIO_FIXO_NASCIMENTO || '') || '',
+  nome: process.env.USUARIO_FIXO_NOME || 'Aluno FMP',
+  semestre: process.env.USUARIO_FIXO_SEMESTRE || process.env.SEMESTRE || '',
+  ra: process.env.USUARIO_FIXO_RA || '',
+  ativo: false
 };
+FIXO.ativo = FIXO.cpf.length === 11 && !!FIXO.nascimento;
+if (!FIXO.ativo && !hasDB) {
+  FIXO.cpf = '00000000000'; FIXO.nascimento = '2000-01-01';
+  FIXO.nome = process.env.USUARIO_FIXO_NOME || 'Aluno de demonstração';
+  FIXO.ativo = true;
+}
 let placarMemoria = []; // usado só no modo mock
 
 /* ---- helpers ---- */
@@ -79,12 +94,12 @@ async function autenticar(cpfBruto, nascimentoBruto) {
   var nasc = normalizarData(nascimentoBruto);
   if (cpf.length !== 11 || !nasc) return { ok: false, motivo: 'formato' };
 
-  if (!hasDB) {
-    if (cpf === DEMO.cpf && nasc === DEMO.nascimento) {
-      return { ok: true, usuario: perfilPublico({ cpf: cpf, nome: DEMO.nome, semestre: process.env.SEMESTRE || '', curso: 'Demonstração' }) };
-    }
-    return { ok: false, motivo: 'credenciais', mock: true };
+  // usuário fixo do env — vale em qualquer modo (funciona já, sem banco)
+  if (FIXO.ativo && cpf === FIXO.cpf && nasc === FIXO.nascimento) {
+    return { ok: true, usuario: perfilPublico({ cpf: cpf, nome: FIXO.nome, ra: FIXO.ra, semestre: FIXO.semestre, curso: '' }) };
   }
+
+  if (!hasDB) return { ok: false, motivo: 'credenciais', mock: true };
 
   try {
     var sql = 'SELECT cpf, nome, ra, curso, semestre, ativo FROM ' + ident(T_USUARIOS) +
@@ -215,5 +230,5 @@ module.exports = {
   salvarPartida: salvarPartida,
   listarPlacar: listarPlacar,
   ping: ping,
-  DEMO: DEMO
+  FIXO: FIXO
 };

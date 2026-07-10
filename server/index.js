@@ -51,13 +51,18 @@ app.get('/api/saude', async function (req, res) {
 
 app.get('/api/session', function (req, res) {
   var u = auth.ler(req);
-  res.json({
+  var resp = {
     autenticado: !!u,
     usuario: u || null,
     modo: db.hasDB ? 'banco' : 'mock',
     semestre: SEMESTRE,
     versao: VERSAO
-  });
+  };
+  // sem banco, o usuário fixo é um acesso de conveniência — a dica pode aparecer na tela
+  if (!db.hasDB && db.FIXO.ativo) {
+    resp.loginDica = { cpf: db.FIXO.cpf, nascimento: db.FIXO.nascimento };
+  }
+  res.json(resp);
 });
 
 app.post('/api/login', async function (req, res) {
@@ -113,6 +118,7 @@ app.get(/^(?!\/api\/).*/, function (req, res) { res.sendFile(path.join(PUBLIC, '
 
 app.listen(PORT, function () {
   console.log('Última Instância v' + VERSAO + ' no ar em http://0.0.0.0:' + PORT);
-  console.log('  modo de dados: ' + (db.hasDB ? 'Postgres' : 'MOCK (sem banco) — login demo: CPF ' + db.DEMO.cpf + ' / nascimento ' + db.DEMO.nascimento));
+  console.log('  modo de dados: ' + (db.hasDB ? 'Postgres' : 'MOCK (sem banco)'));
+  if (db.FIXO.ativo) console.log('  usuário fixo: CPF ' + db.FIXO.cpf + ' / nascimento ' + db.FIXO.nascimento + ' (' + db.FIXO.nome + ')');
   if (auth.efemero) console.log('  aviso: SESSION_SECRET não definido — usando segredo efêmero (defina em produção).');
 });

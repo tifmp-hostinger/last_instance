@@ -1882,6 +1882,7 @@ function iniciarSessao(){
     SERVIDOR.online = true;
     SERVIDOR.modo = d.modo || 'banco';
     SERVIDOR.autenticado = !!d.autenticado;
+    SERVIDOR.loginDica = d.loginDica || null;
     if (d.semestre) CONFIG.SEMESTRE = d.semestre;
     if (d.versao) CONFIG.VERSAO = d.versao;
     if (d.autenticado && d.usuario){
@@ -1906,9 +1907,14 @@ function entrarNoJogo(){
 }
 function mostrarLogin(){
   var mock = $('loginMock');
-  if (SERVIDOR.modo === 'mock' && mock){
-    mock.classList.remove('hidden');
-    mock.innerHTML = 'Modo de demonstração (sem banco): entre com <b>000.000.000-00</b> e nascimento <b>01/01/2000</b>.';
+  if (mock){
+    if (SERVIDOR.loginDica){
+      var d = SERVIDOR.loginDica;
+      var nasc = String(d.nascimento || '').split('-');
+      var nascBR = nasc.length === 3 ? (nasc[2] + '/' + nasc[1] + '/' + nasc[0]) : d.nascimento;
+      mock.classList.remove('hidden');
+      mock.innerHTML = 'Acesso de teste (sem banco): CPF <b>' + esc(mascaraCPF(d.cpf)) + '</b> e nascimento <b>' + esc(nascBR) + '</b>.';
+    } else mock.classList.add('hidden');
   }
   mostrar('scr-login');
   var cpf = $('loginCpf'); if (cpf) setTimeout(function(){ cpf.focus(); }, 60);
