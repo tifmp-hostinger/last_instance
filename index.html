@@ -1,0 +1,1910 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EFEEEA" id="metaTema">
+<meta name="description" content="Última Instância — o jogo de cartas da FMP. A defesa, em oito casos: do Foro Central de Porto Alegre ao STF.">
+<title>Última Instância — FMP</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23EE2A42' d='M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,600;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Última Instância — FMP
+   CSS: tokens, fundo vivo, liquid glass, telas, batalha, dark
+   ============================================================ */
+:root{
+  --red:#EE2A42; --red-600:#D32238; --red-700:#B81E32;
+  --ink:#191818; --ink-2:#3A3838; --ink-3:#6E6B66;
+  --cream:#EFEEEA; --paper:#F6F5F1; --sand:#BFBAA4;
+  --line:#DEDCD4; --line-2:#CFCCBF;
+  --t-norma:#EE2A42; --t-fato:#2A6F6B; --t-retorica:#B4763A; --t-tecnica:#6E6B66;
+  --bg:var(--cream); --fg:var(--ink); --fg2:var(--ink-2); --fg3:var(--ink-3);
+  --card:#fff; --card-line:var(--line);
+  --serif:'Noto Serif',Georgia,'Times New Roman',serif;
+  --sans:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --spring:cubic-bezier(.22,1,.36,1);
+  --r-sm:10px; --r-md:16px; --r-lg:22px; --r-pill:999px;
+  --sombra:0 8px 26px rgba(25,24,24,.09),0 2px 6px rgba(25,24,24,.05);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%}
+body{
+  margin:0;min-height:100%;font-family:var(--sans);color:var(--fg);background:var(--bg);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  transition:background .6s ease,color .6s ease;overflow-x:hidden;
+}
+body.dark{
+  --bg:#0c0b0b; --fg:var(--cream); --fg2:#D9D7D0; --fg3:var(--sand);
+  --card:#191818; --card-line:rgba(191,186,164,.26); --line:rgba(191,186,164,.24); --line-2:rgba(191,186,164,.34);
+  --paper:#131212; --sombra:0 10px 32px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.4);
+}
+.hidden{display:none !important}
+
+/* ---- fundo vivo (só transform, barato) ---- */
+#fundo{position:fixed;inset:0;z-index:-2;overflow:hidden;
+  background:radial-gradient(120% 90% at 80% -10%,#F3F1EC 0%,#E9E7DF 55%,#DFDBD0 100%);
+  transition:background .8s ease}
+body.dark #fundo{background:radial-gradient(120% 90% at 82% 8%,#241315 0%,#141010 45%,#0c0b0b 100%)}
+#fundo::before,#fundo::after{content:'';position:absolute;border-radius:50%;filter:blur(2px);will-change:transform}
+#fundo::before{width:62vmax;height:62vmax;left:-18vmax;top:-24vmax;
+  background:radial-gradient(circle,rgba(238,42,66,.10),rgba(238,42,66,0) 66%);
+  animation:flutua1 46s ease-in-out infinite alternate}
+#fundo::after{width:54vmax;height:54vmax;right:-16vmax;bottom:-20vmax;
+  background:radial-gradient(circle,rgba(191,186,164,.22),rgba(191,186,164,0) 68%);
+  animation:flutua2 58s ease-in-out infinite alternate}
+body.dark #fundo::before{background:radial-gradient(circle,rgba(238,42,66,.17),rgba(238,42,66,0) 66%)}
+body.dark #fundo::after{background:radial-gradient(circle,rgba(191,186,164,.08),rgba(191,186,164,0) 68%)}
+@keyframes flutua1{from{transform:translate(0,0) rotate(0deg)}to{transform:translate(9vmax,7vmax) rotate(24deg)}}
+@keyframes flutua2{from{transform:translate(0,0) scale(1)}to{transform:translate(-8vmax,-6vmax) scale(1.14)}}
+@media (prefers-reduced-motion:reduce){#fundo::before,#fundo::after{animation:none}}
+
+#fx{position:fixed;inset:0;z-index:60;pointer-events:none}
+
+/* ---- liquid glass ---- */
+.glass{
+  background:rgba(255,255,255,.55);
+  backdrop-filter:blur(14px) saturate(1.25);-webkit-backdrop-filter:blur(14px) saturate(1.25);
+  border:1px solid rgba(255,255,255,.55);
+  box-shadow:var(--sombra),inset 0 1px 0 rgba(255,255,255,.5);
+  border-radius:var(--r-md);
+}
+body.dark .glass{background:rgba(25,24,24,.55);border-color:rgba(191,186,164,.18);
+  box-shadow:var(--sombra),inset 0 1px 0 rgba(255,255,255,.05)}
+
+/* ---- tipografia ---- */
+.serif{font-family:var(--serif);font-style:italic}
+.eyebrow{font-weight:600;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--red)}
+.rotulo{font-weight:600;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+.meta-txt{font-size:12.5px;color:var(--fg3)}
+
+/* ---- botões ---- */
+button{font-family:var(--sans)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
+  background:var(--red);color:#fff;font-weight:600;font-size:14.5px;letter-spacing:.02em;
+  border-radius:var(--r-sm);padding:13px 22px;min-height:46px;
+  transition:transform .15s var(--spring),background .15s,box-shadow .2s;
+  box-shadow:0 6px 18px rgba(238,42,66,.28)}
+.btn:hover{background:var(--red-600)}
+.btn:active{background:var(--red-700);transform:scale(.98)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn-ghost{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  background:transparent;color:var(--fg2);border:1px solid var(--line-2);font-weight:500;font-size:13.5px;
+  border-radius:var(--r-sm);padding:11px 20px;min-height:44px;transition:border-color .15s,color .15s,transform .15s var(--spring)}
+.btn-ghost:hover{border-color:var(--fg3);color:var(--fg)}
+.btn-ghost:active{transform:scale(.98)}
+.btn-lg{font-size:16px;padding:15px 30px;min-height:52px}
+
+/* ---- telas ---- */
+main{display:flex;justify-content:center;min-height:100vh}
+.scr{width:100%;max-width:960px;padding:22px 16px 44px;animation:surge .45s var(--spring) both}
+@keyframes surge{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+@keyframes sobe{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+/* ---- título ---- */
+#scr-title{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92vh;text-align:center;gap:0}
+.simbolo{width:52px;height:52px;animation:pop .6s var(--spring) both}
+.simbolo.gira{animation:pop .6s var(--spring) both,pulsa 5s ease-in-out 1s infinite}
+#scr-title .lema{margin:18px 0 8px;font-weight:600;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--fg3)}
+#scr-title h1{font-family:var(--serif);font-style:italic;font-weight:600;margin:0 0 6px;
+  font-size:clamp(44px,9vw,84px);line-height:.98;letter-spacing:-.02em}
+#scr-title h1 em{color:var(--red);font-style:italic}
+#scr-title .sub{font-size:14px;color:var(--fg3);max-width:430px;line-height:1.55;margin:0 0 30px}
+.menu-title{display:flex;flex-direction:column;gap:11px;width:min(320px,86vw)}
+.menu-linha{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.menu-linha .btn-ghost{padding:9px 16px;min-height:40px;font-size:12.5px}
+#scr-title footer{margin-top:44px;display:flex;flex-direction:column;align-items:center;gap:6px}
+#scr-title footer .fmp{font-weight:600;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)}
+#scr-title footer .ver{font-size:10.5px;color:var(--fg3);opacity:.7}
+
+/* ---- topo comum das telas internas ---- */
+.topo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.topo .volta{display:inline-flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;
+  color:var(--fg3);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:8px 4px}
+.topo .volta:hover{color:var(--fg)}
+.topo h2{font-family:var(--serif);font-style:italic;font-weight:600;font-size:26px;margin:0}
+
+/* ---- batalha: cabeçalho ---- */
+.cab{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.cab .linha1{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.cab h1{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(19px,3.4vw,26px);line-height:1.08;margin:0 0 3px}
+.pont{color:var(--sand)}
+.julgador{flex:0 0 auto;background:var(--ink);color:var(--cream);border-radius:14px;padding:12px 15px;min-width:216px;
+  display:flex;gap:12px;align-items:flex-start}
+body.dark .julgador{background:#211f1f;border:1px solid rgba(191,186,164,.2)}
+.julgador .foto{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(191,186,164,.4);flex:0 0 auto}
+.julgador .rotulo{color:var(--sand)}
+.julgador .nome{font-family:var(--serif);font-style:italic;font-size:17px;margin:2px 0 8px}
+.mults{display:flex;gap:5px;flex-wrap:wrap}
+.mult{font-size:10px;font-weight:600;padding:3px 7px;border-radius:var(--r-pill);border:1px solid rgba(191,186,164,.5);color:var(--sand)}
+.mult.fav{border-color:var(--red);color:var(--red)}
+.mult.desf{border-color:rgba(191,186,164,.35);color:#8f8b7f}
+.mult.voga{border-color:var(--red);color:#fff;background:var(--red);animation:pulsa 2.4s ease-in-out infinite}
+
+/* ---- balança ---- */
+.painel-balanca{background:var(--ink);border-radius:18px;padding:16px 20px 14px;color:var(--cream);margin-bottom:13px;position:relative;overflow:hidden}
+body.dark .painel-balanca{background:#161414;border:1px solid rgba(191,186,164,.18)}
+.painel-balanca .cima{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.painel-balanca .tit{font-family:var(--serif);font-style:italic;font-size:15px}
+#convNum{font-family:var(--serif);font-style:italic;font-size:34px;font-weight:600;color:var(--red);line-height:1;transition:color .3s}
+#convNum.plena{color:#fff;text-shadow:0 0 22px rgba(238,42,66,.9)}
+#balanca{display:block;width:min(300px,58vw);height:auto;margin:-6px auto 2px}
+.trilha{position:relative;height:10px;border-radius:var(--r-pill);margin-top:4px;
+  background:linear-gradient(90deg,#3a2a2c 0%,#5a4a3f 50%,var(--red) 100%)}
+.trilha .centro{position:absolute;left:50%;top:-5px;bottom:-5px;width:1.5px;background:rgba(191,186,164,.5)}
+#convMarca{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:17px;height:17px;border-radius:50%;
+  background:var(--cream);border:3px solid var(--red);box-shadow:0 2px 8px rgba(0,0,0,.5);transition:left .5s var(--spring)}
+.trilha-rotulos{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--sand);margin-top:6px}
+
+/* ---- linha de status ---- */
+.status{display:flex;gap:11px;margin-bottom:14px;flex-wrap:wrap}
+.anuncio{flex:1;min-width:220px;background:#FBEFE9;border:1px solid #F2C9B8;border-radius:14px;padding:12px 15px;transition:opacity .3s}
+body.dark .anuncio{background:rgba(238,42,66,.09);border-color:rgba(238,42,66,.3)}
+.anuncio .rotulo{color:#C24A2A}
+body.dark .anuncio .rotulo{color:#f0907d}
+.anuncio .mov{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--fg);margin-top:4px}
+.anuncio .desc{font-size:11.5px;color:#8a5a45;margin-top:2px}
+body.dark .anuncio .desc{color:#d8a08f}
+.pilula-status{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  border-radius:var(--r-pill);padding:3px 9px;margin:6px 6px 0 0}
+.ps-quest{background:rgba(180,118,58,.15);color:#B4763A;border:1px solid rgba(180,118,58,.4)}
+.ps-dobra{background:rgba(238,42,66,.12);color:var(--red);border:1px solid rgba(238,42,66,.4)}
+.ps-block{background:rgba(42,111,107,.12);color:#2A6F6B;border:1px solid rgba(42,111,107,.4)}
+.ps-conten{background:rgba(110,107,102,.12);color:var(--fg3);border:1px solid rgba(110,107,102,.4)}
+.caixinha{flex:0 0 auto;background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:12px 15px;text-align:center;min-width:106px}
+.caixinha .num{font-family:var(--serif);font-style:italic;font-size:25px;font-weight:600;line-height:1.15}
+.caixinha .de{color:var(--sand);font-size:14px}
+.folego{display:flex;gap:6px;justify-content:center;padding-top:7px;min-height:24px}
+.folego span{width:15px;height:15px;border-radius:50%;transition:background .2s,border .2s}
+.folego .on{background:var(--red);box-shadow:0 0 8px rgba(238,42,66,.5)}
+.folego .off{border:1.5px solid var(--line-2)}
+
+/* ---- mão ---- */
+.mao-cab{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px;gap:10px}
+.mao-cab .dica{font-size:11px;color:var(--fg3)}
+.mao-cab .dica b{color:var(--red);font-style:italic;font-family:var(--serif)}
+.pilhas{font-size:10.5px;color:var(--fg3);cursor:pointer;border:none;background:none;padding:4px;letter-spacing:.04em}
+.pilhas:hover{color:var(--fg)}
+#mao{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:15px;min-height:178px}
+.carta{position:relative;background:var(--cream);border:1px solid #DEDCD4;border-radius:13px;overflow:hidden;
+  box-shadow:0 6px 16px rgba(25,24,24,.08);display:flex;flex-direction:column;color:var(--ink);
+  transition:transform .16s var(--spring),box-shadow .16s,opacity .2s;animation:sobe .3s ease both;text-align:left}
+.carta.rara{border-color:var(--sand);box-shadow:0 6px 16px rgba(25,24,24,.08),0 0 0 1.5px var(--sand)}
+.carta.pode{cursor:pointer}
+.carta.pode:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(25,24,24,.18)}
+.carta.nao{opacity:.5;cursor:not-allowed}
+.carta .cab-c{display:flex;align-items:center;justify-content:space-between;padding:7px 8px 6px;border-bottom:1px solid #DEDCD4}
+.tipo-pill{font-weight:600;font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;border:1.2px solid;border-radius:var(--r-pill);padding:2px 6px}
+.custo{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;
+  background:var(--ink);color:var(--cream);font-weight:600;font-size:11px;flex:0 0 auto}
+.carta .corpo{padding:7px 8px 9px;flex:1;display:flex;flex-direction:column}
+.carta .nome{font-family:var(--serif);font-style:italic;font-weight:600;font-size:13px;line-height:1.1;margin-bottom:5px}
+.carta .efeito{font-size:9.5px;line-height:1.32;color:var(--ink-3);flex:1}
+.carta .base-linha{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.carta .base{font-family:var(--serif);font-style:italic;font-size:14px;font-weight:600}
+.info-i{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;
+  border:1px solid var(--sand);color:#8f8b7f;font-size:11px;font-style:italic;font-family:var(--serif);cursor:pointer;background:none;padding:0}
+.info-i:hover{border-color:var(--red);color:var(--red)}
+.tag-rara{position:absolute;top:31px;right:-1px;font-size:7px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  background:var(--sand);color:var(--ink);padding:2px 7px;border-radius:6px 0 0 6px}
+
+/* ---- log + ações ---- */
+.rodape-batalha{display:flex;gap:11px;align-items:stretch;flex-wrap:wrap}
+.log-caixa{flex:1;min-width:260px;background:var(--card);border:1px solid var(--card-line);border-radius:14px;
+  padding:12px 15px;max-height:158px;overflow:auto;scrollbar-width:thin}
+#log{display:flex;flex-direction:column;gap:9px}
+.log-vazio{font-size:12px;color:var(--sand);font-style:italic}
+.log-item{padding-left:11px;border-left:2px solid var(--line);animation:sobe .28s ease both}
+.log-item .fala{font-family:var(--serif);font-style:italic;font-size:12.5px;line-height:1.4;color:var(--fg)}
+.log-item .detalhe{font-size:10px;color:var(--fg3);margin-top:2px}
+.log-item.adverso{border-color:#F2C9B8;font-size:12px;color:#C24A2A}
+body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
+.log-item.juiz{border-color:var(--sand);font-size:12px;color:var(--fg3);font-style:italic}
+.acoes{flex:0 0 auto;display:flex;flex-direction:column;gap:9px;justify-content:flex-end;min-width:176px}
+
+/* ---- modal ---- */
+#modalWrap{position:fixed;inset:0;background:rgba(25,24,24,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  z-index:80;display:flex;align-items:center;justify-content:center;padding:18px;animation:surge .25s ease both}
+#modalCard{width:min(400px,94vw);max-height:88vh;overflow:auto;background:var(--cream);color:var(--ink);
+  border-radius:20px;box-shadow:0 30px 70px rgba(0,0,0,.45);animation:pop .45s var(--spring) both;scrollbar-width:thin}
+#modalCard.escuro{background:var(--ink);color:var(--cream)}
+.modal-pad{padding:26px 26px 24px}
+.modal-botoes{display:flex;flex-direction:column;gap:9px;margin-top:20px}
+
+/* ---- ficha da carta ---- */
+.ficha-cab{display:flex;align-items:center;justify-content:space-between;padding:15px 17px 12px;border-bottom:1px solid #DEDCD4}
+.ficha-corpo{padding:16px 18px}
+.ficha-nome{font-family:var(--serif);font-style:italic;font-weight:600;font-size:23px;line-height:1.1;margin-bottom:9px}
+.ficha-efeito{font-size:12.5px;line-height:1.5;color:var(--ink-2);margin-bottom:6px}
+.ficha-combo{font-size:11.5px;margin-bottom:12px}
+.ficha-fala{border-top:1px dashed var(--line-2);padding-top:11px}
+.ficha-fala .txt{font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.45}
+.ficha-pe{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--ink);color:var(--sand)}
+.ficha-pe .disc{font-size:10px;letter-spacing:.05em}
+.ficha-pe .base{font-family:var(--serif);font-style:italic;font-size:13px}
+
+/* ---- resultado / sentença ---- */
+.sentenca{padding:32px 30px;text-align:center;color:var(--cream)}
+.sentenca .rotulo{color:var(--sand);margin-bottom:8px}
+.sentenca h3{font-family:var(--serif);font-style:italic;font-weight:600;font-size:36px;margin:0 0 10px;line-height:1.05}
+.sentenca .txt{font-size:13px;color:var(--sand);line-height:1.55;margin-bottom:20px}
+.tabela-pontos{text-align:left;display:grid;gap:7px;font-size:12.5px;margin-bottom:20px}
+.tabela-pontos .li{display:flex;justify-content:space-between;border-bottom:1px solid rgba(191,186,164,.2);padding-bottom:6px}
+.tabela-pontos .li span:first-child{color:var(--sand)}
+.tabela-pontos .total{display:flex;justify-content:space-between;align-items:baseline;padding-top:2px;font-weight:600}
+.tabela-pontos .total b{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--red)}
+
+/* ---- recompensa / evento ---- */
+.grade-escolhas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin:18px 0 20px}
+.grade-escolhas .carta{min-height:186px}
+.opcao{background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:17px;text-align:left;cursor:pointer;
+  transition:transform .16s var(--spring),border-color .16s,box-shadow .2s;display:flex;flex-direction:column;gap:7px}
+.opcao:hover{transform:translateY(-3px);border-color:var(--red);box-shadow:var(--sombra)}
+.opcao .titulo-op{font-family:var(--serif);font-style:italic;font-weight:600;font-size:17px}
+.opcao .desc-op{font-size:12px;color:var(--fg3);line-height:1.45}
+.opcao .simbolo-op{width:26px;height:26px;margin-bottom:2px}
+.centro-acoes{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+
+/* ---- placar ---- */
+.abas{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap}
+.aba{border:1px solid var(--line-2);background:none;color:var(--fg3);font-weight:600;font-size:12px;
+  padding:8px 15px;border-radius:var(--r-pill);cursor:pointer;transition:all .15s}
+.aba.ativa{background:var(--red);border-color:var(--red);color:#fff}
+.lista-placar{display:flex;flex-direction:column;gap:8px}
+.li-placar{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--card-line);
+  border-radius:12px;padding:12px 15px}
+.li-placar .pos{font-family:var(--serif);font-style:italic;font-weight:600;font-size:18px;width:26px;text-align:center;color:var(--fg3)}
+.li-placar:first-child .pos{color:var(--red)}
+.li-placar .quem{flex:1;min-width:0}
+.li-placar .quem .n{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li-placar .quem .d{font-size:10.5px;color:var(--fg3)}
+.li-placar .pts{font-family:var(--serif);font-style:italic;font-weight:600;font-size:19px}
+.aviso-rede{background:var(--card);border:1px dashed var(--line-2);border-radius:12px;padding:20px;
+  text-align:center;font-size:13px;color:var(--fg3);line-height:1.5}
+
+/* ---- config ---- */
+.bloco-cfg{background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:17px;margin-bottom:13px}
+.bloco-cfg h4{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)}
+.campo{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.campo label{font-size:11.5px;font-weight:600;color:var(--fg3)}
+.campo input,.campo select{font-family:var(--sans);font-size:14px;color:var(--fg);background:var(--bg);
+  border:1px solid var(--line-2);border-radius:9px;padding:11px 13px;outline:none}
+.campo input:focus,.campo select:focus{border-color:var(--red)}
+.linha-cfg{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0}
+.linha-cfg .t{font-size:14px}
+.chave{position:relative;width:46px;height:26px;border-radius:var(--r-pill);border:none;cursor:pointer;
+  background:var(--line-2);transition:background .2s}
+.chave.on{background:var(--red)}
+.chave::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;
+  transition:left .2s var(--spring);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.chave.on::after{left:23px}
+
+/* ---- demo ---- */
+#demoShield{position:fixed;inset:0;z-index:70;background:transparent}
+#demoBar{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:75;width:min(560px,92vw);border-radius:16px;padding:14px 17px;display:flex;align-items:center;gap:14px}
+#demoBar .txt{flex:1;font-size:13.5px;line-height:1.45}
+#demoBar .btn-ghost{min-height:36px;padding:7px 14px;font-size:12px;flex:0 0 auto}
+.foco-demo{outline:2.5px solid var(--red);outline-offset:3px;border-radius:14px;transition:outline .2s}
+
+/* ---- jornada (mapa pequeno no cabeçalho) ---- */
+.passos{display:flex;gap:4px;align-items:center}
+.passos i{width:7px;height:7px;border-radius:50%;background:var(--line-2);font-style:normal}
+.passos i.feito{background:var(--red)}
+.passos i.agora{background:var(--red);box-shadow:0 0 0 3px rgba(238,42,66,.25);animation:pulsa 2s infinite}
+.passos i.chefe{border-radius:2px;transform:rotate(45deg)}
+
+/* ---- responsivo ---- */
+@media (max-width:899px){
+  #mao{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;margin-left:-16px;margin-right:-16px;
+    padding-left:16px;padding-right:16px;scrollbar-width:none}
+  #mao::-webkit-scrollbar{display:none}
+  #mao .carta{flex:0 0 132px;scroll-snap-align:start;min-height:172px}
+  .cab{flex-direction:column}
+  .julgador{width:100%;min-width:0}
+  .acoes{width:100%;flex-direction:row}
+  .acoes .btn{flex:1}
+  .mao-cab{flex-wrap:wrap}
+  .mao-cab .rotulo{white-space:nowrap}
+  .anuncio{flex-basis:100%}
+  .status .caixinha{flex:1}
+}
+@media (max-height:719px){
+  .scr{padding-top:12px}
+  .painel-balanca{padding:10px 16px 10px}
+  #balanca{width:min(220px,50vw);margin-top:-4px}
+  #mao{min-height:150px}
+  .log-caixa{max-height:96px}
+}
+@media (max-height:460px) and (orientation:landscape){
+  #balanca{display:none}
+  #scr-title{min-height:100vh}
+}
+</style>
+</head>
+<body>
+<div id="fundo" aria-hidden="true"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<main>
+
+<!-- ============ TÍTULO ============ -->
+<section id="scr-title" class="scr">
+  <svg class="simbolo gira" viewBox="0 0 100 100" aria-hidden="true"><path fill="#EE2A42" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>
+  <div class="lema">A defesa. Em oito casos.</div>
+  <h1>Última <em>Instância</em></h1>
+  <p class="sub">Do Foro Central de Porto Alegre ao Supremo: monte seus argumentos, leia o julgador e incline a balança da convicção.</p>
+  <div class="menu-title">
+    <button class="btn btn-lg" id="btnLivre">Jornada livre</button>
+    <button class="btn btn-lg" id="btnDiario" style="background:var(--ink);box-shadow:0 6px 18px rgba(25,24,24,.3)">Caso do dia</button>
+    <button class="btn-ghost hidden" id="btnContinuar">Continuar jornada</button>
+  </div>
+  <div class="menu-linha">
+    <button class="btn-ghost" id="btnPlacar">Placar</button>
+    <button class="btn-ghost" id="btnDemo">Como jogar</button>
+    <button class="btn-ghost" id="btnConfig">Configurações</button>
+  </div>
+  <footer>
+    <span class="fmp">FMP · Fundação Escola Superior do Ministério Público</span>
+    <span class="ver" id="verTxt"></span>
+  </footer>
+</section>
+
+<!-- ============ BATALHA ============ -->
+<section id="scr-battle" class="scr hidden">
+  <div class="cab">
+    <div style="flex:1;min-width:0">
+      <div class="linha1">
+        <svg class="simbolo" style="width:13px;height:13px;animation:none" viewBox="0 0 100 100" aria-hidden="true"><path fill="#EE2A42" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>
+        <span class="eyebrow" id="cabInstancia">Foro Central de Porto Alegre</span>
+        <span class="pont">·</span>
+        <span class="rotulo" id="cabCaso">Caso 1 de 8</span>
+        <span class="passos" id="cabPassos" aria-hidden="true"></span>
+      </div>
+      <h1 id="cabTitulo">—</h1>
+      <div class="meta-txt" id="cabPartes">—</div>
+    </div>
+    <div class="julgador">
+      <img class="foto hidden" id="julFoto" alt="">
+      <div style="flex:1">
+        <div class="rotulo">Julgador</div>
+        <div class="nome" id="julNome">—</div>
+        <div class="mults" id="julMults"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="painel-balanca">
+    <div class="cima">
+      <span class="tit">Balança da convicção</span>
+      <span id="convNum">50</span>
+    </div>
+    <svg id="balanca" viewBox="0 0 320 132" aria-hidden="true">
+      <line x1="160" y1="34" x2="160" y2="112" stroke="#BFBAA4" stroke-width="4" stroke-linecap="round" opacity=".85"/>
+      <path d="M132 118 h56 a6 6 0 0 1 6 6 v2 h-68 v-2 a6 6 0 0 1 6-6 Z" fill="#BFBAA4" opacity=".85"/>
+      <g id="balTrave">
+        <line x1="56" y1="34" x2="264" y2="34" stroke="#EFEEEA" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="160" cy="34" r="7" fill="#EE2A42"/>
+      </g>
+      <g id="balPratoE">
+        <line x1="0" y1="0" x2="-15" y2="27" stroke="#BFBAA4" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="15" y2="27" stroke="#BFBAA4" stroke-width="1.6"/>
+        <path d="M-20 27 h40 a20 11 0 0 1 -40 0 Z" fill="#EFEEEA"/>
+      </g>
+      <g id="balPratoD">
+        <line x1="0" y1="0" x2="-15" y2="27" stroke="#BFBAA4" stroke-width="1.6"/>
+        <line x1="0" y1="0" x2="15" y2="27" stroke="#BFBAA4" stroke-width="1.6"/>
+        <path d="M-20 27 h40 a20 11 0 0 1 -40 0 Z" fill="#EE2A42"/>
+      </g>
+      <text id="balTxtE" x="56" y="128" text-anchor="middle" font-size="8" letter-spacing="1" fill="#BFBAA4" style="text-transform:uppercase;font-family:Outfit,sans-serif">PARTE ADVERSA</text>
+      <text id="balTxtD" x="264" y="128" text-anchor="middle" font-size="8" letter-spacing="1" fill="#BFBAA4" style="font-family:Outfit,sans-serif">DEFESA</text>
+    </svg>
+    <div class="trilha"><div class="centro"></div><div id="convMarca"></div></div>
+    <div class="trilha-rotulos"><span>0 · causa perdida</span><span>50</span><span>100 · convicção plena</span></div>
+  </div>
+
+  <div class="status">
+    <div class="anuncio" id="anuncio">
+      <div class="rotulo">Parte adversa anuncia</div>
+      <div class="mov" id="oppMov">—</div>
+      <div class="desc" id="oppDesc">—</div>
+      <div id="statusPills"></div>
+    </div>
+    <div class="caixinha">
+      <div class="rotulo">Rodada</div>
+      <div style="padding-top:3px"><span class="num" id="rodadaNum">1</span><span class="de" id="rodadaMax"> / 10</span></div>
+    </div>
+    <div class="caixinha" id="cxFolego">
+      <div class="rotulo">Fôlego</div>
+      <div class="folego" id="folego"></div>
+    </div>
+  </div>
+
+  <div class="mao-cab">
+    <span class="rotulo">Sua mão</span>
+    <span class="dica">toque para sustentar · <b>i</b> abre a ficha</span>
+    <button class="pilhas" id="btnPilhas">compra 0 · descarte 0</button>
+  </div>
+  <div id="mao"></div>
+
+  <div class="rodape-batalha">
+    <div class="log-caixa">
+      <div class="rotulo" style="margin-bottom:8px">Sustentação — o que se diz ao juiz</div>
+      <div id="log"></div>
+    </div>
+    <div class="acoes">
+      <button class="btn" id="btnEncerrar">Encerrar rodada</button>
+      <button class="btn-ghost" id="btnMenuBatalha">Jornada</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RECOMPENSA ============ -->
+<section id="scr-reward" class="scr hidden">
+  <div class="topo"><div>
+    <div class="eyebrow" id="rwEyebrow">Sentença favorável</div>
+    <h2 id="rwTitulo">Escolha um argumento</h2>
+  </div></div>
+  <p class="meta-txt" id="rwSub">Uma carta entra no seu baralho para o resto da jornada.</p>
+  <div class="grade-escolhas" id="rwGrade"></div>
+  <div class="centro-acoes"><button class="btn-ghost" id="rwPular">Seguir sem nova carta</button></div>
+</section>
+
+<!-- ============ EVENTO ============ -->
+<section id="scr-event" class="scr hidden">
+  <div class="topo"><div>
+    <div class="eyebrow" id="evEyebrow">Intervalo na FMP</div>
+    <h2 id="evTitulo">Entre uma instância e outra</h2>
+  </div></div>
+  <p class="meta-txt" id="evSub">O semestre segue. Escolha como usar o intervalo antes da próxima instância.</p>
+  <div class="grade-escolhas" id="evGrade" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
+</section>
+
+<!-- ============ FIM DA JORNADA ============ -->
+<section id="scr-over" class="scr hidden">
+  <div style="max-width:460px;margin:6vh auto 0;text-align:center">
+    <svg class="simbolo" id="overSimbolo" viewBox="0 0 100 100" aria-hidden="true"><path fill="#EE2A42" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>
+    <div class="rotulo" style="margin:14px 0 6px" id="overRotulo">Fim da jornada</div>
+    <h2 class="serif" style="font-size:38px;font-weight:600;margin:0 0 10px" id="overTitulo">—</h2>
+    <p class="meta-txt" id="overSub" style="margin-bottom:22px">—</p>
+    <div class="bloco-cfg" style="text-align:left"><div class="tabela-pontos" id="overTabela"></div></div>
+    <div class="menu-title" style="margin:18px auto 0">
+      <button class="btn btn-lg" id="overNova">Nova jornada</button>
+      <button class="btn-ghost" id="overPlacar">Ver placar</button>
+      <button class="btn-ghost" id="overTitle">Voltar ao início</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PLACAR ============ -->
+<section id="scr-placar" class="scr hidden">
+  <div class="topo">
+    <div>
+      <div class="eyebrow">Ranking</div>
+      <h2>Placar</h2>
+    </div>
+    <button class="volta" id="placarVolta">Voltar</button>
+  </div>
+  <div class="abas">
+    <button class="aba ativa" data-aba="aparelho">Neste aparelho</button>
+    <button class="aba" data-aba="semestre">Semestre</button>
+    <button class="aba" data-aba="hall">Hall de campeões</button>
+  </div>
+  <div id="placarLista" class="lista-placar"></div>
+</section>
+
+<!-- ============ CONFIGURAÇÕES ============ -->
+<section id="scr-config" class="scr hidden">
+  <div class="topo">
+    <div>
+      <div class="eyebrow">Preferências</div>
+      <h2>Configurações</h2>
+    </div>
+    <button class="volta" id="configVolta">Voltar</button>
+  </div>
+  <div class="bloco-cfg">
+    <h4>Identificação</h4>
+    <div class="campo"><label for="cfgNome">Nome</label><input id="cfgNome" maxlength="40" autocomplete="name" placeholder="Como aparecer no placar"></div>
+    <div class="campo"><label for="cfgRa">Matrícula (RA)</label><input id="cfgRa" maxlength="20" inputmode="numeric" placeholder="Opcional"></div>
+    <div class="campo"><label for="cfgSem">Turma / semestre</label><input id="cfgSem" maxlength="20" placeholder="Ex.: 2026-2"></div>
+    <button class="btn" id="cfgSalvar" style="width:100%">Salvar identificação</button>
+  </div>
+  <div class="bloco-cfg">
+    <h4>Aparência e som</h4>
+    <div class="campo"><label for="cfgTema">Tema</label>
+      <select id="cfgTema">
+        <option value="auto">Automático (acompanha a instância)</option>
+        <option value="claro">Sempre claro</option>
+        <option value="escuro">Sempre escuro</option>
+      </select>
+    </div>
+    <div class="linha-cfg"><span class="t">Sons</span><button class="chave" id="cfgSom" role="switch" aria-label="Sons"></button></div>
+    <div class="linha-cfg"><span class="t">Vibração</span><button class="chave" id="cfgVibra" role="switch" aria-label="Vibração"></button></div>
+  </div>
+  <div class="bloco-cfg">
+    <h4>Sobre</h4>
+    <div class="linha-cfg"><span class="t">Rever a demonstração</span><button class="btn-ghost" id="cfgDemo" style="min-height:38px;padding:7px 14px">Abrir</button></div>
+    <div class="linha-cfg"><span class="t">Apagar dados deste aparelho</span><button class="btn-ghost" id="cfgApagar" style="min-height:38px;padding:7px 14px;color:var(--red);border-color:rgba(238,42,66,.4)">Apagar</button></div>
+    <p class="meta-txt" id="cfgSobre" style="margin:10px 0 0"></p>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ MODAL GENÉRICO ============ -->
+<div id="modalWrap" class="hidden"><div id="modalCard"></div></div>
+
+<!-- ============ DEMO ============ -->
+<div id="demoShield" class="hidden"></div>
+<div id="demoBar" class="glass hidden">
+  <span class="txt" id="demoTxt"></span>
+  <button class="btn-ghost" id="demoPular">Pular</button>
+</div>
+
+<noscript><p style="text-align:center;padding:40px;font-family:sans-serif">Última Instância precisa de JavaScript para funcionar.</p></noscript>
+
+<script>
+'use strict';
+/* ============================================================
+   Última Instância — FMP · lógica do jogo
+   Seções: CONFIG · utilidades · conteúdo · estado · telas ·
+   jornada · batalha · recompensas · pontuação · balança/FX ·
+   áudio · demo · rede · perfil/SSO · tema · boot
+   ============================================================ */
+
+/* ---------- CONFIG (único ponto que a TI edita) ---------- */
+var CONFIG = {
+  VERSAO: '2.0.0',
+  SEMESTRE: '2026-2',
+  API_BASE: '',        // ex.: 'https://jogos.fmp.edu.br/ui/api' — vazio: só placar local
+  AI_WEBHOOK: '',      // ex.: 'https://jogos.fmp.edu.br/ui/ia' — vazio: sustentação de IA oculta
+  PORTAL_URL: 'https://fmp.com.br'
+};
+
+/* ---------- utilidades ---------- */
+function $(id){ return document.getElementById(id); }
+function el(tag, cls, html){ var e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+
+function mulberry32(seed){
+  var a = seed>>>0;
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a>>>15), 1 | a);
+    t = (t + Math.imul(t ^ (t>>>7), 61 | t)) ^ t;
+    return ((t ^ (t>>>14)) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s){
+  var h = 2166136261;
+  for (var i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h>>>0;
+}
+function embaralhar(arr, rng){
+  var a = arr.slice();
+  for (var i=a.length-1;i>0;i--){ var j = Math.floor(rng()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function amostra(arr, rng){ return arr[Math.floor(rng()*arr.length)]; }
+
+var store = {
+  get: function(k,fb){ try{ var v = localStorage.getItem(k); return v==null?fb:JSON.parse(v); }catch(e){ return fb; } },
+  set: function(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del: function(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+/* ---------- conteúdo: tipos ---------- */
+var TIPOS = { N:'Norma', F:'Fato', R:'Retórica', T:'Técnica' };
+var TIPO_COR = { N:'#EE2A42', F:'#2A6F6B', R:'#B4763A', T:'#6E6B66' };
+var TIPO_ORDEM = ['N','F','R','T'];
+
+/* ---------- conteúdo: CARTAS (uma linha por carta; o pool deriva sozinho) ---------- */
+var CARTAS = {
+  /* Norma */
+  pacta:      { nome:'Pacta sunt servanda', tipo:'N', custo:1, base:7, rar:'c', disc:'Direito Civil', texto:'O contrato obriga — e com um fato provado ao lado, obriga em dobro.', combo:{req:'F',b:3,txt:'+3 se um Fato já foi sustentado'}, fala:'"O contrato faz lei entre as partes, Excelência — e deve ser honrado."' },
+  boafe:      { nome:'Boa-fé objetiva', tipo:'N', custo:1, base:5, rar:'c', disc:'Direito Civil', texto:'Princípio que sustenta a conduta leal das partes.', fala:'"A boa-fé objetiva rege a relação desde a proposta, não só a assinatura."' },
+  indubio:    { nome:'In dubio pro reo', tipo:'N', custo:1, base:6, rar:'c', disc:'Processo Penal', texto:'A dúvida pesa a favor do réu — mais forte quando a maré está contra.', combo:{req:'DUVIDA',b:4,txt:'+4 com a convicção ≤ 45'}, fala:'"Se resta dúvida, Excelência, ela pesa — por imposição legal — a favor do réu."' },
+  dignidade:  { nome:'Dignidade da pessoa humana', tipo:'N', custo:2, base:6, rar:'c', disc:'Direito Constitucional', texto:'Norma que precisa de narrativa para pesar.', combo:{req:'R',b:4,txt:'+4 se uma Retórica já foi sustentada'}, fala:'"Antes do débito, Excelência, há pessoas e um lar em jogo."' },
+  legalidade: { nome:'Princípio da legalidade', tipo:'N', custo:1, base:4, rar:'c', disc:'Direito Constitucional', texto:'Anula o questionamento pendente sobre a sua tese.', fx:{cleanse:1}, fala:'"Ninguém será obrigado a fazer ou deixar de fazer algo senão em virtude de lei."' },
+  cdc:        { nome:'Código de Defesa do Consumidor', tipo:'N', custo:1, base:6, rar:'c', disc:'Direito do Consumidor', texto:'A vulnerabilidade é presunção legal; prove o fato e a norma decide.', combo:{req:'F',b:3,txt:'+3 se um Fato já foi sustentado'}, fala:'"A vulnerabilidade do consumidor não é tese, Excelência: é presunção legal."' },
+  devido:     { nome:'Devido processo legal', tipo:'N', custo:2, base:6, rar:'c', disc:'Processo Civil', texto:'Contém até 4 da próxima sustentação adversa.', fx:{block:4}, fala:'"Não há justiça no resultado quando o caminho a atropela."' },
+  sumula:     { nome:'Súmula vinculante', tipo:'N', custo:2, base:9, rar:'r', disc:'Direito Constitucional', texto:'Vincula: atravessa qualquer contenção adversa.', fx:{pierce:1}, fala:'"A questão está sumulada, Excelência — e a súmula vincula."' },
+  habeas:     { nome:'Habeas corpus', tipo:'N', custo:2, base:8, rar:'r', disc:'Processo Penal', texto:'Remédio heroico: atravessa a contenção adversa.', fx:{pierce:1}, fala:'"Contra a liberdade de ir e vir não há protelação que se sustente."' },
+  doutrina:   { nome:'Artigo científico', tipo:'N', custo:1, base:2, rar:'r', disc:'Metodologia Jurídica', texto:'Escala com o estudo: +2 por carta restante na mão.', combo:{req:'MAO',b:2,txt:'+2 por carta na mão'}, fala:'"A doutrina mais recente enfrenta exatamente este ponto — e conclui pela defesa."' },
+  /* Fato */
+  pericia:    { nome:'Laudo pericial', tipo:'F', custo:2, base:9, rar:'c', disc:'Processo Civil', texto:'Prova técnica robusta; atravessa a contenção adversa.', fx:{pierce:1}, fala:'"O laudo é inequívoco quanto à origem do dano, Excelência."' },
+  testemunha: { nome:'Testemunha-chave', tipo:'F', custo:1, base:5, rar:'c', disc:'Processo Civil', texto:'Depoimento que fixa os fatos da causa.', fala:'"A testemunha presenciou os fatos e não titubeou em juízo."' },
+  documento:  { nome:'Prova documental', tipo:'F', custo:1, base:6, rar:'c', disc:'Processo Civil', texto:'O que está escrito dispensa adjetivos.', fala:'"O documento está nos autos, assinado e datado."' },
+  registro:   { nome:'Registro em cartório', tipo:'F', custo:1, base:5, rar:'c', disc:'Direito Civil', texto:'Prova plena quando a norma já foi posta.', combo:{req:'N',b:3,txt:'+3 se uma Norma já foi sustentada'}, fala:'"O registro público faz prova plena — e a lei o diz expressamente."' },
+  reconstituicao:{ nome:'Reconstituição dos fatos', tipo:'F', custo:2, base:7, rar:'c', disc:'Processo Penal', texto:'Fatos corroboram fatos.', combo:{req:'F',b:3,txt:'+3 se um Fato já foi sustentado'}, fala:'"Refeito o percurso, Excelência, a versão da acusação não fica em pé."' },
+  gravacao:   { nome:'Gravação da ocorrência', tipo:'F', custo:2, base:8, rar:'c', disc:'Processo Penal', texto:'A câmera não tem lado.', fala:'"A câmera não tem lado: registrou o que registrou."' },
+  dna:        { nome:'Exame de DNA', tipo:'F', custo:2, base:10, rar:'r', disc:'Processo Penal', texto:'Ciência de ponta; atravessa a contenção adversa.', fx:{pierce:1}, fala:'"A ciência exclui o acusado, Excelência — com 99,99% de certeza."' },
+  confissao:  { nome:'Confissão da parte adversa', tipo:'F', custo:3, base:13, rar:'r', disc:'Processo Civil', texto:'A rainha das provas — quando cabe no fôlego.', fala:'"Foi a própria parte quem o admitiu, Excelência — está na ata."' },
+  /* Retórica */
+  peroracao:  { nome:'Peroração', tipo:'R', custo:1, base:6, rar:'c', disc:'Retórica Forense', texto:'Fecho persuasivo; rende mais com a maré a favor.', combo:{req:'MARE',b:5,txt:'+5 com a convicção ≥ 65'}, fala:'"Não se pede favor — pede-se justiça, e ela tem lado nesta causa."' },
+  ethos:      { nome:'Ethos, pathos, logos', tipo:'R', custo:1, base:4, rar:'c', disc:'Retórica Forense', texto:'Premia a variedade de argumentos na rodada.', combo:{req:'VAR',b:2,txt:'+2 por tipo distinto já sustentado'}, fala:'"Caráter, emoção e razão convergem para uma só conclusão."' },
+  exordio:    { nome:'Exórdio', tipo:'R', custo:0, base:2, rar:'c', disc:'Retórica Forense', texto:'Custo zero para queimar o resto do fôlego.', fala:'"Peço a atenção do juízo para o que os autos realmente dizem."' },
+  analogia:   { nome:'Analogia certeira', tipo:'R', custo:1, base:5, rar:'c', disc:'Retórica Forense', texto:'Um caso igual, com outros nomes.', combo:{req:'F',b:3,txt:'+3 se um Fato já foi sustentado'}, fala:'"O caso é o mesmo, Excelência — mudam apenas os nomes."' },
+  pausa:      { nome:'Pausa dramática', tipo:'R', custo:0, base:0, rar:'c', disc:'Retórica Forense', texto:'Compra 1 carta.', fx:{draw:1}, fala:'"(O silêncio, bem colocado, também argumenta.)"' },
+  narrativa:  { nome:'Narrativa dos autos', tipo:'R', custo:2, base:8, rar:'c', disc:'Retórica Forense', texto:'A história ganha peso quando os fatos já falaram.', combo:{req:'F',b:4,txt:'+4 se um Fato já foi sustentado'}, fala:'"Os autos contam uma história — e ela absolve a defesa."' },
+  sustentacao:{ nome:'Sustentação oral', tipo:'R', custo:3, base:12, rar:'r', disc:'Retórica Forense', texto:'A tribuna inteira em uma carta.', fala:'"Da tribuna, Excelência, a defesa reafirma cada linha do memorial."' },
+  consequencias:{ nome:'Apelo às consequências', tipo:'R', custo:2, base:9, rar:'r', disc:'Retórica Forense', texto:'A decisão de hoje é a jurisprudência de amanhã.', fala:'"A decisão de hoje será a jurisprudência de amanhã — que ela honre o Direito."' },
+  /* Técnica */
+  objecao:    { nome:'Objeção processual', tipo:'T', custo:0, base:2, rar:'c', disc:'Processo Civil', texto:'Custo zero; atravessa a contenção adversa.', fx:{pierce:1}, fala:'"Requeiro seja desconsiderada a prova juntada a destempo."' },
+  juntada:    { nome:'Juntada de documentos', tipo:'T', custo:1, base:0, rar:'c', disc:'Processo Civil', texto:'Compra 2 cartas.', fx:{draw:2}, fala:'"Requeiro a juntada, Excelência — o processo agradece."' },
+  dilacao:    { nome:'Dilação de prazo', tipo:'T', custo:0, base:0, rar:'c', disc:'Processo Civil', texto:'+1 de fôlego nesta rodada.', fx:{energy:1}, fala:'"A defesa requer prazo — breve — para melhor instruir a causa."' },
+  preliminar: { nome:'Preliminar de mérito', tipo:'T', custo:1, base:3, rar:'c', disc:'Processo Civil', texto:'Contém até 5 da próxima sustentação adversa.', fx:{block:5}, fala:'"Antes do mérito, Excelência, há questão que o antecede."' },
+  cautelar:   { nome:'Medida cautelar', tipo:'T', custo:2, base:4, rar:'c', disc:'Processo Civil', texto:'Contém até 7 da próxima sustentação adversa.', fx:{block:7}, fala:'"O perigo da demora, Excelência, não espera o trânsito em julgado."' },
+  embargosdec:{ nome:'Embargos de declaração', tipo:'T', custo:2, base:2, rar:'c', disc:'Processo Civil', texto:'Anula o próximo movimento anunciado da parte adversa.', fx:{negate:1}, fala:'"Há omissão no que a parte adversa anuncia — e ela precisa ser sanada."' },
+  questao:    { nome:'Questão de ordem', tipo:'T', custo:1, base:3, rar:'c', disc:'Processo Civil', texto:'Procedimento chama procedimento.', combo:{req:'T',b:3,txt:'+3 se uma Técnica já foi sustentada'}, fala:'"Pela ordem, Excelência."' },
+  repercussao:{ nome:'Repercussão geral', tipo:'T', custo:2, base:0, rar:'r', disc:'Direito Constitucional', texto:'A sua próxima carta vale em dobro. Uma vez por caso.', fx:{dobra:1, exaust:1}, fala:'"A tese transcende as partes, Excelência: interessa a todo o país."' },
+  amicus:     { nome:'Amicus curiae', tipo:'T', custo:1, base:3, rar:'r', disc:'Processo Constitucional', texto:'Compra 1 carta.', fx:{draw:1}, fala:'"A sociedade pede vista, Excelência — e tem o que dizer."' },
+  tutela:     { nome:'Tutela de urgência', tipo:'T', custo:3, base:6, rar:'r', disc:'Processo Civil', texto:'Contém até 9 da próxima sustentação adversa. Uma vez por caso.', fx:{block:9, exaust:1}, fala:'"O direito que se perde no caminho não se recupera na sentença."' }
+};
+Object.keys(CARTAS).forEach(function(id){ CARTAS[id].id = id; });
+
+var DECK_INICIAL = ['pacta','boafe','testemunha','documento','pericia','peroracao','ethos','exordio','objecao','dilacao'];
+
+/* ---------- conteúdo: JULGADORES (foto: URL ou data-URI do professor) ---------- */
+var JUIZES = {
+  valencia: { nome:'Dra. Valência', perfil:'legalista',  mult:{N:1.4,F:1.0,R:0.7,T:1.0}, foto:'', dica:'Aprecia a letra da lei; retórica solta a cansa.' },
+  feijo:    { nome:'Dr. Feijó',     perfil:'pragmático', mult:{N:0.7,F:1.4,R:1.0,T:1.0}, foto:'', dica:'Quer provas nos autos; princípio abstrato pesa pouco.' },
+  amparo:   { nome:'Dra. Amparo',   perfil:'humanista',  mult:{N:1.0,F:0.7,R:1.4,T:1.0}, foto:'', dica:'Sensível à narrativa; o frio dos laudos a distancia.' },
+  metodio:  { nome:'Dr. Metódio',   perfil:'metódico',   mult:{N:1.0,F:1.0,R:1.0,T:1.0}, foto:'', dica:'Pesa tudo na mesma medida.' },
+  plenario: { nome:'Plenário do STF', perfil:'colegiado', mult:{N:1.0,F:1.0,R:1.0,T:1.0}, foto:'', voga:true, dica:'A voga favorece um tipo (×1,5) e gira a cada 2 rodadas.' }
+};
+Object.keys(JUIZES).forEach(function(id){ JUIZES[id].id = id; });
+var JUIZES_COMUNS = ['valencia','feijo','amparo','metodio'];
+
+/* ---------- conteúdo: OPONENTES (os números aqui são o botão de dificuldade) ---------- */
+function mv(t,v,nome,desc){ return {t:t, v:v||0, nome:nome, desc:desc}; }
+function mvDano(v){ return mv('dano', v, 'Sustentação', 'Empurra a balança em '+v+' contra você.'); }
+function mvConten(v){ return mv('conten', v, 'Protelação', 'Contém até '+v+' da sua próxima sustentação.'); }
+function mvPress(){ return mv('press', 0, 'Pressão', 'Você abre a próxima rodada com −1 de fôlego.'); }
+function mvQuest(){ return mv('quest', 0, 'Questionamento', 'A sua próxima carta vale metade.'); }
+var OPONENTES = {
+  iniciante:  { nome:'Advogado recém-inscrito',   moves:[mvDano(13), mvQuest(), mvDano(14), mvConten(9), mvPress()] },
+  bairro:     { nome:'Escritório de bairro',      moves:[mvDano(15), mvConten(12), mvQuest(), mvDano(16), mvPress(), mvDano(17)] },
+  banca:      { nome:'Banca renomada',            moves:[mvDano(16), mvQuest(), mvDano(17), mvConten(13), mvPress(), mvDano(18)] },
+  procurador: { nome:'Procuradoria do Estado',    moves:[mvDano(17), mvConten(13), mvQuest(), mvDano(18), mvPress(), mvDano(19)] },
+  massa:      { nome:'Advocacia de massa',        moves:[mvDano(18), mvPress(), mvConten(13), mvDano(19), mvQuest(), mvDano(19)] },
+  apelacao:   { nome:'Grande banca de apelação',  moves:[mvDano(19), mvQuest(), mvConten(15), mvDano(20), mvPress(), mvDano(20)] },
+  pgr:        { nome:'Procuradoria-Geral',        moves:[mvDano(20), mvConten(15), mvQuest(), mvDano(21), mvPress(), mvDano(21)] },
+  agu:        { nome:'Advocacia-Geral da União',  moves:[mvDano(23), mvQuest(), mvDano(24), mvConten(19), mvPress(), mvDano(25)] }
+};
+
+/* ---------- conteúdo: estrutura da JORNADA ---------- */
+var JORNADA = [
+  { inst:'Foro Central de Porto Alegre', opon:'iniciante',  prazo:10 },
+  { inst:'Foro Central de Porto Alegre', opon:'bairro',     prazo:10 },
+  { inst:'Foro Central de Porto Alegre', opon:'banca',      prazo:10, boss:true },
+  { inst:'Tribunal de Justiça do RS',    opon:'procurador', prazo:9 },
+  { inst:'Tribunal de Justiça do RS',    opon:'massa',      prazo:9 },
+  { inst:'Tribunal de Justiça do RS',    opon:'apelacao',   prazo:10, boss:true },
+  { inst:'Supremo Tribunal Federal',     opon:'pgr',        prazo:8,  dark:true },
+  { inst:'Supremo Tribunal Federal',     opon:'agu',        prazo:12, dark:true, boss:true, plenario:true }
+];
+
+/* ---------- conteúdo: casos procedurais ---------- */
+var SOBRENOMES = ['Almeida','Barcellos','Camargo','Duarte','Escobar','Fonseca','Guterres','Haas','Jobim','Klein','Lousada','Machado','Nascimento','Osório','Prates','Quevedo','Rosales','Sarmento','Tavares','Uriarte','Velasco','Wolff','Ximenes','Zanetti'];
+var EMPRESAS = ['Construtora Aurora','Condomínio Beira-Rio','Transportadora Pampa','Banco Platino','Cooperativa Serrana','Viação Guaíba','Mercado União','Metalúrgica Farroupilha','Clínica Santa Clara','Editora Meridional','Vinícola Encosta','Tecelagem Ipiranga'];
+var ACOES = [
+  { t:'Ação de reparação de danos',   a:'Direito Civil',          p:'defesa do réu' },
+  { t:'Ação de cobrança',             a:'Direito Civil',          p:'defesa do devedor' },
+  { t:'Ação de despejo',              a:'Direito Civil',          p:'defesa do locatário' },
+  { t:'Ação consumerista',            a:'Direito do Consumidor',  p:'defesa do fornecedor' },
+  { t:'Ação indenizatória',           a:'Responsabilidade Civil', p:'defesa da transportadora' },
+  { t:'Ação penal — furto qualificado', a:'Direito Penal',        p:'defesa do acusado' },
+  { t:'Ação penal — apropriação indébita', a:'Direito Penal',     p:'defesa do acusado' },
+  { t:'Reclamatória trabalhista',     a:'Direito do Trabalho',    p:'defesa da empregadora' },
+  { t:'Ação possessória',             a:'Direito Civil',          p:'defesa do possuidor' },
+  { t:'Ação de alimentos',            a:'Direito de Família',     p:'defesa do alimentante' }
+];
+var TEMAS_STF = ['sigilo de dados e devido processo','liberdade de expressão em rede social','competência tributária dos entes','direito ao esquecimento','autonomia universitária','meio ambiente e livre iniciativa'];
+
+/* ---------- conteúdo: RELÍQUIAS ---------- */
+var RELIQUIAS = {
+  vade:    { nome:'Vade Mecum anotado',   desc:'Cartas de Norma ganham +2.' },
+  dossie:  { nome:'Dossiê de provas',     desc:'Cartas de Fato ganham +2.' },
+  tribuna: { nome:'Voz de tribuna',       desc:'Cartas de Retórica ganham +2.' },
+  praxe:   { nome:'Manual de praxe',      desc:'Cartas de Técnica ganham +2.' },
+  cafe:    { nome:'Café da madrugada',    desc:'+1 de fôlego na primeira rodada de cada caso.' },
+  tese:    { nome:'Tese decorada',        desc:'A primeira carta de cada caso não gasta fôlego.' },
+  rede:    { nome:'Rede de contatos',     desc:'As recompensas oferecem 4 cartas em vez de 3.' },
+  anel:    { nome:'Anel da turma',        desc:'Você começa cada caso com +4 de convicção.' }
+};
+Object.keys(RELIQUIAS).forEach(function(id){ RELIQUIAS[id].id = id; });
+var RELIQUIA_TIPO = { vade:'N', dossie:'F', tribuna:'R', praxe:'T' };
+
+/* ---------- estado global ---------- */
+var S = null;          // a jornada (run)
+var B = null;          // a batalha corrente
+var PERFIL = store.get('ui_perfil', { nome:'', ra:'', sem:'', token:'' });
+var TEMA  = store.get('ui_tema', 'auto');
+var VIBRA = store.get('ui_vibra', true);
+var mudo  = store.get('ui_mudo', false);
+
+function salvarRun(){ if (S) store.set('ui_fmp_run', S); else store.del('ui_fmp_run'); }
+
+/* ---------- fluxo de telas ---------- */
+var TELAS = ['scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-placar','scr-config'];
+function mostrar(id){
+  TELAS.forEach(function(t){ var e=$(t); if(e) e.classList.toggle('hidden', t!==id); });
+  var e = $(id); if (e){ e.style.animation='none'; void e.offsetWidth; e.style.animation=''; }
+  if (typeof window!=='undefined' && window.scrollTo) window.scrollTo(0,0);
+}
+
+var modalTravado = false;
+function modal(opts){
+  // opts: {titulo, html, botoes:[{t,fn,ghost}], escuro, travado, cru}
+  var wrap = $('modalWrap'), card = $('modalCard');
+  if (!wrap || !card) return;
+  modalTravado = !!opts.travado;
+  card.className = opts.escuro ? 'escuro' : '';
+  if (opts.cru){ card.innerHTML = opts.html; }
+  else {
+    var h = '<div class="modal-pad">';
+    if (opts.titulo) h += '<div class="serif" style="font-weight:600;font-size:22px;margin-bottom:10px">'+opts.titulo+'</div>';
+    h += '<div style="font-size:13.5px;line-height:1.55;color:'+(opts.escuro?'var(--sand)':'var(--ink-2)')+'">'+(opts.html||'')+'</div>';
+    h += '<div class="modal-botoes" id="modalBotoes"></div></div>';
+    card.innerHTML = h;
+  }
+  wrap.classList.remove('hidden');
+  var alvo = $('modalBotoes') || card;
+  (opts.botoes||[]).forEach(function(b){
+    var btn = el('button', b.ghost?'btn-ghost':'btn', b.t);
+    btn.addEventListener('click', function(){ fecharModal(); if (b.fn) b.fn(); });
+    alvo.appendChild(btn);
+  });
+  som.clique();
+}
+function fecharModal(){ var w=$('modalWrap'); if(w) w.classList.add('hidden'); modalTravado=false; }
+
+/* ---------- jornada ---------- */
+function rngDe(){ // sub-gerador determinístico por propósito (resiste a salvar/retomar)
+  var partes = Array.prototype.slice.call(arguments).join(':');
+  return mulberry32(hashStr(S.seed + ':' + partes));
+}
+
+function novaJornada(modo, seedForcada){
+  var seed;
+  if (modo === 'diario'){
+    var d = new Date();
+    var dia = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    seed = 'diario-' + dia;
+  } else {
+    seed = seedForcada != null ? String(seedForcada) : 'livre-' + Math.floor(Math.random()*1e9);
+  }
+  S = {
+    v: CONFIG.VERSAO, modo: modo, seed: seed,
+    caso: 0, deck: DECK_INICIAL.slice(), relics: [],
+    pontos: 0, detalhe: [], embargos: 1, bonusIni: 0,
+    fase: 'caso', vivo: true
+  };
+  salvarRun();
+  iniciarCaso(false);
+}
+
+function continuarJornada(){
+  var r = store.get('ui_fmp_run', null);
+  if (!r){ atualizarTitulo(); return; }
+  S = r;
+  if (S.fase === 'recompensa') recompensaCartas();
+  else if (S.fase === 'reliquia') recompensaReliquia();
+  else if (S.fase === 'evento') evento();
+  else iniciarCaso(false);
+}
+
+function sortearCaso(i){
+  var rng = rngDe('caso', i);
+  var meta = JORNADA[i];
+  var acao = amostra(ACOES, rng);
+  var titulo, partes;
+  if (meta.inst.indexOf('Supremo') >= 0){
+    var tema = amostra(TEMAS_STF, rng);
+    var n = 980000 + Math.floor(rng()*90000);
+    var nFmt = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    titulo = 'RE ' + nFmt + ' — tema: ' + tema;
+    partes = amostra(EMPRESAS.concat(SOBRENOMES), rng) + ' vs. União · ' + 'recurso extraordinário da defesa';
+    acao = { t:'Recurso extraordinário', a:'Direito Constitucional', p:'defesa do recorrente' };
+  } else {
+    var a1 = rng() < .5 ? amostra(EMPRESAS, rng) : amostra(SOBRENOMES, rng);
+    var a2; do { a2 = rng() < .5 ? amostra(EMPRESAS, rng) : amostra(SOBRENOMES, rng); } while (a2 === a1);
+    titulo = a1 + ' vs. ' + a2;
+    partes = acao.t + ' · ' + acao.p;
+  }
+  var juizId = meta.plenario ? 'plenario' : amostra(JUIZES_COMUNS, rng);
+  return { titulo: titulo, partes: partes, area: acao.a, juiz: juizId };
+}
+
+/* ---------- batalha ---------- */
+function iniciarCaso(retry){
+  var i = S.caso;
+  var meta = JORNADA[i];
+  if (!retry || !S.casoDados) S.casoDados = sortearCaso(i);   // embargos reusam caso e julgador
+  var dados = S.casoDados;
+  var rngB = rngDe('batalha', i, retry ? 'embargos' : 'normal');
+  var convIni = clamp(50 + S.bonusIni + (S.relics.indexOf('anel')>=0 ? 4 : 0), 0, 70);
+  B = {
+    caso: i, meta: meta, dados: dados,
+    juiz: JUIZES[dados.juiz], opon: OPONENTES[meta.opon],
+    p: convIni, rodada: 1, prazo: meta.prazo,
+    compra: embaralhar(S.deck.slice(), rngB), descarte: [], mao: [], exauridas: [],
+    folego: 3, folegoMax: 3,
+    movIdx: 0, conten: 0, bloqueio: 0,
+    pressa: false, quest: false, dobra: false, negate: false,
+    teseUsada: false, tiposRodada: [], jogadas: [],
+    rng: rngB, vogaIdx: meta.plenario ? Math.floor(rngB()*4) : -1,
+    fim: null, demo: false, travado: false
+  };
+  S.fase = 'caso';
+  salvarRun();
+  setTema(!!meta.dark);
+  iniciarRodada(true);
+  pintarBatalha(true);
+  mostrar('scr-battle');
+  logLimpo();
+  logJuiz('Pregão: ' + dados.titulo + '. A ' + (B.opon.nome) + ' representa a parte adversa.');
+  if (retry) logJuiz('Embargos acolhidos: o caso volta à pauta, com o mesmo julgador.');
+  if (B.vogaIdx >= 0) logJuiz('Voga do plenário: argumentos de ' + TIPOS[TIPO_ORDEM[B.vogaIdx]] + ' pesam ×1,5 nesta abertura.');
+  som.abrir();
+}
+
+function comprarCartas(n){
+  for (var k=0;k<n;k++){
+    if (!B.compra.length){
+      if (!B.descarte.length) break;
+      B.compra = embaralhar(B.descarte, B.rng);
+      B.descarte = [];
+    }
+    B.mao.push(B.compra.pop());
+  }
+}
+
+function iniciarRodada(primeira){
+  B.bloqueio = 0;                      // contenção própria expira
+  B.tiposRodada = [];
+  B.folegoMax = 3 + ((primeira && S.relics.indexOf('cafe')>=0) ? 1 : 0);
+  B.folego = Math.max(0, B.folegoMax - (B.pressa ? 1 : 0));
+  if (B.pressa) logJuiz('A pressão surte efeito: você abre a rodada com −1 de fôlego.');
+  B.pressa = false;
+  B.descarte = B.descarte.concat(B.mao); B.mao = [];
+  comprarCartas(5);
+}
+
+function computarDano(carta, situacao){
+  // ordem exata: base → +combo → ×julgador → +relíquia por tipo → ÷2 questionada → ×2 repercussão → contenção
+  var s = situacao || B;
+  var d = carta.base;
+  var comboTxt = '';
+  if (carta.combo){
+    var c = carta.combo, b = 0;
+    if (c.req === 'MARE'){ if (s.p >= 65){ b = c.b; comboTxt = 'maré favorável +' + b; } }
+    else if (c.req === 'DUVIDA'){ if (s.p <= 45){ b = c.b; comboTxt = 'na dúvida +' + b; } }
+    else if (c.req === 'VAR'){ var dist = {}; s.tiposRodada.forEach(function(t){ dist[t]=1; }); var nd = Object.keys(dist).length; if (nd>0){ b = nd*c.b; comboTxt = 'variedade +' + b; } }
+    else if (c.req === 'MAO'){ var resto = Math.max(0, s.mao.length - 1); if (resto>0){ b = resto*c.b; comboTxt = 'estudo +' + b; } }
+    else if (s.tiposRodada.indexOf(c.req) >= 0){ b = c.b; comboTxt = 'combo +' + b; }
+    d += b;
+  }
+  var mult = s.juiz.mult[carta.tipo] || 1;
+  if (s.vogaIdx >= 0 && TIPO_ORDEM[s.vogaIdx] === carta.tipo) mult = 1.5;
+  d *= mult;
+  var relTipo = null;
+  Object.keys(RELIQUIA_TIPO).forEach(function(rid){ if (S.relics.indexOf(rid)>=0 && RELIQUIA_TIPO[rid]===carta.tipo) relTipo = rid; });
+  if (relTipo) d += 2;
+  var metade = false;
+  if (s.quest){ d = d/2; metade = true; }
+  var dobrada = false;
+  if (s.dobra){ d = d*2; dobrada = true; }
+  var contido = 0;
+  if (!(carta.fx && carta.fx.pierce) && s.conten > 0){ contido = Math.min(s.conten, d); d -= contido; }
+  return { dano: Math.round(d), comboTxt: comboTxt, mult: mult, reliquia: relTipo, metade: metade, dobrada: dobrada, contido: Math.round(contido) };
+}
+
+function jogarCarta(idx){
+  if (!B || B.fim || B.travado) return;
+  var id = B.mao[idx];
+  var carta = CARTAS[id];
+  if (!carta) return;
+  var teseAtiva = !B.teseUsada && S.relics.indexOf('tese') >= 0;
+  var custo = teseAtiva ? 0 : carta.custo;
+  if (custo > B.folego){ logAviso('Fôlego insuficiente para ' + carta.nome + '.'); som.nega(); return; }
+
+  var sanou = false;   // cleanse age antes do cálculo: a carta que sana não sofre o ÷2
+  if (carta.fx && carta.fx.cleanse && B.quest){ B.quest = false; sanou = true; }
+  var r = computarDano(carta, B);
+  if (teseAtiva){
+    B.teseUsada = true;
+    if (carta.custo > 0) logJuiz('Tese decorada: esta carta não gastou fôlego.');
+  }
+  B.folego -= custo;
+  B.mao.splice(idx, 1);
+  if (carta.fx && carta.fx.exaust) B.exauridas.push(id); else B.descarte.push(id);
+
+  // efeitos
+  var notas = [];
+  if (sanou) notas.push('questionamento sanado');
+  if (r.comboTxt) notas.push(r.comboTxt);
+  if (r.mult !== 1) notas.push((B.vogaIdx>=0 && TIPO_ORDEM[B.vogaIdx]===carta.tipo ? 'voga' : 'julgador') + ' ×' + String(r.mult).replace('.',','));
+  if (r.reliquia) notas.push(RELIQUIAS[r.reliquia].nome.toLowerCase() + ' +2');
+  if (r.metade) notas.push('questionada ÷2');
+  if (r.dobrada) notas.push('repercussão ×2');
+  if (r.contido) notas.push('contida −' + r.contido);
+  if (B.quest) B.quest = false;
+  if (B.dobra && r.dobrada) B.dobra = false;
+  if (!(carta.fx && carta.fx.pierce)) B.conten = Math.max(0, B.conten - r.contido);
+
+  if (carta.fx){
+    if (carta.fx.draw){ comprarCartas(carta.fx.draw); notas.push('compra ' + carta.fx.draw); }
+    if (carta.fx.energy){ B.folego += carta.fx.energy; notas.push('+' + carta.fx.energy + ' fôlego'); }
+    if (carta.fx.block){ B.bloqueio += carta.fx.block; notas.push('contém ' + carta.fx.block); }
+    if (carta.fx.negate){ B.negate = true; notas.push('anula o próximo movimento'); }
+    if (carta.fx.dobra){ B.dobra = true; }
+  }
+
+  B.p = clamp(B.p + r.dano, 0, 100);
+  B.tiposRodada.push(carta.tipo);
+  B.jogadas.push({ carta:id, rodada:B.rodada, dano:r.dano });
+  logCarta(carta, r.dano, notas.join(' · '));
+  vibra(12);
+  if (r.dano > 0){ som.carta(r.comboTxt ? true : false); fxCarta(carta.tipo, r.dano); } else som.tecnica();
+
+  pintarBatalha();
+  checarFim(false);
+}
+
+function encerrarRodada(){
+  if (!B || B.fim || B.travado) return;
+  B.travado = true;
+  pintarBatalha();
+  som.clique();
+  agenda(function(){ turnoAdversario(); }, 480);
+}
+
+function turnoAdversario(){
+  var opon = B.opon;
+  var mov = opon.moves[B.movIdx % opon.moves.length];
+  B.movIdx++;
+  B.descarte = B.descarte.concat(B.mao); B.mao = [];
+
+  if (B.negate){
+    B.negate = false;
+    logAdverso('Embargos acolhidos: ' + mov.nome.toLowerCase() + ' da parte adversa não se realiza.');
+  } else if (mov.t === 'dano'){
+    var bruto = mov.v;
+    var absorvido = Math.min(B.bloqueio, bruto);
+    var efetivo = bruto - absorvido;
+    B.bloqueio -= absorvido;
+    B.p = clamp(B.p - efetivo, 0, 100);
+    logAdverso('Sustentação adversa: −' + efetivo + ' na balança' + (absorvido ? ' (contido ' + absorvido + ')' : '') + '.');
+    if (efetivo > 0){ som.dano(); fxDano(); vibra(30); } else som.bloqueio();
+  } else if (mov.t === 'conten'){
+    B.conten = mov.v;
+    logAdverso('Protelação: contém até ' + mov.v + ' da sua próxima sustentação.');
+    som.tecnica();
+  } else if (mov.t === 'quest'){
+    B.quest = true;
+    logAdverso('Questionamento: a sua próxima carta valerá metade.');
+    som.tecnica();
+  } else if (mov.t === 'press'){
+    B.pressa = true;
+    logAdverso('Pressão: você abrirá a próxima rodada com −1 de fôlego.');
+    som.tecnica();
+  }
+
+  // ponderação do julgador a cada 3 rodadas
+  if (B.rodada % 3 === 0 && !B.fim){
+    if (B.p > 50){ B.p = Math.max(50, B.p - 3); logJuiz('O julgador pondera: a convicção recua 3 rumo ao centro.'); }
+    else if (B.p < 50){ B.p = Math.min(50, B.p + 3); logJuiz('O julgador pondera: a convicção avança 3 rumo ao centro.'); }
+    som.pondera();
+  }
+
+  pintarBatalha();
+  if (checarFim(true)) return;
+
+  // voga do plenário gira a cada 2 rodadas
+  if (B.vogaIdx >= 0 && B.rodada % 2 === 0){
+    B.vogaIdx = (B.vogaIdx + 1) % 4;
+    logJuiz('A voga do plenário gira: agora favorece ' + TIPOS[TIPO_ORDEM[B.vogaIdx]] + ' (×1,5).');
+    som.voga();
+  }
+
+  agenda(function(){
+    B.rodada++;
+    iniciarRodada(false);
+    B.travado = false;
+    pintarBatalha();
+  }, 520);
+}
+
+function checarFim(fimDeRodada){
+  if (!B || B.fim) return true;
+  if (B.p >= 100){ finalizarCaso(true, 'plena'); return true; }
+  if (B.p <= 0){ finalizarCaso(false, 'zero'); return true; }
+  if (fimDeRodada && B.rodada >= B.prazo){
+    if (B.p > 50) finalizarCaso(true, 'prazo'); else finalizarCaso(false, 'prazo');
+    return true;
+  }
+  return false;
+}
+
+function finalizarCaso(venceu, motivo){
+  if (B.demo) return;                       // a demo nunca sentencia
+  if (B.fim) return;
+  B.fim = venceu ? 'vitoria' : 'derrota';
+  B.travado = true;
+  pintarBatalha();
+  if (venceu){
+    var plena = motivo === 'plena';
+    var margem = Math.max(0, B.p - 50);
+    var econ = Math.max(0, B.prazo - B.rodada);
+    var pts = 100 + margem + econ*10 + (plena ? 50 : 0);
+    S.pontos += pts;
+    S.detalhe.push({ caso:B.caso, titulo:B.dados.titulo, pts:pts, plena:plena, conv:B.p, rodadas:B.rodada });
+    som.vitoria(); fxVitoria(plena);
+    var linhas = '<div class="tabela-pontos">'
+      + '<div class="li"><span>Base do caso</span><span>100</span></div>'
+      + '<div class="li"><span>Margem de convicção</span><span>+' + margem + '</span></div>'
+      + '<div class="li"><span>Rodadas economizadas</span><span>+' + (econ*10) + '</span></div>'
+      + (plena ? '<div class="li"><span>Convicção plena</span><span>+50</span></div>' : '')
+      + '<div class="total"><span>Total do caso</span><b>' + pts + '</b></div></div>';
+    modal({ escuro:true, travado:true, cru:true, html:
+      '<div class="sentenca">'
+      + '<svg class="simbolo" style="width:34px;height:34px" viewBox="0 0 100 100"><path fill="#EE2A42" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>'
+      + '<div class="rotulo" style="margin-top:12px">Sentença ' + (B.meta.boss ? 'no caso-chefe' : 'favorável') + '</div>'
+      + '<h3>' + (plena ? 'Convicção plena' : 'Procedente') + '</h3>'
+      + '<div class="txt">Convicção final ' + B.p + ' / 100 · rodada ' + Math.min(B.rodada,B.prazo) + ' de ' + B.prazo + '</div>'
+      + linhas
+      + '<div class="modal-botoes" id="modalBotoes"></div></div>',
+      botoes: [{ t:'Seguir na jornada', fn: aposCaso }]
+    });
+  } else {
+    som.derrota();
+    var temEmbargos = S.embargos > 0;
+    var razao = motivo === 'zero' ? 'A convicção chegou a zero.' : 'O prazo de pauta terminou com a convicção em ' + B.p + '.';
+    modal({ escuro:true, travado:true, cru:true, html:
+      '<div class="sentenca">'
+      + '<svg class="simbolo" style="width:34px;height:34px;opacity:.6" viewBox="0 0 100 100"><path fill="#BFBAA4" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>'
+      + '<div class="rotulo" style="margin-top:12px">Sentença</div>'
+      + '<h3>Causa perdida</h3>'
+      + '<div class="txt">' + razao + (temEmbargos ? ' Você ainda pode opor <b style="color:var(--cream)">embargos</b>: o mesmo caso, o mesmo julgador — uma única vez na jornada.' : ' Sem embargos restantes, a jornada termina aqui.') + '</div>'
+      + '<div class="modal-botoes" id="modalBotoes"></div></div>',
+      botoes: temEmbargos
+        ? [{ t:'Opor embargos', fn: oporEmbargos }, { t:'Aceitar a sentença', ghost:true, fn: encerrarJornadaDerrota }]
+        : [{ t:'Encerrar a jornada', fn: encerrarJornadaDerrota }]
+    });
+  }
+}
+
+function oporEmbargos(){
+  S.embargos--;
+  salvarRun();
+  iniciarCaso(true);
+}
+
+function aposCaso(){
+  var meta = B.meta;
+  if (meta.boss && CONFIG.AI_WEBHOOK){ abrirSustentacaoIA(); return; }
+  aposCaso2();
+}
+function aposCaso2(){
+  var meta = B.meta;
+  if (S.caso >= JORNADA.length - 1){ encerrarJornadaVitoria(); return; }
+  if (meta.boss){ S.fase = 'reliquia'; salvarRun(); recompensaReliquia(); }
+  else { S.fase = 'recompensa'; salvarRun(); recompensaCartas(); }
+}
+
+/* ---------- recompensas e eventos ---------- */
+function poolCartas(rar){
+  return Object.keys(CARTAS).filter(function(id){ return CARTAS[id].rar === rar; });
+}
+function ofertaCartas(){
+  var rng = rngDe('recompensa', S.caso, S.deck.length);
+  var n = S.relics.indexOf('rede') >= 0 ? 4 : 3;
+  var oferta = [];
+  var raras = poolCartas('r'), comuns = poolCartas('c');
+  while (oferta.length < n){
+    var pool = (rng() < .3) ? raras : comuns;
+    var id = amostra(pool, rng);
+    if (oferta.indexOf(id) < 0) oferta.push(id);
+  }
+  return oferta;
+}
+
+function recompensaCartas(){
+  S.fase = 'recompensa'; salvarRun();
+  setTema(!!JORNADA[S.caso].dark);
+  $('rwEyebrow').textContent = 'Sentença favorável';
+  $('rwTitulo').textContent = 'Escolha um argumento';
+  $('rwSub').textContent = 'Uma carta entra no seu baralho para o resto da jornada. Raras aparecem com a sorte — e com a rede certa.';
+  var grade = $('rwGrade'); grade.innerHTML = '';
+  grade.style.gridTemplateColumns = '';
+  ofertaCartas().forEach(function(id){
+    var c = cartaEl(CARTAS[id], { podeJogar:true, aoClicar: function(){ escolherRecompensa(id); } });
+    grade.appendChild(c);
+  });
+  $('rwPular').classList.remove('hidden');
+  mostrar('scr-reward');
+}
+function escolherRecompensa(id){
+  S.deck.push(id);
+  som.boa();
+  proximoCaso();
+}
+function pularRecompensa(){ proximoCaso(); }
+
+function ofertaReliquias(){
+  var rng = rngDe('reliquia', S.caso);
+  var disponiveis = Object.keys(RELIQUIAS).filter(function(id){ return S.relics.indexOf(id) < 0; });
+  return embaralhar(disponiveis, rng).slice(0, 2);
+}
+function recompensaReliquia(){
+  S.fase = 'reliquia'; salvarRun();
+  setTema(!!JORNADA[S.caso].dark);
+  var oferta = ofertaReliquias();
+  $('rwEyebrow').textContent = 'Caso-chefe vencido';
+  $('rwTitulo').textContent = 'Escolha uma relíquia';
+  $('rwSub').textContent = 'Relíquias acompanham você até o fim da jornada.';
+  var grade = $('rwGrade'); grade.innerHTML = '';
+  grade.style.gridTemplateColumns = 'repeat(auto-fit,minmax(220px,1fr))';
+  oferta.forEach(function(id){
+    var r = RELIQUIAS[id];
+    var op = el('button','opcao',
+      '<svg class="simbolo-op" viewBox="0 0 100 100"><path fill="#EE2A42" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>'
+      + '<span class="titulo-op">' + esc(r.nome) + '</span>'
+      + '<span class="desc-op">' + esc(r.desc) + '</span>');
+    op.addEventListener('click', function(){ escolherReliquia(id); });
+    grade.appendChild(op);
+  });
+  $('rwPular').classList.add('hidden');
+  mostrar('scr-reward');
+}
+function escolherReliquia(id){
+  S.relics.push(id);
+  som.boa();
+  // entre instâncias (após casos 3 e 6, índices 2 e 5): Intervalo na FMP
+  if (S.caso === 2 || S.caso === 5){ S.fase = 'evento'; salvarRun(); evento(); }
+  else proximoCaso();
+}
+
+function evento(){
+  S.fase = 'evento'; salvarRun();
+  setTema(false);
+  var grade = $('evGrade'); grade.innerHTML = '';
+  var ops = [
+    { t:'Afinar o baralho', d:'Remova uma carta do baralho. Menos volume, mais precisão.', fn: eventoRemover },
+    { t:'Carta rara à escolha', d:'Leve qualquer argumento raro do catálogo.', fn: eventoRara },
+    { t:'Estudo dirigido', d:'+4 de convicção inicial, permanente, em todos os próximos casos.', fn: eventoConviccao }
+  ];
+  ops.forEach(function(o){
+    var op = el('button','opcao','<span class="titulo-op">'+o.t+'</span><span class="desc-op">'+o.d+'</span>');
+    op.addEventListener('click', o.fn);
+    grade.appendChild(op);
+  });
+  mostrar('scr-event');
+}
+function eventoRemover(){
+  var itens = S.deck.map(function(id,i){ return { id:id, i:i }; });
+  var h = '<div style="display:flex;flex-direction:column;gap:7px;max-height:46vh;overflow:auto">';
+  itens.forEach(function(it){
+    var c = CARTAS[it.id];
+    h += '<button class="btn-ghost" data-rm="'+it.i+'" style="justify-content:space-between;display:flex"><span>'+esc(c.nome)+'</span><span style="color:'+TIPO_COR[c.tipo]+';font-size:11px">'+TIPOS[c.tipo]+'</span></button>';
+  });
+  h += '</div>';
+  modal({ titulo:'Remover uma carta', html:h, botoes:[{t:'Cancelar', ghost:true}] });
+  var card = $('modalCard');
+  Array.prototype.forEach.call(card.querySelectorAll('[data-rm]'), function(btn){
+    btn.addEventListener('click', function(){
+      S.deck.splice(parseInt(btn.getAttribute('data-rm'),10), 1);
+      fecharModal(); som.boa(); proximoCaso();
+    });
+  });
+}
+function eventoRara(){
+  var h = '<div style="display:flex;flex-direction:column;gap:7px;max-height:46vh;overflow:auto">';
+  poolCartas('r').forEach(function(id){
+    var c = CARTAS[id];
+    h += '<button class="btn-ghost" data-add="'+id+'" style="justify-content:space-between;display:flex"><span>'+esc(c.nome)+'</span><span style="color:'+TIPO_COR[c.tipo]+';font-size:11px">'+TIPOS[c.tipo]+' · base '+c.base+'</span></button>';
+  });
+  h += '</div>';
+  modal({ titulo:'Carta rara à escolha', html:h, botoes:[{t:'Cancelar', ghost:true}] });
+  var card = $('modalCard');
+  Array.prototype.forEach.call(card.querySelectorAll('[data-add]'), function(btn){
+    btn.addEventListener('click', function(){
+      S.deck.push(btn.getAttribute('data-add'));
+      fecharModal(); som.boa(); proximoCaso();
+    });
+  });
+}
+function eventoConviccao(){
+  S.bonusIni += 4;
+  som.boa();
+  proximoCaso();
+}
+
+function proximoCaso(){
+  S.caso++;
+  S.casoDados = null;
+  S.fase = 'caso';
+  salvarRun();
+  iniciarCaso(false);
+}
+
+/* ---------- fim da jornada e pontuação ---------- */
+function encerrarJornadaVitoria(){
+  S.pontos += 500;
+  S.vivo = false;
+  registrarPartida(true);
+  telaOver(true);
+}
+function encerrarJornadaDerrota(){
+  S.vivo = false;
+  registrarPartida(false);
+  telaOver(false);
+}
+function telaOver(venceu){
+  setTema(venceu ? !!JORNADA[JORNADA.length-1].dark : false);
+  $('overRotulo').textContent = venceu ? 'Trânsito em julgado' : 'Fim da jornada';
+  $('overTitulo').textContent = venceu ? 'Jornada vencida' : 'A jornada termina aqui';
+  $('overSub').textContent = venceu
+    ? 'Oito casos, três instâncias. A defesa prevaleceu na última instância.'
+    : 'Você venceu ' + S.detalhe.length + ' de 8 casos. O placar guarda o que ficou.';
+  var h = '';
+  S.detalhe.forEach(function(d){
+    h += '<div class="li"><span>Caso ' + (d.caso+1) + ' · ' + esc(d.titulo).slice(0,42) + (d.titulo.length>42?'…':'') + '</span><span>+' + d.pts + '</span></div>';
+  });
+  if (S.iaPts) h += '<div class="li"><span>Sustentações de IA</span><span>+' + S.iaPts + '</span></div>';
+  if (venceu) h += '<div class="li"><span>Vitória final</span><span>+500</span></div>';
+  h += '<div class="total"><span>Total da jornada</span><b>' + S.pontos + '</b></div>';
+  $('overTabela').innerHTML = h;
+  var sim = $('overSimbolo').querySelector('path');
+  if (sim) sim.setAttribute('fill', venceu ? '#EE2A42' : '#BFBAA4');
+  store.del('ui_fmp_run');
+  mostrar('scr-over');
+  if (venceu){ som.campea(); fxVitoria(true); }
+}
+
+function registrarPartida(venceu){
+  var partida = {
+    nome: PERFIL.nome || 'Estudante', ra: PERFIL.ra || '', sem: PERFIL.sem || CONFIG.SEMESTRE,
+    pontos: S.pontos, casos: S.detalhe.length, venceu: !!venceu,
+    modo: S.modo, seed: S.seed, quando: new Date().toISOString(), v: CONFIG.VERSAO
+  };
+  var placar = store.get('ui_fmp_placar', []);
+  placar.push(partida);
+  placar.sort(function(a,b){ return b.pontos - a.pontos; });
+  store.set('ui_fmp_placar', placar.slice(0, 10));
+  enviarPartida(partida);
+}
+
+/* ---------- pintura da batalha ---------- */
+function pintarBatalha(inicial){
+  if (!B) return;
+  var d = B.dados, meta = B.meta;
+  $('cabInstancia').textContent = meta.inst;
+  $('cabCaso').textContent = 'Caso ' + (B.caso+1) + ' de 8';
+  $('cabTitulo').textContent = d.titulo;
+  $('cabPartes').textContent = d.partes + ' · ' + d.area;
+  var passos = $('cabPassos'); passos.innerHTML = '';
+  JORNADA.forEach(function(j, i){
+    var p = el('i', (i < B.caso ? 'feito' : (i === B.caso ? 'agora' : '')) + (j.boss ? ' chefe' : ''));
+    passos.appendChild(p);
+  });
+
+  var juiz = B.juiz;
+  $('julNome').textContent = juiz.nome + ' · ' + juiz.perfil;
+  var foto = $('julFoto');
+  if (juiz.foto){ foto.src = juiz.foto; foto.classList.remove('hidden'); } else foto.classList.add('hidden');
+  var mults = $('julMults'); mults.innerHTML = '';
+  if (B.vogaIdx >= 0){
+    TIPO_ORDEM.forEach(function(t, i){
+      var m = el('span', 'mult' + (i === B.vogaIdx ? ' voga' : ''), TIPOS[t] + (i === B.vogaIdx ? ' ×1,5' : ' ×1'));
+      mults.appendChild(m);
+    });
+  } else {
+    TIPO_ORDEM.forEach(function(t){
+      var v = juiz.mult[t] || 1;
+      var m = el('span', 'mult' + (v>1?' fav':(v<1?' desf':'')), TIPOS[t] + ' ×' + String(v).replace('.',','));
+      mults.appendChild(m);
+    });
+  }
+
+  $('convNum').textContent = Math.round(B.p);
+  $('convNum').classList.toggle('plena', B.p >= 100);
+  $('convMarca').style.left = B.p + '%';
+  setBalanca(B.p);
+
+  var mov = B.opon.moves[B.movIdx % B.opon.moves.length];
+  $('oppMov').textContent = mov.nome;
+  $('oppDesc').textContent = B.negate ? 'Movimento anulado pelos seus embargos de declaração.' : mov.desc;
+  var pills = $('statusPills'); pills.innerHTML = '';
+  if (B.quest) pills.appendChild(el('span','pilula-status ps-quest','Tese questionada: próxima carta ÷2'));
+  if (B.dobra) pills.appendChild(el('span','pilula-status ps-dobra','Repercussão geral: próxima carta ×2'));
+  if (B.bloqueio > 0) pills.appendChild(el('span','pilula-status ps-block','Sua contenção: ' + B.bloqueio));
+  if (B.conten > 0) pills.appendChild(el('span','pilula-status ps-conten','Contenção adversa: ' + B.conten));
+
+  $('rodadaNum').textContent = Math.min(B.rodada, B.prazo);
+  $('rodadaMax').textContent = ' / ' + B.prazo;
+  var fol = $('folego'); fol.innerHTML = '';
+  var tot = Math.max(B.folegoMax, B.folego);
+  for (var i=0;i<tot;i++) fol.appendChild(el('span', i < B.folego ? 'on' : 'off'));
+
+  $('btnPilhas').textContent = 'compra ' + B.compra.length + ' · descarte ' + B.descarte.length;
+  $('btnEncerrar').disabled = !!B.travado || !!B.fim;
+
+  var mao = $('mao'); mao.innerHTML = '';
+  B.mao.forEach(function(id, idx){
+    var carta = CARTAS[id];
+    var custoReal = (!B.teseUsada && S && S.relics.indexOf('tese')>=0) ? 0 : carta.custo;
+    var pode = custoReal <= B.folego && !B.fim && !B.travado;
+    mao.appendChild(cartaEl(carta, {
+      podeJogar: pode, custoMostrado: custoReal, situacao: B,
+      aoClicar: function(){ jogarCarta(idx); }   // a mão repinta a cada jogada; o índice é válido
+    }));
+  });
+}
+
+function cartaEl(carta, opts){
+  opts = opts || {};
+  var cor = TIPO_COR[carta.tipo];
+  var custo = opts.custoMostrado != null ? opts.custoMostrado : carta.custo;
+  var prev = '';
+  if (opts.situacao){
+    var r = computarDano(carta, opts.situacao);
+    prev = '+' + r.dano;
+  } else prev = '+' + carta.base;
+  var podeCls = opts.podeJogar === false ? (opts.situacao ? ' nao' : '') : ' pode';
+  var wrap = el('div', 'carta' + (carta.rar === 'r' ? ' rara' : '') + podeCls);
+  wrap.innerHTML =
+    '<div class="cab-c">'
+    + '<span class="tipo-pill" style="color:'+cor+';border-color:'+cor+'">'+TIPOS[carta.tipo]+'</span>'
+    + '<span class="custo">'+custo+'</span></div>'
+    + (carta.rar==='r' ? '<span class="tag-rara">rara</span>' : '')
+    + '<div class="corpo">'
+    + '<div class="nome">'+esc(carta.nome)+'</div>'
+    + '<div class="efeito">'+esc(carta.combo ? carta.combo.txt : carta.texto)+'</div>'
+    + '<div class="base-linha"><span class="base" style="color:'+cor+'">'+prev+'</span>'
+    + '<button class="info-i" aria-label="Ficha da carta">i</button></div></div>';
+  wrap.querySelector('.info-i').addEventListener('click', function(ev){ ev.stopPropagation(); abrirFicha(carta); });
+  if (opts.aoClicar && opts.podeJogar !== false) wrap.addEventListener('click', function(){ opts.aoClicar(); });
+  else if (opts.aoClicar && !opts.situacao) wrap.addEventListener('click', function(){ opts.aoClicar(); });
+  return wrap;
+}
+
+function abrirFicha(carta){
+  var cor = TIPO_COR[carta.tipo];
+  modal({ cru:true, html:
+    '<div class="ficha-cab">'
+    + '<span class="tipo-pill" style="font-size:9.5px;padding:3px 10px;color:'+cor+';border-color:'+cor+'">'+TIPOS[carta.tipo]+(carta.rar==='r'?' · rara':'')+'</span>'
+    + '<span class="custo" style="width:26px;height:26px;font-size:14px">'+carta.custo+'</span></div>'
+    + '<div class="ficha-corpo">'
+    + '<div class="ficha-nome">'+esc(carta.nome)+'</div>'
+    + '<div class="ficha-efeito">'+esc(carta.texto)+'</div>'
+    + (carta.combo ? '<div class="ficha-combo" style="color:'+cor+'">Combo · '+esc(carta.combo.txt)+'</div>' : '<div style="margin-bottom:12px"></div>')
+    + '<div class="ficha-fala"><div class="rotulo" style="margin-bottom:4px">Diz ao juiz</div>'
+    + '<div class="txt">'+esc(carta.fala)+'</div></div></div>'
+    + '<div class="ficha-pe"><span class="disc">'+esc(carta.disc)+'</span><span class="base" style="color:'+(cor==='#EE2A42'?'#EE2A42':'#EFEEEA')+'">base +'+carta.base+'</span></div>'
+  });
+  var card = $('modalCard');
+  card.addEventListener('click', function(){ fecharModal(); }, { once:true });
+}
+
+function verPilhas(){
+  var contar = {};
+  S.deck.forEach(function(id){ contar[id] = (contar[id]||0) + 1; });
+  var h = '<div style="display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto">';
+  Object.keys(contar).sort(function(a,b){ return CARTAS[a].nome.localeCompare(CARTAS[b].nome); }).forEach(function(id){
+    var c = CARTAS[id];
+    h += '<div style="display:flex;justify-content:space-between;font-size:13px;border-bottom:1px solid var(--line);padding-bottom:5px">'
+      + '<span>'+(contar[id]>1?contar[id]+'× ':'')+esc(c.nome)+'</span>'
+      + '<span style="color:'+TIPO_COR[c.tipo]+';font-size:11px">'+TIPOS[c.tipo]+'</span></div>';
+  });
+  h += '</div><p class="meta-txt" style="margin:12px 0 0">Baralho com ' + S.deck.length + ' cartas · relíquias: '
+    + (S.relics.length ? S.relics.map(function(r){ return RELIQUIAS[r].nome; }).join(', ') : 'nenhuma ainda') + '</p>';
+  modal({ titulo:'Seu baralho', html:h, botoes:[{t:'Fechar', ghost:true}] });
+}
+
+/* ---------- log ---------- */
+function logLimpo(){ var l=$('log'); if(l) l.innerHTML='<div class="log-vazio">Jogue uma carta para sustentar a sua tese.</div>'; }
+function logPush(elm){
+  var l = $('log'); if (!l) return;
+  var vazio = l.querySelector('.log-vazio'); if (vazio) vazio.remove();
+  l.insertBefore(elm, l.firstChild);
+  while (l.children.length > 9) l.removeChild(l.lastChild);
+}
+function logCarta(carta, dano, notas){
+  var cor = TIPO_COR[carta.tipo];
+  var e = el('div','log-item');
+  e.style.borderLeftColor = cor;
+  e.innerHTML = '<div class="fala">'+esc(carta.fala)+'</div>'
+    + '<div class="detalhe"><b style="color:'+cor+'">'+esc(carta.nome)+'</b> · +'+dano+' na balança'+(notas?' · '+esc(notas):'')+'</div>';
+  logPush(e);
+}
+function logAdverso(txt){ logPush(el('div','log-item adverso', esc(txt))); }
+function logJuiz(txt){ logPush(el('div','log-item juiz', esc(txt))); }
+function logAviso(txt){ var e=el('div','log-item adverso', esc(txt)); logPush(e); }
+
+/* ---------- balança SVG + FX (loop único de rAF) ---------- */
+var balAlvo = 0, balAng = 0;
+function setBalanca(p){ balAlvo = ((p - 50) / 50) * 12; }  // graus; defesa (direita) desce com a convicção alta
+
+var fxParts = [];
+var fxCanvas = null, fxCtx = null, fxDPR = 1;
+function fxPreparar(){
+  fxCanvas = $('fx');
+  if (!fxCanvas || !fxCanvas.getContext) return;
+  fxCtx = fxCanvas.getContext('2d');
+  var redim = function(){
+    fxDPR = Math.min(2, window.devicePixelRatio || 1);
+    fxCanvas.width = Math.floor(innerWidth * fxDPR);
+    fxCanvas.height = Math.floor(innerHeight * fxDPR);
+  };
+  redim();
+  window.addEventListener('resize', redim);
+}
+function estrela4(ctx, x, y, r, rot){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(rot);
+  ctx.beginPath();
+  ctx.moveTo(0,-r);
+  ctx.quadraticCurveTo(r*.08, -r*.08, r, 0);
+  ctx.quadraticCurveTo(r*.08, r*.08, 0, r);
+  ctx.quadraticCurveTo(-r*.08, r*.08, -r, 0);
+  ctx.quadraticCurveTo(-r*.08, -r*.08, 0, -r);
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function fxSpawn(x, y, n, cor, forca){
+  if (!fxCtx) return;
+  for (var i=0;i<n && fxParts.length<700;i++){
+    var a = Math.random()*Math.PI*2, v = (Math.random()*.6+.4)*(forca||1);
+    fxParts.push({ x:x, y:y, vx:Math.cos(a)*v*3.2, vy:Math.sin(a)*v*3.2 - 1.6,
+      r: 3+Math.random()*6, rot: Math.random()*Math.PI, vr:(Math.random()-.5)*.2,
+      vida: 1, queda: .05+Math.random()*.04, cor: cor });
+  }
+}
+function pontoBalanca(){
+  var e = $('convMarca');
+  if (e && e.getBoundingClientRect){ var r = e.getBoundingClientRect(); if (r.width || r.left) return { x:r.left + r.width/2, y:r.top + r.height/2 }; }
+  return { x: innerWidth/2, y: innerHeight*0.3 };
+}
+function fxCarta(tipo, dano){ var p = pontoBalanca(); fxSpawn(p.x, p.y, clamp(4 + dano, 4, 26), TIPO_COR[tipo], 1); }
+function fxDano(){ var p = pontoBalanca(); fxSpawn(p.x, p.y, 10, '#191818', .8); }
+function fxVitoria(plena){
+  for (var i=0;i<(plena?7:4);i++){
+    fxSpawn(innerWidth*(0.15+Math.random()*0.7), innerHeight*(0.15+Math.random()*0.4), 24, i%2 ? '#EE2A42' : '#BFBAA4', 1.6);
+  }
+}
+
+var ultimoT = 0;
+function loopFX(t){
+  requestAnimationFrame(loopFX);
+  var dt = clamp((t - ultimoT)/16.7, 0, 3); ultimoT = t;
+  // balança
+  balAng += (balAlvo - balAng) * .085 * dt;
+  var trave = $('balTrave');
+  if (trave){
+    trave.setAttribute('transform', 'rotate(' + balAng.toFixed(2) + ' 160 34)');
+    var a = balAng * Math.PI/180, L = 104;
+    var ex = 160 - L*Math.cos(a), ey = 34 - L*Math.sin(a);
+    var dx = 160 + L*Math.cos(a), dy = 34 + L*Math.sin(a);
+    var pE = $('balPratoE'), pD = $('balPratoD');
+    if (pE) pE.setAttribute('transform', 'translate(' + ex.toFixed(1) + ' ' + ey.toFixed(1) + ')');
+    if (pD) pD.setAttribute('transform', 'translate(' + dx.toFixed(1) + ' ' + dy.toFixed(1) + ')');
+  }
+  // partículas
+  if (fxCtx){
+    fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+    if (fxParts.length){
+      for (var i=fxParts.length-1;i>=0;i--){
+        var p = fxParts[i];
+        p.x += p.vx*dt; p.y += p.vy*dt; p.vy += .12*dt; p.rot += p.vr*dt; p.vida -= p.queda*dt*.55;
+        if (p.vida <= 0){ fxParts.splice(i,1); continue; }
+        fxCtx.globalAlpha = clamp(p.vida, 0, 1);
+        fxCtx.fillStyle = p.cor;
+        estrela4(fxCtx, p.x*fxDPR, p.y*fxDPR, p.r*p.vida*fxDPR, p.rot);
+      }
+      fxCtx.globalAlpha = 1;
+    }
+  }
+}
+
+/* ---------- temporizador (a demo e o harness trocam por versões próprias) ---------- */
+function agenda(fn, ms){ return setTimeout(fn, ms); }
+
+/* ---------- áudio: WebAudio puro, nenhum asset ---------- */
+var som = (function(){
+  var ctx = null;
+  function ac(){
+    if (mudo) return null;
+    if (typeof window === 'undefined') return null;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!ctx) try{ ctx = new AC(); }catch(e){ return null; }
+    if (ctx.state === 'suspended') try{ ctx.resume(); }catch(e){}
+    return ctx;
+  }
+  function nota(freq, dur, tipo, ganho, quando, glide){
+    var c = ac(); if (!c) return;
+    var t = c.currentTime + (quando||0);
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = tipo || 'sine'; o.frequency.setValueAtTime(freq, t);
+    if (glide) o.frequency.exponentialRampToValueAtTime(glide, t+dur);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(ganho||.12, t+.012);
+    g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t+dur+.02);
+  }
+  function ruido(dur, ganho, freq){
+    var c = ac(); if (!c) return;
+    var n = Math.floor(c.sampleRate * dur);
+    var buf = c.createBuffer(1, n, c.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i=0;i<n;i++) data[i] = (Math.random()*2-1) * (1 - i/n);
+    var src = c.createBufferSource(); src.buffer = buf;
+    var f = c.createBiquadFilter(); f.type='bandpass'; f.frequency.value = freq||900; f.Q.value = .9;
+    var g = c.createGain(); g.gain.value = ganho||.14;
+    src.connect(f); f.connect(g); g.connect(c.destination); src.start();
+  }
+  return {
+    clique:  function(){ nota(660,.06,'sine',.05); },
+    abrir:   function(){ nota(392,.14,'sine',.07); nota(523,.16,'sine',.07,.09); },
+    carta:   function(combo){ ruido(.09,.08,1400); nota(523,.1,'triangle',.09); if (combo) nota(784,.12,'triangle',.09,.06); },
+    tecnica: function(){ nota(440,.08,'square',.035); },
+    dano:    function(){ nota(180,.22,'sawtooth',.08,0,110); ruido(.12,.09,300); },
+    bloqueio:function(){ nota(300,.1,'square',.05); nota(260,.12,'square',.05,.06); },
+    nega:    function(){ nota(220,.09,'square',.05); nota(196,.1,'square',.05,.07); },
+    pondera: function(){ nota(494,.08,'sine',.05); nota(440,.08,'sine',.05,.1); },
+    voga:    function(){ nota(587,.09,'triangle',.07); nota(740,.1,'triangle',.07,.08); },
+    boa:     function(){ nota(523,.09,'sine',.08); nota(659,.1,'sine',.08,.07); },
+    vitoria: function(){ [523,659,784,1047].forEach(function(f,i){ nota(f,.24,'triangle',.09,i*.1); }); },
+    campea:  function(){ [392,523,659,784,1047,1319].forEach(function(f,i){ nota(f,.3,'triangle',.09,i*.11); }); },
+    derrota: function(){ [392,330,262,196].forEach(function(f,i){ nota(f,.3,'sine',.08,i*.14); }); }
+  };
+})();
+function vibra(ms){ if (VIBRA && typeof navigator !== 'undefined' && navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+
+/* ---------- demo guiada ---------- */
+var demoTimers = [];
+var demoSalvo = null;
+function verDemo(){
+  demoSalvo = { S: S, B: B };
+  S = S || { deck: DECK_INICIAL.slice(), relics: [], bonusIni: 0, embargos: 1, caso: 0, seed:'demo', detalhe:[], pontos:0, modo:'demo' };
+  var rngB = mulberry32(hashStr('demo'));
+  B = {
+    caso: 0, meta: JORNADA[0], dados: { titulo:'Construtora Aurora vs. Condomínio Beira-Rio', partes:'Ação de reparação de danos · defesa do condomínio', area:'Direito Civil', juiz:'valencia' },
+    juiz: JUIZES.valencia, opon: OPONENTES.iniciante,
+    p: 50, rodada: 1, prazo: 10,
+    compra: [], descarte: [], mao: ['pacta','pericia','peroracao','objecao','dignidade'], exauridas: [],
+    folego: 3, folegoMax: 3, movIdx: 0, conten: 0, bloqueio: 0,
+    pressa:false, quest:false, dobra:false, negate:false, teseUsada:true,
+    tiposRodada: [], jogadas: [], rng: rngB, vogaIdx: -1, fim: null, demo: true, travado: false
+  };
+  setTema(false);
+  pintarBatalha(true);
+  mostrar('scr-battle');
+  logLimpo();
+  $('demoShield').classList.remove('hidden');
+  $('demoBar').classList.remove('hidden');
+  var passos = [
+    { t:0,    foco:null,              txt:'Bem-vindo à tribuna. Esta é uma rodada de demonstração — nada aqui vale pontos.' },
+    { t:3600, foco:'.painel-balanca', txt:'A balança da convicção começa em 50. Chegue a 100 — ou termine acima de 50 quando o prazo de pauta acabar.' },
+    { t:8200, foco:'.julgador',       txt:'A julgadora é legalista: Normas valem ×1,4 e Retórica ×0,7. Ler o julgador é metade da estratégia.' },
+    { t:13000,foco:'#anuncio',        txt:'A parte adversa sempre anuncia o próximo movimento. Informação perfeita: o jogo é de decisão, não de sorte escondida.' },
+    { t:18000,foco:'#mao',            txt:'Sua mão: cada carta custa fôlego, e você tem 3 por rodada — sem acumular. Vamos sustentar Pacta sunt servanda.' },
+    { t:22600,foco:null,              acao:function(){ if (B && B.demo && B.mao.indexOf('pacta')>=0) jogarCarta(B.mao.indexOf('pacta')); },
+              txt:'A carta empurrou a balança — e a fala apareceu no log: é o que aquele argumento diz ao juiz. O botão "i" abre a ficha completa.' },
+    { t:28600,foco:'#cxFolego',       txt:'Fôlego que sobra dói: cartas de custo 0 existem para queimar o resto. Depois, encerre a rodada e a parte adversa agirá.' },
+    { t:34200,foco:null,              txt:'A cada 3 rodadas o julgador pondera a convicção rumo ao centro. Vença 8 casos e chegue ao STF. Boa sustentação.' }
+  ];
+  passos.forEach(function(p){
+    demoTimers.push(setTimeout(function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.foco-demo'), function(e){ e.classList.remove('foco-demo'); });
+      if (p.foco){ var e = document.querySelector(p.foco); if (e) e.classList.add('foco-demo'); }
+      if (p.acao) p.acao();
+      $('demoTxt').textContent = p.txt;
+    }, p.t));
+  });
+  demoTimers.push(setTimeout(pararDemo, 40500));
+  store.set('ui_demo_vista', true);
+}
+function pararDemo(){
+  demoTimers.forEach(clearTimeout); demoTimers = [];
+  Array.prototype.forEach.call(document.querySelectorAll('.foco-demo'), function(e){ e.classList.remove('foco-demo'); });
+  $('demoShield').classList.add('hidden');
+  $('demoBar').classList.add('hidden');
+  if (demoSalvo){ S = demoSalvo.S; B = demoSalvo.B; demoSalvo = null; }
+  if (B && !B.demo){ pintarBatalha(); mostrar('scr-battle'); }
+  else { B = null; atualizarTitulo(); mostrar('scr-title'); setTema(false); }
+}
+
+/* ---------- rede: API do placar e juiz de IA ---------- */
+function fetchJSON(url, opts, timeoutMs){
+  opts = opts || {};
+  opts.headers = opts.headers || {};
+  opts.headers['Content-Type'] = 'application/json';
+  if (PERFIL.token) opts.headers['Authorization'] = 'Bearer ' + PERFIL.token;
+  var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  if (ctrl) opts.signal = ctrl.signal;
+  var tid = setTimeout(function(){ if (ctrl) ctrl.abort(); }, timeoutMs || 6000);
+  return fetch(url, opts).then(function(r){
+    clearTimeout(tid);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }, function(e){ clearTimeout(tid); throw e; });
+}
+
+function enviarPartida(partida){
+  if (!CONFIG.API_BASE) return;
+  fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(partida) })
+    .then(function(){ processarFila(); })
+    .catch(function(){ enfileirar(partida); });
+}
+function enfileirar(partida){
+  var fila = store.get('ui_fila', []);
+  fila.push(partida);
+  store.set('ui_fila', fila.slice(-30));
+}
+function processarFila(){
+  if (!CONFIG.API_BASE) return;
+  var fila = store.get('ui_fila', []);
+  if (!fila.length) return;
+  var prox = fila[0];
+  fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(prox) })
+    .then(function(){ fila.shift(); store.set('ui_fila', fila); if (fila.length) processarFila(); })
+    .catch(function(){});
+}
+
+function verPlacar(aba){
+  mostrar('scr-placar');
+  Array.prototype.forEach.call(document.querySelectorAll('.aba'), function(b){
+    b.classList.toggle('ativa', b.getAttribute('data-aba') === aba);
+  });
+  var lista = $('placarLista');
+  if (aba === 'aparelho'){
+    var placar = store.get('ui_fmp_placar', []);
+    if (!placar.length){ lista.innerHTML = '<div class="aviso-rede">Nenhuma jornada concluída neste aparelho ainda. A primeira sentença inaugura o placar.</div>'; return; }
+    lista.innerHTML = '';
+    placar.forEach(function(p, i){ lista.appendChild(liPlacar(i+1, p.nome, textoPartida(p), p.pontos)); });
+    return;
+  }
+  if (!CONFIG.API_BASE){
+    lista.innerHTML = '<div class="aviso-rede">O ranking ' + (aba==='hall' ? 'dos campeões' : 'do semestre') + ' fica disponível quando o aparelho está conectado à rede da FMP.<br>Suas partidas já ficam guardadas e sobem sozinhas quando a conexão voltar.</div>';
+    return;
+  }
+  lista.innerHTML = '<div class="aviso-rede">Carregando o placar…</div>';
+  fetchJSON(CONFIG.API_BASE + '/placar?aba=' + encodeURIComponent(aba) + '&sem=' + encodeURIComponent(CONFIG.SEMESTRE))
+    .then(function(dados){
+      var itens = (dados && dados.itens) || [];
+      if (!itens.length){ lista.innerHTML = '<div class="aviso-rede">Ainda não há partidas registradas nesta aba.</div>'; return; }
+      lista.innerHTML = '';
+      itens.slice(0, 50).forEach(function(p, i){ lista.appendChild(liPlacar(i+1, p.nome, p.detalhe || textoPartida(p), p.pontos)); });
+    })
+    .catch(function(){
+      lista.innerHTML = '<div class="aviso-rede">Não foi possível falar com o servidor agora. Tente novamente em instantes.</div>';
+    });
+}
+function liPlacar(pos, nome, detalhe, pts){
+  var li = el('div','li-placar');
+  li.innerHTML = '<span class="pos">'+pos+'</span><div class="quem"><div class="n">'+esc(nome||'Estudante')+'</div><div class="d">'+esc(detalhe||'')+'</div></div><span class="pts">'+esc(pts)+'</span>';
+  return li;
+}
+function textoPartida(p){
+  var m = p.modo === 'diario' ? 'caso do dia' : 'jornada livre';
+  return (p.venceu ? 'jornada vencida' : (p.casos + ' de 8 casos')) + ' · ' + m;
+}
+
+/* ---------- sustentação com juiz de IA (casos-chefe) ---------- */
+function abrirSustentacaoIA(){
+  modal({ escuro:true, travado:true, cru:true, html:
+    '<div class="modal-pad">'
+    + '<div class="rotulo" style="color:var(--sand);margin-bottom:6px">Sustentação final · juiz de IA</div>'
+    + '<div class="serif" style="font-weight:600;font-size:21px;margin-bottom:10px;color:var(--cream)">Convença por escrito</div>'
+    + '<p style="font-size:12.5px;line-height:1.5;color:var(--sand);margin:0 0 12px">Você venceu o caso-chefe. Agora, em até 1200 caracteres, sustente a tese da defesa em <i>' + esc(B.dados.titulo) + '</i>. Um juiz de IA avalia e concede até 50 pontos.</p>'
+    + '<textarea id="iaTexto" maxlength="1200" rows="7" style="width:100%;font-family:var(--sans);font-size:13.5px;line-height:1.5;background:rgba(239,238,234,.06);color:var(--cream);border:1px solid rgba(191,186,164,.3);border-radius:10px;padding:12px;resize:vertical" placeholder="Excelência, a defesa sustenta que…"></textarea>'
+    + '<div id="iaAviso" style="font-size:11px;color:var(--sand);margin-top:6px">Mínimo de 120 caracteres para enviar.</div>'
+    + '<div class="modal-botoes"><button class="btn" id="iaEnviar">Enviar a sustentação</button>'
+    + '<button class="btn-ghost" id="iaPular" style="color:var(--sand);border-color:rgba(191,186,164,.35)">Seguir sem sustentar</button></div></div>'
+  });
+  $('iaPular').addEventListener('click', function(){ fecharModal(); aposCaso2(); });
+  $('iaEnviar').addEventListener('click', enviarSustentacao);
+}
+function enviarSustentacao(){
+  var ta = $('iaTexto');
+  var txt = (ta && ta.value || '').trim().slice(0, 1200);
+  if (txt.length < 120){ var av=$('iaAviso'); if(av){ av.textContent='A sustentação precisa de pelo menos 120 caracteres.'; av.style.color='#f0907d'; } return; }
+  var btn = $('iaEnviar'); if (btn){ btn.disabled = true; btn.textContent = 'O juiz de IA está lendo…'; }
+  fetchJSON(CONFIG.AI_WEBHOOK, { method:'POST', body: JSON.stringify({
+    texto: txt, caso: { titulo: B.dados.titulo, area: B.dados.area, partes: B.dados.partes },
+    perfil: { nome: PERFIL.nome, ra: PERFIL.ra, sem: PERFIL.sem }, v: CONFIG.VERSAO
+  }) }, 20000)
+  .then(function(resp){
+    var nota = clamp(Math.round((resp && resp.nota) || 0), 0, 50);
+    S.iaPts = (S.iaPts || 0) + nota;
+    S.pontos += nota;
+    salvarRun();
+    fecharModal();
+    modal({ escuro:true, travado:true, titulo:'Parecer do juiz de IA',
+      html:'<b style="color:var(--cream)">+' + nota + ' pontos.</b><br><br>' + esc((resp && resp.comentario) || 'Sustentação recebida.'),
+      botoes:[{ t:'Seguir na jornada', fn: aposCaso2 }] });
+  })
+  .catch(function(){
+    fecharModal();
+    modal({ escuro:true, travado:true, titulo:'Juiz de IA indisponível',
+      html:'Não foi possível falar com o juiz de IA agora. A jornada segue sem o bônus — a sentença do caso permanece sua.',
+      botoes:[{ t:'Seguir na jornada', fn: aposCaso2 }] });
+  });
+}
+
+/* ---------- perfil e SSO ---------- */
+function lerTokenURL(){
+  if (typeof location === 'undefined' || !location.search) return;
+  try{
+    var q = new URLSearchParams(location.search);
+    if (!q.get('t') && !q.get('nome')) return;
+    var limpa = function(s, n){ return String(s||'').replace(/<[^>]*>/g,'').slice(0, n); };
+    PERFIL = {
+      nome: limpa(q.get('nome'), 40), ra: limpa(q.get('ra'), 20),
+      sem: limpa(q.get('sem'), 20) || CONFIG.SEMESTRE, token: limpa(q.get('t'), 512)
+    };
+    store.set('ui_perfil', PERFIL);
+    if (history && history.replaceState) history.replaceState(null, '', location.pathname);
+  }catch(e){}
+}
+
+/* ---------- tema ---------- */
+function setTema(darkDoContexto){
+  var dark = TEMA === 'escuro' || (TEMA === 'auto' && !!darkDoContexto);
+  document.body.classList.toggle('dark', dark);
+  var m = $('metaTema'); if (m) m.setAttribute('content', dark ? '#0c0b0b' : '#EFEEEA');
+}
+
+/* ---------- telas auxiliares ---------- */
+function atualizarTitulo(){
+  var r = store.get('ui_fmp_run', null);
+  var btn = $('btnContinuar');
+  if (r && r.vivo !== false){
+    btn.classList.remove('hidden');
+    btn.textContent = 'Continuar jornada — caso ' + (r.caso+1) + ' de 8';
+  } else btn.classList.add('hidden');
+  $('verTxt').textContent = 'v' + CONFIG.VERSAO + ' · ' + CONFIG.SEMESTRE + (PERFIL.nome ? ' · ' + PERFIL.nome : '');
+}
+
+function abrirConfig(){
+  $('cfgNome').value = PERFIL.nome || '';
+  $('cfgRa').value = PERFIL.ra || '';
+  $('cfgSem').value = PERFIL.sem || '';
+  $('cfgTema').value = TEMA;
+  $('cfgSom').classList.toggle('on', !mudo);
+  $('cfgVibra').classList.toggle('on', !!VIBRA);
+  $('cfgSobre').innerHTML = 'Última Instância v' + CONFIG.VERSAO + ' · semestre ' + CONFIG.SEMESTRE
+    + ' · <a class="serif" style="color:var(--red)" href="' + CONFIG.PORTAL_URL + '" target="_blank" rel="noopener">portal da FMP</a>';
+  mostrar('scr-config');
+}
+
+function confirmarNova(modo){
+  var r = store.get('ui_fmp_run', null);
+  if (r && r.vivo !== false){
+    modal({ titulo:'Abandonar a jornada salva?',
+      html:'Há uma jornada em andamento no caso ' + (r.caso+1) + ' de 8. Começar outra apaga esse progresso.',
+      botoes:[
+        { t:'Começar mesmo assim', fn:function(){ novaJornada(modo); } },
+        { t:'Voltar', ghost:true }
+      ]});
+  } else novaJornada(modo);
+}
+
+/* ---------- boot ---------- */
+function ligarEventos(){
+  $('btnLivre').addEventListener('click', function(){ confirmarNova('livre'); });
+  $('btnDiario').addEventListener('click', function(){ confirmarNova('diario'); });
+  $('btnContinuar').addEventListener('click', continuarJornada);
+  $('btnPlacar').addEventListener('click', function(){ verPlacar('aparelho'); });
+  $('btnDemo').addEventListener('click', verDemo);
+  $('btnConfig').addEventListener('click', abrirConfig);
+
+  $('btnEncerrar').addEventListener('click', encerrarRodada);
+  $('btnPilhas').addEventListener('click', verPilhas);
+  $('btnMenuBatalha').addEventListener('click', function(){
+    modal({ titulo:'Jornada', html:'Caso ' + (B.caso+1) + ' de 8 · ' + esc(B.meta.inst) + '<br>Pontos até aqui: <b>' + S.pontos + '</b> · embargos restantes: ' + S.embargos,
+      botoes:[
+        { t:'Voltar ao caso', ghost:true },
+        { t:'Ver baralho e relíquias', ghost:true, fn: verPilhas },
+        { t:'Abandonar a jornada', fn:function(){
+            modal({ titulo:'Abandonar a jornada?', html:'O progresso desta jornada será apagado. O placar guarda apenas jornadas encerradas.',
+              botoes:[ { t:'Abandonar', fn:function(){ S=null; B=null; store.del('ui_fmp_run'); setTema(false); atualizarTitulo(); mostrar('scr-title'); } },
+                       { t:'Continuar jogando', ghost:true } ] });
+          } }
+      ]});
+  });
+
+  $('rwPular').addEventListener('click', pularRecompensa);
+  $('placarVolta').addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
+  $('configVolta').addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
+  Array.prototype.forEach.call(document.querySelectorAll('.aba'), function(b){
+    b.addEventListener('click', function(){ verPlacar(b.getAttribute('data-aba')); });
+  });
+
+  $('overNova').addEventListener('click', function(){ setTema(false); novaJornada(S && S.modo === 'diario' ? 'diario' : 'livre'); });
+  $('overPlacar').addEventListener('click', function(){ verPlacar('aparelho'); });
+  $('overTitle').addEventListener('click', function(){ S=null; B=null; setTema(false); atualizarTitulo(); mostrar('scr-title'); });
+
+  $('cfgSalvar').addEventListener('click', function(){
+    PERFIL.nome = $('cfgNome').value.trim().slice(0,40);
+    PERFIL.ra = $('cfgRa').value.trim().slice(0,20);
+    PERFIL.sem = $('cfgSem').value.trim().slice(0,20);
+    store.set('ui_perfil', PERFIL);
+    som.boa(); atualizarTitulo();
+    modal({ titulo:'Identificação salva', html:'Suas próximas jornadas entram no placar como <b>' + esc(PERFIL.nome || 'Estudante') + '</b>.', botoes:[{t:'Fechar'}] });
+  });
+  $('cfgTema').addEventListener('change', function(){
+    TEMA = $('cfgTema').value; store.set('ui_tema', TEMA);
+    setTema(B ? !!B.meta.dark : false);
+  });
+  $('cfgSom').addEventListener('click', function(){ mudo = !mudo; store.set('ui_mudo', mudo); $('cfgSom').classList.toggle('on', !mudo); if(!mudo) som.boa(); });
+  $('cfgVibra').addEventListener('click', function(){ VIBRA = !VIBRA; store.set('ui_vibra', VIBRA); $('cfgVibra').classList.toggle('on', !!VIBRA); vibra(20); });
+  $('cfgDemo').addEventListener('click', verDemo);
+  $('cfgApagar').addEventListener('click', function(){
+    modal({ titulo:'Apagar os dados deste aparelho?', html:'Placar local, jornada salva, preferências e identificação serão removidos. Essa ação não desfaz.',
+      botoes:[ { t:'Apagar tudo', fn:function(){ ['ui_fmp_run','ui_fmp_placar','ui_perfil','ui_fila','ui_demo_vista','ui_mudo','ui_tema','ui_vibra'].forEach(store.del); PERFIL={nome:'',ra:'',sem:'',token:''}; TEMA='auto'; VIBRA=true; mudo=false; setTema(false); atualizarTitulo(); mostrar('scr-title'); } },
+               { t:'Manter', ghost:true } ]});
+  });
+
+  $('demoPular').addEventListener('click', pararDemo);
+  $('modalWrap').addEventListener('click', function(ev){ if (ev.target === $('modalWrap') && !modalTravado) fecharModal(); });
+}
+
+function boot(){
+  lerTokenURL();
+  ligarEventos();
+  fxPreparar();
+  setTema(false);
+  atualizarTitulo();
+  processarFila();
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(loopFX);
+}
+
+if (typeof document !== 'undefined' && document.readyState !== 'loading') boot();
+else if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', boot);
+
+/* ---------- API exposta (harness de simulação e depuração) ---------- */
+if (typeof window !== 'undefined'){
+  window.UI_API = {
+    CONFIG:CONFIG, CARTAS:CARTAS, JUIZES:JUIZES, OPONENTES:OPONENTES, JORNADA:JORNADA, RELIQUIAS:RELIQUIAS,
+    TIPOS:TIPOS, TIPO_ORDEM:TIPO_ORDEM, DECK_INICIAL:DECK_INICIAL,
+    novaJornada:novaJornada, iniciarCaso:iniciarCaso, jogarCarta:jogarCarta, encerrarRodada:encerrarRodada,
+    computarDano:computarDano, aposCaso:aposCaso, aposCaso2:aposCaso2, oporEmbargos:oporEmbargos,
+    encerrarJornadaDerrota:encerrarJornadaDerrota, escolherRecompensa:escolherRecompensa, pularRecompensa:pularRecompensa,
+    escolherReliquia:escolherReliquia, eventoConviccao:eventoConviccao, proximoCaso:proximoCaso,
+    ofertaCartas:ofertaCartas, ofertaReliquias:ofertaReliquias, estado:function(){ return { S:S, B:B }; },
+    setS:function(v){ S=v; }, setB:function(v){ B=v; }
+  };
+}
+</script>
+</body>
+</html>
