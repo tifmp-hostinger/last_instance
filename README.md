@@ -14,6 +14,17 @@ npx serve .
 
 As fontes (Outfit e Noto Serif) vêm do Google Fonts; sem rede o jogo funciona com as fontes de fallback.
 
+## Deploy (Docker / EasyPanel)
+
+O repositório traz um `Dockerfile` (nginx alpine servindo o site estático, com gzip, `charset utf-8` e cache correto — o `index.html` sai com `no-cache` para as atualizações chegarem na hora).
+
+```bash
+docker build -t ultima-instancia .
+docker run -d -p 8080:80 ultima-instancia
+```
+
+No **EasyPanel**: crie um serviço do tipo App → fonte GitHub → aponte para este repositório e branch → método de build **Dockerfile** → porta do container **80**. Pronto: o EasyPanel cuida do domínio e do HTTPS. Qualquer caminho cai no jogo (o SSO `?t=...&nome=...` funciona em qualquer URL).
+
 ## Configuração (TI)
 
 Tudo o que a TI precisa editar está no objeto `CONFIG`, no topo do `<script>` de `index.html`:
