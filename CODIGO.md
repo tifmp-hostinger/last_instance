@@ -1,57 +1,68 @@
 # Última Instância — documentação técnica do código
 
-Tudo vive em um único `index.html` (~75 KB, zero dependências, fontes via Google Fonts). Três blocos: CSS, HTML das telas e um `<script>` organizado em seções comentadas. Este documento mapeia onde mexer para cada necessidade.
+A partir da v3 o projeto tem **duas metades**: o jogo (frontend estático, um só `public/index.html`) e um **backend Node/Express** (`server/`) que serve o jogo, autentica o aluno e guarda o placar no Postgres. Sem banco, o backend roda em **modo mock** (jogável e testável). O jogo também funciona como arquivo estático solto — nesse caso entra em **modo local** (sem login, placar só no aparelho).
 
-## Estado global (JS)
+## Estrutura
+
+| Caminho | Papel |
+|---|---|
+| `public/index.html` | o jogo inteiro: CSS + telas + lógica (zero dependências no cliente) |
+| `public/assets/` | símbolo FMP (estrela de 4 pontas) vetorizado nas cores da paleta |
+| `server/index.js` | Express: rotas da API + estático + fallback de rota |
+| `server/db.js` | camada de dados (pg Pool por env) com fallback/mock; autenticação, disciplinas, partidas |
+| `server/auth.js` | sessão via JWT em cookie httpOnly |
+| `db/schema.sql` | as três tabelas (usuarios, disciplinas, partidas) |
+| `outputs/harness.js` | simulador sem navegador (dois bots) para regressão e calibragem |
+| `Dockerfile` · `.env.example` | imagem Node e variáveis de ambiente |
+
+## Backend (`server/`)
+
+- **Rotas** (`index.js`): `POST /api/login` `{cpf, nascimento}`, `POST /api/logout`, `GET /api/session` (perfil + modo banco/mock), `GET /api/disciplinas` (auth), `GET /api/placar?aba=&sem=` (auth), `POST /api/partidas` (auth; a identidade vem da sessão, nunca do corpo), `GET /api/saude`. Há um limitador simples de tentativas de login por IP.
+- **Dados** (`db.js`): a conexão sai de `DATABASE_URL` ou `PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE`. Sem nada disso, `hasDB=false` e todas as funções caem no mock. `autenticar()` compara CPF (só números) e `data_nascimento`. **É o único ponto de verificação de senha** — para trocar por hash no futuro, mexe-se só aqui. Nomes de tabela vêm de env (`TABELA_*`) e passam por um validador de identificador (anti-injeção).
+- **Sessão** (`auth.js`): JWT assinado por `SESSION_SECRET`/`JWT_SECRET` (ou efêmero em dev), cookie httpOnly `ui_sessao`, `secure` quando `NODE_ENV=production`.
+
+## Estado global do jogo (JS)
 
 | Variável | Papel |
 |---|---|
-| `CONFIG` | topo do script: versão, semestre, `API_BASE`, `AI_WEBHOOK`, `PORTAL_URL`. É o único ponto que a TI precisa editar. |
+| `CONFIG` | versão, semestre, `API_BASE` (`/api`), `PORTAL_URL`. |
+| `SERVIDOR` | `{online, modo, autenticado}` — preenchido por `GET /api/session` no boot. `online:false` = modo local (arquivo estático). |
 | `S` | a jornada (run): deck, relíquias, caso atual (0-7), pontos, embargos, modo diário, bônus inicial, fase. |
-| `B` | a batalha corrente: convicção `p`, rodada, prazo, mão/pilhas, fôlego, contenções, statuses (`pressa`, `quest`, `dobra`, `negate`), julgador, oponente, `jogadas` (para a IA), `vogaIdx` (plenário), flag `demo`. |
-| `PERFIL` | identidade do aluno: `{nome, ra, sem, token}` — vem da URL (SSO) ou do formulário. |
-| `TEMA`, `VIBRA`, `mudo` | preferências do aparelho (tela Configurações). |
-| RNG | mulberry32 com semente. O Caso do dia deriva a semente da data; cada propósito usa um sub-gerador `rngDe('caso', i)` etc. (`hashStr`), o que torna a jornada determinística e resistente a salvar/retomar. |
+| `B` | a batalha: convicção `p`, rodada, prazo, mão/pilhas, fôlego, contenções, statuses, julgador, oponente, **`tese`** (a tese da rodada), `jogadas`, `vogaIdx`, flag `demo`. |
+| `PERFIL` | identidade do aluno: `{nome, ra, sem, cpf}` — vem da sessão (banco) ou do formulário (local). |
+| `JUIZES_COMUNS` | ids dos julgadores em rotação. Recebe os **juízes reais** (disciplinas do banco) quando há sessão; senão, os fictícios de `JUIZES_FALLBACK`. |
 
 Chaves de `localStorage`: `ui_fmp_run` (save), `ui_fmp_placar` (top 10 local), `ui_perfil`, `ui_fila` (partidas aguardando API), `ui_demo_vista`, `ui_mudo`, `ui_tema`, `ui_vibra`.
 
-## Fluxo de telas
+## Núcleo didático: tese e réplica (onde editar)
 
-`mostrar(id)` alterna seções: `scr-title` → `scr-battle` → (`modal` de resultado) → `scr-reward` → `scr-event` → … → `scr-over`, além de `scr-placar` e `scr-config`. O `modal()` genérico recebe título, HTML e botões — todo diálogo do jogo passa por ele (`travado:true` impede fechar pelo fundo).
+- **`TESES`** — array de `{tema, texto, porque}`: o que a parte adversa afirma e a chave didática da réplica. Adicionar tese = uma linha.
+- **`AREA_TEMAS`** — área do caso → temas de tese prováveis (o resto entra como surpresa, forçando adaptação).
+- **`CARTA_TEMAS`** — os temas que cada carta argumentativa refuta (`'*'` = versátil; carta ausente do mapa = Técnica procedimental, sem juízo de pertinência). O pós-processamento anexa `temas` a cada carta.
+- **`REPLICA_BONUS`** (+4) e **`LATERAL_FATOR`** (×0,45) — os dois botões da força da mecânica.
+- `cartaPertinente(carta, tese)` devolve `true` (réplica), `false` (lateral) ou `null` (procedimental). `computarDano` aplica a pertinência **entre o combo e o multiplicador do julgador** (ver GAME-DESIGN, fórmula de dano). `sortearTese` é chamada no início de cada rodada.
 
-## Fluxo de uma rodada (funções principais)
+## Demais conteúdos (onde editar)
 
-`iniciarCaso(retry)` monta `B` (retry = embargos: reusa caso e julgador) → `iniciarRodada()` (expira a contenção própria, aplica pressa, compra 5) → `jogarCarta(i)` (fórmula de dano documentada no GAME-DESIGN; efeitos em `fx`: `draw`/`block`/`energy`/`negate`/`cleanse`/`dobra`/`pierce`/`exaust`) → `encerrarRodada()` → `turnoAdversario()` (executa o movimento anunciado, ponderação do julgador a cada 3 rodadas, voga do plenário a cada 2) → volta a `iniciarRodada()` ou `finalizarCaso(venceu, motivo)` → `aposCaso()` → recompensas (`recompensaCartas`/`recompensaReliquia`) e eventos (`evento`).
+- **Cartas**: `CARTAS` — nome, tipo (`N/F/R/T`), custo, base, raridade, `texto`, `fala`, `disc`, `combo`, `fx`. A carta na mesa mostra a **força-base**; o valor real o aluno calcula.
+- **Julgadores fictícios**: `JUIZES` (fallback). Perfis e multiplicadores em `MULT_PERFIL`. Julgador real = disciplina do banco → `carregarDisciplinas()` monta um julgador por disciplina (professor no nome, perfil→multiplicadores, foto no avatar) e substitui `JUIZES_COMUNS`.
+- **Oponentes**: `OPONENTES` — lista `moves` cíclica; **os números aqui são o principal botão de dificuldade**.
+- **Jornada**: `JORNADA` (8 entradas, flags `boss/dark/plenario`). **Casos**: `SOBRENOMES`, `EMPRESAS`, `ACOES`, `TEMAS_STF`. **Relíquias**: `RELIQUIAS`.
 
-## Conteúdo (onde editar)
+## Fluxo de boot e sessão
 
-- **Cartas**: objeto `CARTAS` — uma linha por carta: nome, tipo (`N`/`F`/`R`/`T`), custo, base, raridade (`c`/`r`), `texto`, `fala` (frase didática), `disc` (disciplina da grade), `combo` e `fx` (efeito). Adicionar carta = nova linha + nada mais (o pool deriva sozinho).
-- **Julgadores**: `JUIZES` — multiplicadores em `mult`, **foto do professor em `foto`** (URL ou data-URI; o avatar recorta em círculo automaticamente).
-- **Oponentes**: `OPONENTES` — lista `moves` cíclica; os números aqui são o principal botão de dificuldade.
-- **Estrutura da jornada**: `JORNADA` — 8 entradas com instância, oponente, prazo e flags `boss`/`dark`/`plenario`.
-- **Casos procedurais**: `SOBRENOMES`, `EMPRESAS`, `ACOES` (título + área + papel da defesa), `TEMAS_STF`.
-- **Relíquias**: `RELIQUIAS`; efeitos são checados por código (`S.relics.indexOf('vade')` etc.; tipo→relíquia em `RELIQUIA_TIPO`).
+`boot()` → `iniciarSessao()` faz `GET /api/session`. Se o backend responde: modo servidor (login exigido; disciplinas e placar vêm da API). Se a requisição falha (arquivo estático): modo local, sem login. `fazerLogin()` posta ao `/api/login`, `carregarDisciplinas()` monta os juízes reais, `entrarNoJogo()` abre o título. Máscara de CPF em `mascaraCPF()`.
 
-## Subsistemas
+## Subsistemas (inalterados da base)
 
-- **Balança**: SVG `#balanca`; `setBalanca(p)` define o ângulo-alvo e o loop `rAF` (`loopFX`) anima com easing, posicionando os pratos por trigonometria (a trave gira em torno do pivô; os pratos transladam para as pontas).
-- **FX**: canvas `#fx` com partículas (estrela FMP de 4 pontas desenhada em `estrela4`), teto de 700 partículas, DPR limitado a 2.
-- **Áudio**: WebAudio puro (`som.*`) — osciladores e rajadas de ruído filtrado; nenhum asset.
-- **Demo guiada**: `verDemo()` fabrica um `B` com `demo:true`, roda uma linha do tempo de passos (`demoTimers`), com `#demoShield` bloqueando toques e `#demoBar` narrando. `finalizarCaso` tem guarda para nunca disparar na demo. `pararDemo()` limpa timers e restaura o estado real.
-- **Rede**: `fetchJSON` (timeout + Bearer), `enviarPartida` → `enfileirar`/`processarFila` (fila offline em `ui_fila`), `verPlacar(aba)` com as três abas, `abrirSustentacaoIA`/`enviarSustentacao` (juiz de IA; valida e limita a resposta no cliente — 120 a 1200 caracteres, nota 0-50).
-- **SSO**: `lerTokenURL()` lê `?t=&nome=&ra=&sem=`, sanitiza, salva o perfil e limpa a URL.
-- **Tema**: `setTema(darkDoContexto)` combina o contexto da jornada (STF = escuro) com a preferência (`TEMA` auto/claro/escuro) e atualiza `meta theme-color`.
+Balança SVG (`setBalanca`/`loopFX`), FX de partículas (estrela FMP em `estrela4`, teto de 700, DPR≤2), áudio WebAudio puro (`som.*`), demo guiada (`verDemo`/`pararDemo`, com tese própria e guarda em `finalizarCaso`), tema claro/escuro (`setTema`, STF em escuro), liquid glass e fundos vivos. Todo dado externo (nome do aluno, resposta da API, título de caso) passa por `esc()` antes de ir a `innerHTML`.
 
-## Convenções de CSS
+## Testes e calibragem
 
-Tokens em `:root` (cores FMP, `--spring` para molas, raios); modo escuro via `body.dark`. Estética liquid glass na classe `.glass` (backdrop-filter + borda translúcida + brilho interno) — sem bibliotecas. Fundos vivos: `#fundo::before/::after` com gradientes radiais em animação lenta (só `transform`, barato; respeita `prefers-reduced-motion`). Mobile-first com breakpoints em 900px (desktop), 720px de altura e paisagem baixa; safe areas via `env(safe-area-inset-*)`; `hidden` reforçado com `display:none !important`.
+`outputs/harness.js` roda o jogo inteiro sem navegador (stub de DOM, timers síncronos, dois bots). Uso: `node outputs/harness.js public/index.html 200 [smart|naive|ambos]`. O **bot ingênuo** joga cartas ao acaso (ignora a tese e o julgador) — sofre a penalidade de pertinência, como o aluno que só clica. O **bot tático** lê a tese (via `cartaPertinente`), prefere a réplica certeira, usa contenção e anula sustentações grandes.
 
-## Testes
-
-`outputs/harness.js` roda o jogo inteiro sem navegador: stub de DOM, timers síncronos e dois bots (ingênuo e tático) jogando dezenas de jornadas. Uso: `node outputs/harness.js index.html 100 [smart|naive|ambos]`. Serve para regressão de lógica e para calibrar dificuldade após qualquer mudança em `CARTAS`/`OPONENTES`. A sintaxe é validada com `node --check` sobre o `<script>` extraído (o próprio harness faz isso antes de rodar).
-
-Estado da calibragem (n=200 por bot): ingênuo **62%** de jornadas vencidas (alvo 60-65%), tático **99%** — o bot tático joga com disciplina perfeita (lê julgador, ordena combos, guarda perfurantes contra contenção, anula sustentações grandes) e funciona como teto de habilidade, não como aluno dedicado típico. O jogo expõe `window.UI_API` para o harness e para depuração no console.
+Estado da calibragem (n=200 por bot): ingênuo **~55%** de jornadas vencidas (alvo 50-55%; e precisa de embargos na maioria delas — clicar sem pensar não basta), tático **~98%** (teto de habilidade). Qualquer mudança em `CARTAS`, `TESES` ou `OPONENTES` pede nova rodada do harness.
 
 ## Checklist para mudanças comuns
 
-Trocar dificuldade: números em `OPONENTES` → rodar harness → conferir taxas. Nova carta: linha em `CARTAS` (com `fala` e `disc`) → harness. Foto de professor: `foto:` no julgador. Novo semestre: `CONFIG.SEMESTRE`. Ativar ranking em rede: `CONFIG.API_BASE`. Ativar juiz de IA: `CONFIG.AI_WEBHOOK`.
+Dificuldade → `OPONENTES` → harness. Nova tese → linha em `TESES` (+ tema em `CARTA_TEMAS` se faltar cobertura) → harness. Nova carta → linha em `CARTAS` (com `fala`, `disc` e temas em `CARTA_TEMAS`) → harness. Foto de professor → coluna `foto_professor_url` na tabela `disciplinas`. Novo semestre → env `SEMESTRE`. Ligar banco → `DATABASE_URL`/`PG*` (ver `.env.example`) e rodar `db/schema.sql`.

@@ -106,6 +106,18 @@ main{display:flex;justify-content:center;min-height:100vh}
 @keyframes sobe{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 
+/* ---- login ---- */
+#scr-login{display:flex;align-items:center;justify-content:center;min-height:92vh}
+.login-caixa{width:min(380px,92vw);display:flex;flex-direction:column;align-items:center;
+  background:var(--card);border:1px solid var(--card-line);border-radius:var(--r-lg);
+  padding:34px 30px 28px;box-shadow:var(--sombra)}
+.login-caixa .simbolo{width:44px;height:44px}
+.login-caixa form{width:100%}
+.login-erro{background:rgba(238,42,66,.1);border:1px solid rgba(238,42,66,.35);color:var(--red);
+  border-radius:9px;padding:10px 12px;font-size:12.5px;margin-bottom:12px;line-height:1.4}
+.login-mock{background:rgba(191,186,164,.14);border:1px dashed var(--line-2);color:var(--fg3);
+  border-radius:9px;padding:10px 12px;font-size:11.5px;margin-top:14px;line-height:1.45;text-align:center}
+
 /* ---- título ---- */
 #scr-title{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92vh;text-align:center;gap:0}
 .simbolo{width:52px;height:52px;animation:pop .6s var(--spring) both}
@@ -160,6 +172,26 @@ body.dark .painel-balanca{background:#161414;border:1px solid rgba(191,186,164,.
 #convMarca{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:17px;height:17px;border-radius:50%;
   background:var(--cream);border:3px solid var(--red);box-shadow:0 2px 8px rgba(0,0,0,.5);transition:left .5s var(--spring)}
 .trilha-rotulos{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--sand);margin-top:6px}
+
+/* ---- painel da tese (o desafio didático da rodada) ---- */
+.painel-tese{background:var(--card);border:1px solid var(--card-line);border-left:3px solid var(--sand);
+  border-radius:14px;padding:12px 16px;margin-bottom:13px}
+.tese-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.tese-tema{font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--sand);
+  border:1px solid var(--sand);border-radius:var(--r-pill);padding:2px 9px;white-space:nowrap}
+.tese-texto{font-family:var(--serif);font-style:italic;font-size:15.5px;line-height:1.4;margin:0 0 7px;color:var(--fg)}
+.tese-dica{font-size:11px;color:var(--fg3);line-height:1.4}
+.tese-dica b{color:var(--red);font-weight:600}
+
+/* ---- etiqueta de tema na carta ---- */
+.tag-tema{font-size:8px;font-weight:600;letter-spacing:.03em;color:var(--t-fato);
+  background:rgba(42,111,107,.1);border-radius:6px;padding:2px 6px;margin-bottom:5px;line-height:1.25;
+  display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag-tema.coringa{color:var(--red);background:rgba(238,42,66,.08)}
+.tag-tema.proc{color:var(--fg3);background:rgba(110,107,102,.1)}
+.ficha-tema{font-size:11.5px;color:var(--t-fato);background:rgba(42,111,107,.08);border-radius:8px;
+  padding:7px 10px;margin-bottom:10px;line-height:1.4}
+.log-item.replica{background:rgba(238,42,66,.05);border-radius:0 8px 8px 0;padding-top:3px;padding-bottom:3px}
 
 /* ---- linha de status ---- */
 .status{display:flex;gap:11px;margin-bottom:14px;flex-wrap:wrap}
@@ -353,8 +385,32 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 
 <main>
 
+<!-- ============ LOGIN ============ -->
+<section id="scr-login" class="scr hidden">
+  <div class="login-caixa">
+    <svg class="simbolo" viewBox="0 0 100 100" aria-hidden="true"><path fill="#EE2A42" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>
+    <div class="lema" style="margin:14px 0 4px">Acesso do aluno</div>
+    <h1 class="serif" style="font-size:34px;font-weight:600;margin:0 0 6px">Última <span style="color:var(--red)">Instância</span></h1>
+    <p class="meta-txt" style="text-align:center;max-width:320px;margin:0 auto 22px">Entre com o seu CPF e a data de nascimento cadastrados na FMP.</p>
+    <form id="loginForm" autocomplete="on">
+      <div class="campo">
+        <label for="loginCpf">CPF</label>
+        <input id="loginCpf" name="cpf" inputmode="numeric" autocomplete="username" placeholder="000.000.000-00" maxlength="14" required>
+      </div>
+      <div class="campo">
+        <label for="loginNasc">Data de nascimento</label>
+        <input id="loginNasc" name="nascimento" type="date" autocomplete="bday" required>
+      </div>
+      <div id="loginErro" class="login-erro hidden" role="alert"></div>
+      <button class="btn btn-lg" id="loginBtn" type="submit" style="width:100%">Entrar</button>
+    </form>
+    <div id="loginMock" class="login-mock hidden"></div>
+    <p class="meta-txt" style="text-align:center;margin:18px 0 0;font-size:11px">FMP · Fundação Escola Superior do Ministério Público</p>
+  </div>
+</section>
+
 <!-- ============ TÍTULO ============ -->
-<section id="scr-title" class="scr">
+<section id="scr-title" class="scr hidden">
   <svg class="simbolo gira" viewBox="0 0 100 100" aria-hidden="true"><path fill="#EE2A42" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>
   <div class="lema">A defesa. Em oito casos.</div>
   <h1>Última <em>Instância</em></h1>
@@ -426,6 +482,15 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
     </svg>
     <div class="trilha"><div class="centro"></div><div id="convMarca"></div></div>
     <div class="trilha-rotulos"><span>0 · causa perdida</span><span>50</span><span>100 · convicção plena</span></div>
+  </div>
+
+  <div class="painel-tese" id="painelTese">
+    <div class="tese-topo">
+      <span class="rotulo">A parte adversa sustenta</span>
+      <span class="tese-tema" id="teseTema">—</span>
+    </div>
+    <p class="tese-texto" id="teseTexto">—</p>
+    <div class="tese-dica">Responda com o argumento que <b>refuta esta tese</b>. Argumento fora do tema rende menos da metade.</div>
   </div>
 
   <div class="status">
@@ -527,12 +592,18 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
     </div>
     <button class="volta" id="configVolta">Voltar</button>
   </div>
-  <div class="bloco-cfg">
+  <div class="bloco-cfg" id="blocoIdentLocal">
     <h4>Identificação</h4>
     <div class="campo"><label for="cfgNome">Nome</label><input id="cfgNome" maxlength="40" autocomplete="name" placeholder="Como aparecer no placar"></div>
     <div class="campo"><label for="cfgRa">Matrícula (RA)</label><input id="cfgRa" maxlength="20" inputmode="numeric" placeholder="Opcional"></div>
     <div class="campo"><label for="cfgSem">Turma / semestre</label><input id="cfgSem" maxlength="20" placeholder="Ex.: 2026-2"></div>
     <button class="btn" id="cfgSalvar" style="width:100%">Salvar identificação</button>
+  </div>
+  <div class="bloco-cfg hidden" id="blocoIdentServidor">
+    <h4>Conta</h4>
+    <div class="linha-cfg"><span class="t">Aluno</span><span class="meta-txt" id="cfgAluno" style="text-align:right"></span></div>
+    <div class="linha-cfg"><span class="t">Semestre</span><span class="meta-txt" id="cfgAlunoSem"></span></div>
+    <button class="btn-ghost" id="cfgSair" style="width:100%;margin-top:8px;color:var(--red);border-color:rgba(238,42,66,.4)">Sair da conta</button>
   </div>
   <div class="bloco-cfg">
     <h4>Aparência e som</h4>
@@ -579,12 +650,14 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 
 /* ---------- CONFIG (único ponto que a TI edita) ---------- */
 var CONFIG = {
-  VERSAO: '2.0.0',
+  VERSAO: '3.0.0',
   SEMESTRE: '2026-2',
-  API_BASE: '',        // ex.: 'https://jogos.fmp.edu.br/ui/api' — vazio: só placar local
-  AI_WEBHOOK: '',      // ex.: 'https://jogos.fmp.edu.br/ui/ia' — vazio: sustentação de IA oculta
+  API_BASE: '/api',    // o backend Node serve o jogo e a API na mesma origem
+  AI_WEBHOOK: '',      // ex.: '/api/sustentacao' — vazio: sustentação de IA oculta
   PORTAL_URL: 'https://fmp.com.br'
 };
+/* preenchido em tempo de execução por /api/session (modo banco/mock, semestre, versão) */
+var SERVIDOR = { online: false, modo: 'local', autenticado: false };
 
 /* ---------- utilidades ---------- */
 function $(id){ return document.getElementById(id); }
@@ -671,6 +744,88 @@ Object.keys(CARTAS).forEach(function(id){ CARTAS[id].id = id; });
 
 var DECK_INICIAL = ['pacta','boafe','testemunha','documento','pericia','peroracao','ethos','exordio','objecao','dilacao'];
 
+/* ============================================================
+   NÚCLEO DIDÁTICO — a tese da parte adversa e a réplica
+   ------------------------------------------------------------
+   A cada rodada a parte adversa SUSTENTA uma tese jurídica. Vencer
+   não é jogar a carta de maior número: é jogar o argumento que
+   REFUTA aquela tese. Réplica pertinente (mesmo tema) vale cheio,
+   com bônus; argumento fora do tema ("lateral") é reduzido — o juiz
+   não vê pertinência. Cartas de Técnica são procedimentais e nunca
+   são penalizadas. Ler a tese e escolher o contra-argumento certo é
+   o que se aprende — e o que separa clicar de advogar.
+   ============================================================ */
+var REPLICA_BONUS = 4;   // acréscimo à réplica pertinente (antes do multiplicador do julgador)
+var LATERAL_FATOR = 0.45; // argumento fora do tema rende menos da metade
+
+var TEMA_ROTULO = {
+  contrato:'Contratos', consumidor:'Consumidor', dano:'Responsabilidade', prova:'Prova',
+  penal:'Penal', constitucional:'Direitos fundamentais', processo:'Processo',
+  posse:'Posse e propriedade', familia:'Família', trabalho:'Trabalho', coringa:'Argumento versátil'
+};
+
+/* Cada tese: o que a parte adversa afirma + a chave didática (porque) da réplica correta. */
+var TESES = [
+  { tema:'contrato', texto:'O contrato foi livremente assinado e deve ser cumprido à risca, ainda que hoje se revele excessivamente oneroso a uma das partes.', porque:'À força cega do pacto opõem-se a função social do contrato e a boa-fé objetiva, além da revisão por onerosidade excessiva (arts. 421 e 478 do Código Civil).' },
+  { tema:'contrato', texto:'Quem assina um contrato assume o que nele está; alegar depois que não entendeu a cláusula é má-fé.', porque:'A boa-fé objetiva também protege quem confiou de boa-fé, e cláusulas ambíguas interpretam-se contra quem as redigiu.' },
+  { tema:'consumidor', texto:'O consumidor leu e aceitou todas as cláusulas do contrato; não pode agora alegar desconhecimento.', porque:'O CDC presume a vulnerabilidade do consumidor e impõe ao fornecedor o dever de informação clara; cláusula abusiva é nula de pleno direito.' },
+  { tema:'consumidor', texto:'O serviço foi prestado exatamente como contratado; não há defeito que gere dever de reparar.', porque:'No CDC responde-se pelo defeito independentemente de culpa, e o ônus da prova pode ser invertido em favor do consumidor.' },
+  { tema:'dano', texto:'O prejuízo decorreu de culpa exclusiva da vítima; não há dever de indenizar.', porque:'A prova técnica rompe (ou confirma) o nexo causal; e quem explora o risco da atividade responde objetivamente por ele.' },
+  { tema:'dano', texto:'Não há prova de que a conduta do réu tenha causado o dano que se alega.', porque:'O laudo pericial e a prova documental fixam o nexo entre a conduta e o dano — ou demonstram a sua ausência.' },
+  { tema:'prova', texto:'A prova dos autos é robusta e não comporta dúvida alguma; a condenação se impõe.', porque:'Havendo dúvida razoável, ela milita a favor do réu (in dubio pro reo); e prova obtida por meio ilícito não se aproveita.' },
+  { tema:'prova', texto:'Todas as provas se harmonizam e apontam para a mesma e única conclusão.', porque:'Uma só contraprova técnica bem colocada basta para abalar a certeza que a acusação diz ter.' },
+  { tema:'penal', texto:'A materialidade e a autoria do crime estão plenamente demonstradas nos autos.', porque:'Vige a presunção de inocência; perícia excludente, álibi e a fragilidade do reconhecimento afastam a autoria.' },
+  { tema:'penal', texto:'O acusado foi reconhecido pela vítima e não há álibi que o socorra.', porque:'Reconhecimento sem o rito do art. 226 do CPP é frágil; a ciência (DNA, perícia) se sobrepõe à palavra isolada.' },
+  { tema:'constitucional', texto:'O interesse público autoriza restringir o direito individual neste caso concreto.', porque:'A restrição só se admite por lei, com proporcionalidade e sem violar o núcleo da dignidade da pessoa humana.' },
+  { tema:'constitucional', texto:'A urgência da medida justifica dispensar formalidades que só atrasariam a Justiça.', porque:'Nem a urgência afasta o devido processo legal e o contraditório — são garantias, não formalidades.' },
+  { tema:'processo', texto:'Todas as formalidades processuais foram observadas; não há nulidade a reconhecer.', porque:'Cerceamento de defesa e ofensa ao contraditório geram nulidade, ainda que a forma pareça, por fora, cumprida.' },
+  { tema:'processo', texto:'O ato atingiu a sua finalidade; qualquer vício é mera irregularidade sem prejuízo.', porque:'Quando o vício compromete a defesa, há prejuízo — e sem prejuízo aferido não se convalida o que a lei exige.' },
+  { tema:'posse', texto:'O título de propriedade prevalece sobre a mera posse que a outra parte invoca.', porque:'A posse tem proteção própria; e o registro só vale com a cadeia dominial íntegra a sustentá-lo.' },
+  { tema:'posse', texto:'A ocupação do imóvel é clandestina e não gera direito nenhum.', porque:'Posse mansa, pacífica e prolongada, provada por testemunhas e documentos, produz efeitos jurídicos.' },
+  { tema:'familia', texto:'O vínculo formal deve prevalecer sobre a situação de fato que se alega.', porque:'Prevalecem o melhor interesse e a socioafetividade, à luz da dignidade da pessoa humana.' },
+  { tema:'familia', texto:'Não há prova da convivência familiar que a outra parte afirma existir.', porque:'Testemunhas e documentos do cotidiano provam a relação de fato e os seus efeitos.' },
+  { tema:'trabalho', texto:'Havia autonomia na prestação do serviço; não se configura vínculo de emprego.', porque:'Subordinação, habitualidade e pessoalidade, provadas por testemunhas, revelam o vínculo empregatício.' },
+  { tema:'trabalho', texto:'Todos os pagamentos foram quitados conforme os recibos juntados.', porque:'A prova documental e a testemunhal podem demonstrar diferenças e verbas não quitadas.' }
+];
+
+/* Área do caso → temas de tese mais prováveis (o resto entra como surpresa, forçando adaptação). */
+var AREA_TEMAS = {
+  'Direito Civil':['contrato','dano','posse'],
+  'Direito do Consumidor':['consumidor','contrato'],
+  'Responsabilidade Civil':['dano','prova'],
+  'Direito Penal':['penal','prova'],
+  'Processo Penal':['penal','prova'],
+  'Direito do Trabalho':['trabalho','prova'],
+  'Direito de Família':['familia','dano'],
+  'Direito Constitucional':['constitucional','processo']
+};
+var TODOS_TEMAS = Object.keys(TEMA_ROTULO).filter(function(t){ return t !== 'coringa'; });
+
+/* Temas que cada carta ARGUMENTATIVA enfrenta. '*' = argumento versátil (serve a qualquer tese).
+   Cartas fora deste mapa (Técnica pura) são procedimentais: nunca sofrem penalidade de pertinência. */
+var CARTA_TEMAS = {
+  pacta:['contrato'], boafe:['contrato','consumidor'], indubio:['penal','prova'],
+  dignidade:['constitucional','familia'], legalidade:['constitucional','penal'], cdc:['consumidor'],
+  devido:['processo','constitucional'], sumula:['constitucional','processo'], habeas:['penal'],
+  doutrina:['*'], pericia:['prova','dano'], testemunha:['prova','trabalho'], documento:['prova','contrato'],
+  registro:['posse','contrato'], reconstituicao:['penal','prova'], gravacao:['penal','prova'],
+  dna:['penal'], confissao:['prova','contrato'], peroracao:['constitucional','dano'], ethos:['*'],
+  analogia:['dano','contrato'], narrativa:['penal','familia','dano'], sustentacao:['*'],
+  consequencias:['constitucional','consumidor']
+};
+Object.keys(CARTAS).forEach(function(id){ CARTAS[id].temas = CARTA_TEMAS[id] || []; });
+
+function cartaPertinente(carta, tese){
+  if (!carta.temas || !carta.temas.length || !tese) return null; // procedimental: sem juízo de pertinência
+  return carta.temas.indexOf('*') >= 0 || carta.temas.indexOf(tese.tema) >= 0;
+}
+function sortearTese(rng, area){
+  var pref = AREA_TEMAS[area] || TODOS_TEMAS;
+  var tema = (rng() < 0.75) ? amostra(pref, rng) : amostra(TODOS_TEMAS, rng);
+  var candidatas = TESES.filter(function(t){ return t.tema === tema; });
+  return amostra(candidatas.length ? candidatas : TESES, rng);
+}
+
 /* ---------- conteúdo: JULGADORES (foto: URL ou data-URI do professor) ---------- */
 var JUIZES = {
   valencia: { nome:'Dra. Valência', perfil:'legalista',  mult:{N:1.4,F:1.0,R:0.7,T:1.0}, foto:'', dica:'Aprecia a letra da lei; retórica solta a cansa.' },
@@ -681,6 +836,23 @@ var JUIZES = {
 };
 Object.keys(JUIZES).forEach(function(id){ JUIZES[id].id = id; });
 var JUIZES_COMUNS = ['valencia','feijo','amparo','metodio'];
+var JUIZES_FALLBACK = JUIZES_COMUNS.slice();   // os fictícios, quando não há disciplinas no banco
+
+/* perfil de julgador → multiplicadores por tipo de carta */
+var MULT_PERFIL = {
+  legalista:  { N:1.4, F:1.0, R:0.7, T:1.0 },
+  pragmatico: { N:0.7, F:1.4, R:1.0, T:1.0 },
+  humanista:  { N:1.0, F:0.7, R:1.4, T:1.0 },
+  metodico:   { N:1.0, F:1.0, R:1.0, T:1.0 }
+};
+var PERFIL_ROTULO = { legalista:'legalista', pragmatico:'pragmático', humanista:'humanista', metodico:'metódico' };
+/* disciplina sem perfil definido recebe um determinístico pelo nome do professor */
+function perfilPorNome(nome){
+  var chaves = Object.keys(MULT_PERFIL);
+  return chaves[hashStr(String(nome||'')) % chaves.length];
+}
+/* área do direito da disciplina → área de caso, para casar julgador e matéria */
+function areaDaDisciplina(area){ return area || ''; }
 
 /* ---------- conteúdo: OPONENTES (os números aqui são o botão de dificuldade) ---------- */
 function mv(t,v,nome,desc){ return {t:t, v:v||0, nome:nome, desc:desc}; }
@@ -689,14 +861,14 @@ function mvConten(v){ return mv('conten', v, 'Protelação', 'Contém até '+v+'
 function mvPress(){ return mv('press', 0, 'Pressão', 'Você abre a próxima rodada com −1 de fôlego.'); }
 function mvQuest(){ return mv('quest', 0, 'Questionamento', 'A sua próxima carta vale metade.'); }
 var OPONENTES = {
-  iniciante:  { nome:'Advogado recém-inscrito',   moves:[mvDano(13), mvQuest(), mvDano(14), mvConten(9), mvPress()] },
-  bairro:     { nome:'Escritório de bairro',      moves:[mvDano(15), mvConten(12), mvQuest(), mvDano(16), mvPress(), mvDano(17)] },
-  banca:      { nome:'Banca renomada',            moves:[mvDano(16), mvQuest(), mvDano(17), mvConten(13), mvPress(), mvDano(18)] },
-  procurador: { nome:'Procuradoria do Estado',    moves:[mvDano(17), mvConten(13), mvQuest(), mvDano(18), mvPress(), mvDano(19)] },
-  massa:      { nome:'Advocacia de massa',        moves:[mvDano(18), mvPress(), mvConten(13), mvDano(19), mvQuest(), mvDano(19)] },
+  iniciante:  { nome:'Advogado recém-inscrito',   moves:[mvDano(12), mvQuest(), mvDano(13), mvConten(9),  mvPress()] },
+  bairro:     { nome:'Escritório de bairro',      moves:[mvDano(14), mvConten(11), mvQuest(), mvDano(15), mvPress()] },
+  banca:      { nome:'Banca renomada',            moves:[mvDano(15), mvQuest(), mvDano(16), mvConten(12), mvPress(), mvDano(16)] },
+  procurador: { nome:'Procuradoria do Estado',    moves:[mvDano(16), mvConten(12), mvQuest(), mvDano(17), mvPress()] },
+  massa:      { nome:'Advocacia de massa',        moves:[mvDano(18), mvPress(), mvConten(14), mvDano(19), mvQuest()] },
   apelacao:   { nome:'Grande banca de apelação',  moves:[mvDano(19), mvQuest(), mvConten(15), mvDano(20), mvPress(), mvDano(20)] },
-  pgr:        { nome:'Procuradoria-Geral',        moves:[mvDano(20), mvConten(15), mvQuest(), mvDano(21), mvPress(), mvDano(21)] },
-  agu:        { nome:'Advocacia-Geral da União',  moves:[mvDano(23), mvQuest(), mvDano(24), mvConten(19), mvPress(), mvDano(25)] }
+  pgr:        { nome:'Procuradoria-Geral',        moves:[mvDano(19), mvConten(14), mvQuest(), mvDano(20), mvPress()] },
+  agu:        { nome:'Advocacia-Geral da União',  moves:[mvDano(20), mvQuest(), mvDano(21), mvConten(17), mvPress(), mvDano(22)] }
 };
 
 /* ---------- conteúdo: estrutura da JORNADA ---------- */
@@ -753,7 +925,7 @@ var mudo  = store.get('ui_mudo', false);
 function salvarRun(){ if (S) store.set('ui_fmp_run', S); else store.del('ui_fmp_run'); }
 
 /* ---------- fluxo de telas ---------- */
-var TELAS = ['scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-placar','scr-config'];
+var TELAS = ['scr-login','scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-placar','scr-config'];
 function mostrar(id){
   TELAS.forEach(function(t){ var e=$(t); if(e) e.classList.toggle('hidden', t!==id); });
   var e = $(id); if (e){ e.style.animation='none'; void e.offsetWidth; e.style.animation=''; }
@@ -839,7 +1011,13 @@ function sortearCaso(i){
     titulo = a1 + ' vs. ' + a2;
     partes = acao.t + ' · ' + acao.p;
   }
-  var juizId = meta.plenario ? 'plenario' : amostra(JUIZES_COMUNS, rng);
+  var juizId;
+  if (meta.plenario){ juizId = 'plenario'; }
+  else {
+    // prefere um julgador cuja disciplina case com a área do caso (juízes reais do banco)
+    var casam = JUIZES_COMUNS.filter(function(id){ var j = JUIZES[id]; return j && j.area && j.area === acao.a; });
+    juizId = amostra(casam.length ? casam : JUIZES_COMUNS, rng);
+  }
   return { titulo: titulo, partes: partes, area: acao.a, juiz: juizId };
 }
 
@@ -873,6 +1051,7 @@ function iniciarCaso(retry){
   logJuiz('Pregão: ' + dados.titulo + '. A ' + (B.opon.nome) + ' representa a parte adversa.');
   if (retry) logJuiz('Embargos acolhidos: o caso volta à pauta, com o mesmo julgador.');
   if (B.vogaIdx >= 0) logJuiz('Voga do plenário: argumentos de ' + TIPOS[TIPO_ORDEM[B.vogaIdx]] + ' pesam ×1,5 nesta abertura.');
+  logTese();
   som.abrir();
 }
 
@@ -890,16 +1069,24 @@ function comprarCartas(n){
 function iniciarRodada(primeira){
   B.bloqueio = 0;                      // contenção própria expira
   B.tiposRodada = [];
+  B.explicou = false;                  // a chave didática da tese aparece uma vez por rodada
+  B.tese = sortearTese(B.rng, B.dados.area);   // a parte adversa levanta uma nova tese
   B.folegoMax = 3 + ((primeira && S.relics.indexOf('cafe')>=0) ? 1 : 0);
   B.folego = Math.max(0, B.folegoMax - (B.pressa ? 1 : 0));
   if (B.pressa) logJuiz('A pressão surte efeito: você abre a rodada com −1 de fôlego.');
   B.pressa = false;
   B.descarte = B.descarte.concat(B.mao); B.mao = [];
   comprarCartas(5);
+  if (!primeira) logTese();
+}
+function logTese(){
+  if (!B || !B.tese) return;
+  logAdverso('A parte adversa sustenta: “' + B.tese.texto + '” Responda com um argumento de ' + (TEMA_ROTULO[B.tese.tema] || B.tese.tema).toLowerCase() + '.');
 }
 
 function computarDano(carta, situacao){
-  // ordem exata: base → +combo → ×julgador → +relíquia por tipo → ÷2 questionada → ×2 repercussão → contenção
+  // ordem exata: base → +combo → pertinência à tese (réplica +bônus / lateral ×0,45)
+  //   → ×julgador → +relíquia por tipo → ÷2 questionada → ×2 repercussão → contenção
   var s = situacao || B;
   var d = carta.base;
   var comboTxt = '';
@@ -912,6 +1099,10 @@ function computarDano(carta, situacao){
     else if (s.tiposRodada.indexOf(c.req) >= 0){ b = c.b; comboTxt = 'combo +' + b; }
     d += b;
   }
+  // pertinência à tese da parte adversa (o coração didático)
+  var pert = cartaPertinente(carta, s.tese);   // true = réplica certeira · false = lateral · null = procedimental
+  if (pert === true){ d += REPLICA_BONUS; }
+  else if (pert === false){ d = d * LATERAL_FATOR; }
   var mult = s.juiz.mult[carta.tipo] || 1;
   if (s.vogaIdx >= 0 && TIPO_ORDEM[s.vogaIdx] === carta.tipo) mult = 1.5;
   d *= mult;
@@ -924,7 +1115,7 @@ function computarDano(carta, situacao){
   if (s.dobra){ d = d*2; dobrada = true; }
   var contido = 0;
   if (!(carta.fx && carta.fx.pierce) && s.conten > 0){ contido = Math.min(s.conten, d); d -= contido; }
-  return { dano: Math.round(d), comboTxt: comboTxt, mult: mult, reliquia: relTipo, metade: metade, dobrada: dobrada, contido: Math.round(contido) };
+  return { dano: Math.round(d), comboTxt: comboTxt, pert: pert, mult: mult, reliquia: relTipo, metade: metade, dobrada: dobrada, contido: Math.round(contido) };
 }
 
 function jogarCarta(idx){
@@ -950,6 +1141,8 @@ function jogarCarta(idx){
   // efeitos
   var notas = [];
   if (sanou) notas.push('questionamento sanado');
+  if (r.pert === true) notas.push('réplica certeira +' + REPLICA_BONUS);
+  else if (r.pert === false) notas.push('argumento lateral ×0,45');
   if (r.comboTxt) notas.push(r.comboTxt);
   if (r.mult !== 1) notas.push((B.vogaIdx>=0 && TIPO_ORDEM[B.vogaIdx]===carta.tipo ? 'voga' : 'julgador') + ' ×' + String(r.mult).replace('.',','));
   if (r.reliquia) notas.push(RELIQUIAS[r.reliquia].nome.toLowerCase() + ' +2');
@@ -971,9 +1164,14 @@ function jogarCarta(idx){
   B.p = clamp(B.p + r.dano, 0, 100);
   B.tiposRodada.push(carta.tipo);
   B.jogadas.push({ carta:id, rodada:B.rodada, dano:r.dano });
-  logCarta(carta, r.dano, notas.join(' · '));
+  logCarta(carta, r.dano, notas.join(' · '), r.pert);
+  // chave didática: por que aquele argumento refuta (ou não) a tese — uma vez por rodada
+  if (!B.explicou && B.tese){
+    if (r.pert === true){ B.explicou = true; logJuiz('Réplica pertinente. ' + B.tese.porque); }
+    else if (r.pert === false){ B.explicou = true; logJuiz('O juiz não vê pertinência: esse argumento não enfrenta a tese sobre ' + (TEMA_ROTULO[B.tese.tema]||B.tese.tema).toLowerCase() + '. Procure o contra-argumento do tema.'); }
+  }
   vibra(12);
-  if (r.dano > 0){ som.carta(r.comboTxt ? true : false); fxCarta(carta.tipo, r.dano); } else som.tecnica();
+  if (r.dano > 0){ som.carta(r.pert === true || r.comboTxt ? true : false); fxCarta(carta.tipo, r.dano); } else som.tecnica();
 
   pintarBatalha();
   checarFim(false);
@@ -1318,7 +1516,8 @@ function pintarBatalha(inicial){
   });
 
   var juiz = B.juiz;
-  $('julNome').textContent = juiz.nome + ' · ' + juiz.perfil;
+  $('julNome').innerHTML = esc(juiz.nome) + ' · ' + esc(juiz.perfil)
+    + (juiz.disciplina ? '<div style="font-size:11px;color:var(--sand);font-style:normal;margin-top:2px">' + esc(juiz.disciplina) + '</div>' : '');
   var foto = $('julFoto');
   if (juiz.foto){ foto.src = juiz.foto; foto.classList.remove('hidden'); } else foto.classList.add('hidden');
   var mults = $('julMults'); mults.innerHTML = '';
@@ -1340,6 +1539,10 @@ function pintarBatalha(inicial){
   $('convMarca').style.left = B.p + '%';
   setBalanca(B.p);
 
+  if (B.tese){
+    $('teseTexto').textContent = '“' + B.tese.texto + '”';
+    $('teseTema').textContent = TEMA_ROTULO[B.tese.tema] || B.tese.tema;
+  }
   var mov = B.opon.moves[B.movIdx % B.opon.moves.length];
   $('oppMov').textContent = mov.nome;
   $('oppDesc').textContent = B.negate ? 'Movimento anulado pelos seus embargos de declaração.' : mov.desc;
@@ -1374,11 +1577,9 @@ function cartaEl(carta, opts){
   opts = opts || {};
   var cor = TIPO_COR[carta.tipo];
   var custo = opts.custoMostrado != null ? opts.custoMostrado : carta.custo;
-  var prev = '';
-  if (opts.situacao){
-    var r = computarDano(carta, opts.situacao);
-    prev = '+' + r.dano;
-  } else prev = '+' + carta.base;
+  // a carta mostra a sua FORÇA-BASE; o valor real (pertinência, julgador, combo) o aluno
+  // calcula lendo a tese e o julgador — e confirma no log depois de jogar.
+  var prev = '+' + carta.base;
   var podeCls = opts.podeJogar === false ? (opts.situacao ? ' nao' : '') : ' pode';
   var wrap = el('div', 'carta' + (carta.rar === 'r' ? ' rara' : '') + podeCls);
   wrap.innerHTML =
@@ -1388,6 +1589,7 @@ function cartaEl(carta, opts){
     + (carta.rar==='r' ? '<span class="tag-rara">rara</span>' : '')
     + '<div class="corpo">'
     + '<div class="nome">'+esc(carta.nome)+'</div>'
+    + tagTemaHTML(carta)
     + '<div class="efeito">'+esc(carta.combo ? carta.combo.txt : carta.texto)+'</div>'
     + '<div class="base-linha"><span class="base" style="color:'+cor+'">'+prev+'</span>'
     + '<button class="info-i" aria-label="Ficha da carta">i</button></div></div>';
@@ -1397,6 +1599,18 @@ function cartaEl(carta, opts){
   return wrap;
 }
 
+function tagTemaHTML(carta){
+  var t = carta.temas || [];
+  if (!t.length) return '<div class="tag-tema proc">Técnica processual</div>';
+  if (t.indexOf('*') >= 0) return '<div class="tag-tema coringa">Argumento versátil</div>';
+  return '<div class="tag-tema">Refuta: ' + t.map(function(x){ return esc(TEMA_ROTULO[x] || x); }).join(' · ') + '</div>';
+}
+function textoTemasFicha(carta){
+  var t = carta.temas || [];
+  if (!t.length) return 'Carta de Técnica: procedimento processual — sempre pertinente, nunca sofre a penalidade de tema.';
+  if (t.indexOf('*') >= 0) return 'Argumento versátil: serve como réplica pertinente a qualquer tese da parte adversa.';
+  return 'Refuta teses sobre: ' + t.map(function(x){ return TEMA_ROTULO[x] || x; }).join(', ') + '.';
+}
 function abrirFicha(carta){
   var cor = TIPO_COR[carta.tipo];
   modal({ cru:true, html:
@@ -1406,6 +1620,7 @@ function abrirFicha(carta){
     + '<div class="ficha-corpo">'
     + '<div class="ficha-nome">'+esc(carta.nome)+'</div>'
     + '<div class="ficha-efeito">'+esc(carta.texto)+'</div>'
+    + '<div class="ficha-tema">'+esc(textoTemasFicha(carta))+'</div>'
     + (carta.combo ? '<div class="ficha-combo" style="color:'+cor+'">Combo · '+esc(carta.combo.txt)+'</div>' : '<div style="margin-bottom:12px"></div>')
     + '<div class="ficha-fala"><div class="rotulo" style="margin-bottom:4px">Diz ao juiz</div>'
     + '<div class="txt">'+esc(carta.fala)+'</div></div></div>'
@@ -1438,10 +1653,10 @@ function logPush(elm){
   l.insertBefore(elm, l.firstChild);
   while (l.children.length > 9) l.removeChild(l.lastChild);
 }
-function logCarta(carta, dano, notas){
+function logCarta(carta, dano, notas, pert){
   var cor = TIPO_COR[carta.tipo];
-  var e = el('div','log-item');
-  e.style.borderLeftColor = cor;
+  var e = el('div','log-item' + (pert === true ? ' replica' : ''));
+  e.style.borderLeftColor = pert === true ? 'var(--red)' : cor;
   e.innerHTML = '<div class="fala">'+esc(carta.fala)+'</div>'
     + '<div class="detalhe"><b style="color:'+cor+'">'+esc(carta.nome)+'</b> · +'+dano+' na balança'+(notas?' · '+esc(notas):'')+'</div>';
   logPush(e);
@@ -1602,7 +1817,8 @@ function verDemo(){
     p: 50, rodada: 1, prazo: 10,
     compra: [], descarte: [], mao: ['pacta','pericia','peroracao','objecao','dignidade'], exauridas: [],
     folego: 3, folegoMax: 3, movIdx: 0, conten: 0, bloqueio: 0,
-    pressa:false, quest:false, dobra:false, negate:false, teseUsada:true,
+    pressa:false, quest:false, dobra:false, negate:false, teseUsada:true, explicou:false,
+    tese: { tema:'contrato', texto:'O contrato foi livremente assinado e deve ser cumprido à risca, ainda que hoje se revele excessivamente oneroso a uma das partes.', porque:'À força cega do pacto opõem-se a função social do contrato e a boa-fé objetiva (arts. 421 e 478 do Código Civil).' },
     tiposRodada: [], jogadas: [], rng: rngB, vogaIdx: -1, fim: null, demo: true, travado: false
   };
   setTema(false);
@@ -1614,12 +1830,12 @@ function verDemo(){
   var passos = [
     { t:0,    foco:null,              txt:'Bem-vindo à tribuna. Esta é uma rodada de demonstração — nada aqui vale pontos.' },
     { t:3600, foco:'.painel-balanca', txt:'A balança da convicção começa em 50. Chegue a 100 — ou termine acima de 50 quando o prazo de pauta acabar.' },
-    { t:8200, foco:'.julgador',       txt:'A julgadora é legalista: Normas valem ×1,4 e Retórica ×0,7. Ler o julgador é metade da estratégia.' },
-    { t:13000,foco:'#anuncio',        txt:'A parte adversa sempre anuncia o próximo movimento. Informação perfeita: o jogo é de decisão, não de sorte escondida.' },
-    { t:18000,foco:'#mao',            txt:'Sua mão: cada carta custa fôlego, e você tem 3 por rodada — sem acumular. Vamos sustentar Pacta sunt servanda.' },
-    { t:22600,foco:null,              acao:function(){ if (B && B.demo && B.mao.indexOf('pacta')>=0) jogarCarta(B.mao.indexOf('pacta')); },
-              txt:'A carta empurrou a balança — e a fala apareceu no log: é o que aquele argumento diz ao juiz. O botão "i" abre a ficha completa.' },
-    { t:28600,foco:'#cxFolego',       txt:'Fôlego que sobra dói: cartas de custo 0 existem para queimar o resto. Depois, encerre a rodada e a parte adversa agirá.' },
+    { t:8200, foco:'#painelTese',     txt:'A cada rodada a parte adversa SUSTENTA uma tese. Vencer é jogar o argumento que a refuta — não o de maior número.' },
+    { t:13000,foco:'.julgador',       txt:'A julgadora é legalista: Normas valem ×1,4 e Retórica ×0,7. Ler o julgador é a outra metade da estratégia.' },
+    { t:17600,foco:'#mao',            txt:'A tese é sobre contratos. Pacta sunt servanda a refuta em cheio — é a réplica pertinente. Vamos sustentá-la.' },
+    { t:22200,foco:null,              acao:function(){ if (B && B.demo && B.mao.indexOf('pacta')>=0) jogarCarta(B.mao.indexOf('pacta')); },
+              txt:'Réplica certeira: valeu cheio, com bônus, e o log explicou por quê. Argumento fora do tema renderia menos da metade.' },
+    { t:28200,foco:'#cxFolego',       txt:'Cada carta custa fôlego, e você tem 3 por rodada — sem acumular. Encerre a rodada e a parte adversa executa o movimento anunciado.' },
     { t:34200,foco:null,              txt:'A cada 3 rodadas o julgador pondera a convicção rumo ao centro. Vença 8 casos e chegue ao STF. Boa sustentação.' }
   ];
   passos.forEach(function(p){
@@ -1648,19 +1864,111 @@ function fetchJSON(url, opts, timeoutMs){
   opts = opts || {};
   opts.headers = opts.headers || {};
   opts.headers['Content-Type'] = 'application/json';
-  if (PERFIL.token) opts.headers['Authorization'] = 'Bearer ' + PERFIL.token;
+  opts.credentials = 'same-origin';        // a sessão viaja no cookie httpOnly
   var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
   if (ctrl) opts.signal = ctrl.signal;
   var tid = setTimeout(function(){ if (ctrl) ctrl.abort(); }, timeoutMs || 6000);
   return fetch(url, opts).then(function(r){
     clearTimeout(tid);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok){ var err = new Error('HTTP ' + r.status); err.status = r.status; throw err; }
     return r.json();
   }, function(e){ clearTimeout(tid); throw e; });
 }
 
+/* ---------- sessão e login ---------- */
+function iniciarSessao(){
+  // descobre se o backend está presente. Sem backend (arquivo estático) → modo local, sem login.
+  return fetchJSON(CONFIG.API_BASE + '/session', {}, 4000).then(function(d){
+    SERVIDOR.online = true;
+    SERVIDOR.modo = d.modo || 'banco';
+    SERVIDOR.autenticado = !!d.autenticado;
+    if (d.semestre) CONFIG.SEMESTRE = d.semestre;
+    if (d.versao) CONFIG.VERSAO = d.versao;
+    if (d.autenticado && d.usuario){
+      aplicarPerfilServidor(d.usuario);
+      return carregarDisciplinas().then(function(){ entrarNoJogo(); });
+    }
+    mostrarLogin();
+  }, function(){
+    // backend ausente: joga localmente, identidade pelo formulário de configurações
+    SERVIDOR.online = false; SERVIDOR.modo = 'local'; SERVIDOR.autenticado = true;
+    entrarNoJogo();
+  });
+}
+function aplicarPerfilServidor(u){
+  PERFIL = { nome: u.nome || 'Estudante', ra: u.ra || '', sem: u.semestre || CONFIG.SEMESTRE, cpf: u.cpf || '', token: '' };
+  SERVIDOR.autenticado = true;
+}
+function entrarNoJogo(){
+  atualizarTitulo();
+  processarFila();
+  mostrar('scr-title');
+}
+function mostrarLogin(){
+  var mock = $('loginMock');
+  if (SERVIDOR.modo === 'mock' && mock){
+    mock.classList.remove('hidden');
+    mock.innerHTML = 'Modo de demonstração (sem banco): entre com <b>000.000.000-00</b> e nascimento <b>01/01/2000</b>.';
+  }
+  mostrar('scr-login');
+  var cpf = $('loginCpf'); if (cpf) setTimeout(function(){ cpf.focus(); }, 60);
+}
+function fazerLogin(ev){
+  if (ev && ev.preventDefault) ev.preventDefault();
+  var cpf = ($('loginCpf').value || '').replace(/\D/g, '');
+  var nasc = $('loginNasc').value || '';
+  var erro = $('loginErro');
+  var btn = $('loginBtn');
+  if (cpf.length !== 11 || !nasc){ mostrarErroLogin('Confira o CPF (11 dígitos) e a data de nascimento.'); return; }
+  btn.disabled = true; btn.textContent = 'Entrando…'; erro.classList.add('hidden');
+  fetchJSON(CONFIG.API_BASE + '/login', { method:'POST', body: JSON.stringify({ cpf: cpf, nascimento: nasc }) }, 8000)
+    .then(function(d){
+      btn.disabled = false; btn.textContent = 'Entrar';
+      aplicarPerfilServidor(d.usuario);
+      som.boa();
+      carregarDisciplinas().then(entrarNoJogo);
+    })
+    .catch(function(e){
+      btn.disabled = false; btn.textContent = 'Entrar';
+      var msg = 'Não foi possível entrar agora. Tente novamente.';
+      if (e && e.status === 401) msg = 'CPF ou data de nascimento não conferem.';
+      else if (e && e.status === 429) msg = 'Muitas tentativas. Aguarde um minuto e tente de novo.';
+      mostrarErroLogin(msg);
+    });
+}
+function mostrarErroLogin(msg){
+  var erro = $('loginErro'); if (!erro) return;
+  erro.textContent = msg; erro.classList.remove('hidden'); som.nega();
+}
+function fazerLogout(){
+  var fim = function(){ PERFIL = { nome:'', ra:'', sem:'', cpf:'', token:'' }; SERVIDOR.autenticado = false; JUIZES_COMUNS = JUIZES_FALLBACK.slice(); S=null; B=null; setTema(false); mostrarLogin(); };
+  if (!SERVIDOR.online){ mostrar('scr-title'); return; }
+  fetchJSON(CONFIG.API_BASE + '/logout', { method:'POST' }, 4000).then(fim, fim);
+}
+
+/* ---------- juízes reais (disciplinas do banco) ---------- */
+function carregarDisciplinas(){
+  if (!SERVIDOR.online) return Promise.resolve();
+  return fetchJSON(CONFIG.API_BASE + '/disciplinas', {}, 5000).then(function(d){
+    var lista = (d && d.disciplinas) || [];
+    if (!lista.length){ JUIZES_COMUNS = JUIZES_FALLBACK.slice(); return; }
+    var ids = [];
+    lista.slice(0, 40).forEach(function(disc, i){
+      var perfil = MULT_PERFIL[disc.perfil] ? disc.perfil : perfilPorNome(disc.professor || disc.nome);
+      var id = 'db' + i;
+      JUIZES[id] = {
+        id: id, nome: disc.professor || disc.nome || 'Julgador', perfil: PERFIL_ROTULO[perfil],
+        perfilId: perfil, mult: MULT_PERFIL[perfil], foto: disc.foto || '', area: disc.area || '',
+        disciplina: disc.nome || ''
+      };
+      ids.push(id);
+    });
+    JUIZES_COMUNS = ids;
+  }, function(){ JUIZES_COMUNS = JUIZES_FALLBACK.slice(); });
+}
+
 function enviarPartida(partida){
-  if (!CONFIG.API_BASE) return;
+  if (!SERVIDOR.online){ enfileirar(partida); return; }
   fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(partida) })
     .then(function(){ processarFila(); })
     .catch(function(){ enfileirar(partida); });
@@ -1671,7 +1979,7 @@ function enfileirar(partida){
   store.set('ui_fila', fila.slice(-30));
 }
 function processarFila(){
-  if (!CONFIG.API_BASE) return;
+  if (!SERVIDOR.online) return;
   var fila = store.get('ui_fila', []);
   if (!fila.length) return;
   var prox = fila[0];
@@ -1693,8 +2001,8 @@ function verPlacar(aba){
     placar.forEach(function(p, i){ lista.appendChild(liPlacar(i+1, p.nome, textoPartida(p), p.pontos)); });
     return;
   }
-  if (!CONFIG.API_BASE){
-    lista.innerHTML = '<div class="aviso-rede">O ranking ' + (aba==='hall' ? 'dos campeões' : 'do semestre') + ' fica disponível quando o aparelho está conectado à rede da FMP.<br>Suas partidas já ficam guardadas e sobem sozinhas quando a conexão voltar.</div>';
+  if (!SERVIDOR.online){
+    lista.innerHTML = '<div class="aviso-rede">O ranking ' + (aba==='hall' ? 'dos campeões' : 'do semestre') + ' fica disponível quando o jogo está conectado ao servidor da FMP.<br>Suas partidas ficam guardadas neste aparelho enquanto isso.</div>';
     return;
   }
   lista.innerHTML = '<div class="aviso-rede">Carregando o placar…</div>';
@@ -1796,14 +2104,22 @@ function atualizarTitulo(){
 }
 
 function abrirConfig(){
-  $('cfgNome').value = PERFIL.nome || '';
-  $('cfgRa').value = PERFIL.ra || '';
-  $('cfgSem').value = PERFIL.sem || '';
+  var noServidor = SERVIDOR.online && SERVIDOR.modo !== 'local';
+  $('blocoIdentLocal').classList.toggle('hidden', noServidor);
+  $('blocoIdentServidor').classList.toggle('hidden', !noServidor);
+  if (noServidor){
+    $('cfgAluno').textContent = PERFIL.nome || 'Estudante';
+    $('cfgAlunoSem').textContent = PERFIL.sem || CONFIG.SEMESTRE;
+  } else {
+    $('cfgNome').value = PERFIL.nome || '';
+    $('cfgRa').value = PERFIL.ra || '';
+    $('cfgSem').value = PERFIL.sem || '';
+  }
   $('cfgTema').value = TEMA;
   $('cfgSom').classList.toggle('on', !mudo);
   $('cfgVibra').classList.toggle('on', !!VIBRA);
-  $('cfgSobre').innerHTML = 'Última Instância v' + CONFIG.VERSAO + ' · semestre ' + CONFIG.SEMESTRE
-    + ' · <a class="serif" style="color:var(--red)" href="' + CONFIG.PORTAL_URL + '" target="_blank" rel="noopener">portal da FMP</a>';
+  $('cfgSobre').innerHTML = 'Última Instância v' + esc(CONFIG.VERSAO) + ' · semestre ' + esc(CONFIG.SEMESTRE)
+    + ' · <a class="serif" style="color:var(--red)" href="' + esc(CONFIG.PORTAL_URL) + '" target="_blank" rel="noopener">portal da FMP</a>';
   mostrar('scr-config');
 }
 
@@ -1866,6 +2182,10 @@ function ligarEventos(){
     TEMA = $('cfgTema').value; store.set('ui_tema', TEMA);
     setTema(B ? !!B.meta.dark : false);
   });
+  $('cfgSair').addEventListener('click', function(){
+    modal({ titulo:'Sair da conta?', html:'Você voltará à tela de acesso. A jornada em andamento continua salva.',
+      botoes:[ { t:'Sair', fn: fazerLogout }, { t:'Ficar', ghost:true } ] });
+  });
   $('cfgSom').addEventListener('click', function(){ mudo = !mudo; store.set('ui_mudo', mudo); $('cfgSom').classList.toggle('on', !mudo); if(!mudo) som.boa(); });
   $('cfgVibra').addEventListener('click', function(){ VIBRA = !VIBRA; store.set('ui_vibra', VIBRA); $('cfgVibra').classList.toggle('on', !!VIBRA); vibra(20); });
   $('cfgDemo').addEventListener('click', verDemo);
@@ -1877,16 +2197,28 @@ function ligarEventos(){
 
   $('demoPular').addEventListener('click', pararDemo);
   $('modalWrap').addEventListener('click', function(ev){ if (ev.target === $('modalWrap') && !modalTravado) fecharModal(); });
+
+  // login
+  var lf = $('loginForm'); if (lf) lf.addEventListener('submit', fazerLogin);
+  var lc = $('loginCpf'); if (lc) lc.addEventListener('input', function(){ lc.value = mascaraCPF(lc.value); });
+}
+
+/* máscara de CPF na digitação: 000.000.000-00 */
+function mascaraCPF(v){
+  var d = String(v || '').replace(/\D/g, '').slice(0, 11);
+  var out = d;
+  if (d.length > 9) out = d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
+  else if (d.length > 6) out = d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
+  else if (d.length > 3) out = d.slice(0,3)+'.'+d.slice(3);
+  return out;
 }
 
 function boot(){
-  lerTokenURL();
   ligarEventos();
   fxPreparar();
   setTema(false);
-  atualizarTitulo();
-  processarFila();
   if (typeof requestAnimationFrame === 'function') requestAnimationFrame(loopFX);
+  iniciarSessao();
 }
 
 if (typeof document !== 'undefined' && document.readyState !== 'loading') boot();
@@ -1901,7 +2233,8 @@ if (typeof window !== 'undefined'){
     computarDano:computarDano, aposCaso:aposCaso, aposCaso2:aposCaso2, oporEmbargos:oporEmbargos,
     encerrarJornadaDerrota:encerrarJornadaDerrota, escolherRecompensa:escolherRecompensa, pularRecompensa:pularRecompensa,
     escolherReliquia:escolherReliquia, eventoConviccao:eventoConviccao, proximoCaso:proximoCaso,
-    ofertaCartas:ofertaCartas, ofertaReliquias:ofertaReliquias, estado:function(){ return { S:S, B:B }; },
+    ofertaCartas:ofertaCartas, ofertaReliquias:ofertaReliquias, cartaPertinente:cartaPertinente,
+    TESES:TESES, TEMA_ROTULO:TEMA_ROTULO, estado:function(){ return { S:S, B:B }; },
     setS:function(v){ S=v; }, setB:function(v){ B=v; }
   };
 }

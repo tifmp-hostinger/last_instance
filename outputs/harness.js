@@ -140,9 +140,14 @@ function botJogaRodada(api, smart, rnd){
     } else {
       // tático: pontua cada carta no contexto da rodada
       let melhor = null, melhorNota = -1;
+      // um advogado atento lê a tese: prefere a réplica pertinente e evita o argumento lateral
+      const temPertinente = jogaveis.some(c => api.cartaPertinente(c.carta, B.tese) === true);
       for (const c of jogaveis){
         const prev = api.computarDano(c.carta, B);
         let nota = prev.dano;
+        const pert = api.cartaPertinente(c.carta, B.tese); // true réplica · false lateral · null procedimental
+        if (pert === true) nota += 3;
+        else if (pert === false && temPertinente) nota -= 4; // não desperdiça argumento fora do tema havendo réplica
         const fx = c.carta.fx || {};
         if (fx.block && mov.t === 'dano') nota += Math.min(fx.block, mov.v) * 0.9;
         if (fx.negate) nota += valorMovimento(mov) > 6 ? valorMovimento(mov) : 0;
