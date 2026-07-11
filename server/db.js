@@ -164,19 +164,40 @@ async function listarDisciplinas(semestre) {
    Partidas / placar.
    ============================================================ */
 const MODOS = ['semestre', 'semana', 'livre', 'diario'];
+let placarSeq = 0; // mock: id incremental (equivalente ao BIGSERIAL da tabela partidas)
+/* grava a partida com deduplicação por (cpf, modo, seed): reenvio por retry de rede,
+   duplo clique ou fila offline não cria uma segunda linha nem pontua duas vezes — a
+   linha existente é devolvida com duplicado:true (mesmo padrão nos dois modos). */
 async function salvarPartida(p) {
   var reg = {
     cpf: soNumeros(p.cpf), nome: p.nome || 'Estudante', semestre: p.semestre || (process.env.SEMESTRE || ''),
     pontos: parseInt(p.pontos, 10) || 0, casos: parseInt(p.casos, 10) || 0,
     venceu: !!p.venceu, modo: MODOS.indexOf(p.modo) >= 0 ? p.modo : 'livre', seed: String(p.seed || '')
   };
-  if (!hasDB) { placarMemoria.push(Object.assign({ criado_em: new Date().toISOString() }, reg)); return { ok: true, mock: true }; }
+  if (!hasDB) {
+    if (reg.seed) {
+      var existente = placarMemoria.find(function (x) { return x.cpf === reg.cpf && x.modo === reg.modo && x.seed === reg.seed; });
+      if (existente) return { ok: true, mock: true, id: existente.id, duplicado: true };
+    }
+    reg.id = ++placarSeq;
+    placarMemoria.push(Object.assign({ criado_em: new Date().toISOString() }, reg));
+    return { ok: true, mock: true, id: reg.id, duplicado: false };
+  }
   try {
-    await pool.query(
-      'INSERT INTO ' + ident(T_PARTIDAS) + ' (cpf, nome, semestre, pontos, casos, venceu, modo, seed) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+    // ON CONFLICT exige o índice parcial uq_partidas_dedup (db/schema.sql); se a instalação
+    // tinha duplicatas anteriores à migração v5, esse índice pode não existir — ver o
+    // diagnóstico no schema.sql. Nesse caso este INSERT lança e cai no catch abaixo.
+    var r = await pool.query(
+      'INSERT INTO ' + ident(T_PARTIDAS) + ' (cpf, nome, semestre, pontos, casos, venceu, modo, seed) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ' +
+      'ON CONFLICT (cpf, modo, seed) WHERE seed IS NOT NULL AND seed <> \'\' DO NOTHING RETURNING id',
       [reg.cpf, reg.nome, reg.semestre, reg.pontos, reg.casos, reg.venceu, reg.modo, reg.seed]
     );
-    return { ok: true };
+    if (r.rows.length) return { ok: true, id: r.rows[0].id, duplicado: false };
+    var ex = await pool.query(
+      'SELECT id FROM ' + ident(T_PARTIDAS) + ' WHERE cpf=$1 AND modo=$2 AND seed=$3 ORDER BY criado_em ASC LIMIT 1',
+      [reg.cpf, reg.modo, reg.seed]
+    );
+    return { ok: true, id: ex.rows[0] ? ex.rows[0].id : null, duplicado: true };
   } catch (e) {
     console.error('[db] salvarPartida falhou:', e.message);
     return { ok: false };
@@ -298,30 +319,179 @@ async function progressoAluno(cpf, semestre, chaveSemana) {
 
 /* ============================================================
    Ordem do Mérito (divisão competitiva por temporada/semestre).
+   ------------------------------------------------------------
+   O Postgres é a fonte da verdade: divisao/pm só mudam através de
+   aplicarResultadoPartida, que recebe o RESULTADO BRUTO da partida
+   (tipo/pontos/casos/venceu) — nunca uma divisão/PM finais vindos
+   do cliente — e recalcula o delta e a promoção/rebaixamento no
+   servidor (espelha aplicarMerito de public/index.html). Em modo
+   banco, isso roda dentro da função atômica aplicar_resultado_
+   partida (db/schema.sql), com a linha travada (FOR UPDATE) contra
+   corrida entre duas partidas concorrentes do mesmo aluno; em modo
+   mock, replicamos exatamente a mesma lógica em memória.
    ============================================================ */
 const T_RANK = process.env.TABELA_RANK || 'rank_alunos';
-let rankMemoria = new Map();  // modo mock
-async function salvarRank(cpf, nome, divisao, pm, temporada) {
-  var reg = { cpf: soNumeros(cpf), nome: nome || 'Estudante', divisao: clampInt(divisao, 0, 12), pm: clampInt(pm, 0, 99), temporada: temporada || '' };
-  if (!hasDB) { rankMemoria.set(reg.cpf + ':' + reg.temporada, reg); return { ok: true, mock: true }; }
-  try {
-    await pool.query(
-      'INSERT INTO ' + ident(T_RANK) + ' (cpf, nome, temporada, divisao, pm, atualizado_em) VALUES ($1,$2,$3,$4,$5,now()) ' +
-      'ON CONFLICT (cpf, temporada) DO UPDATE SET nome=$2, divisao=$4, pm=$5, atualizado_em=now()',
-      [reg.cpf, reg.nome, reg.temporada, reg.divisao, reg.pm]
-    );
-    return { ok: true };
-  } catch (e) { console.error('[db] salvarRank falhou:', e.message); return { ok: false }; }
+const DIVISOES_LEN = 13;      // igual a DIVISOES.length no front
+const DIV_PROTEGIDAS = 4;     // igual a DIV_PROTEGIDAS no front — abaixo disso, PM nunca cai
+let rankMemoria = new Map();  // modo mock: chave cpf+':'+temporada
+let rankAplicados = new Set(); // modo mock: partida_id já processados (idempotência)
+
+function estadoRankMemoria(cpf, temporada) {
+  var chave = cpf + ':' + temporada;
+  var r = rankMemoria.get(chave);
+  if (!r) {
+    // primeira aparição nesta temporada: herda a "virada de temporada" da temporada
+    // mais recente já conhecida desse aluno (divisão-1, pm=0 — sem gate de proteção)
+    var maisRecente = null;
+    rankMemoria.forEach(function (v) {
+      if (v.cpf === cpf && v.temporada !== temporada && (!maisRecente || v.atualizado_em > maisRecente.atualizado_em)) maisRecente = v;
+    });
+    var divInicial = Math.max(0, (maisRecente ? maisRecente.divisao : 0) - 1);
+    r = {
+      cpf: cpf, nome: '', temporada: temporada, divisao: divInicial, pm: 0, maior_divisao: divInicial,
+      vitorias: 0, derrotas: 0, jornadas_concluidas: 0, casos_semanais_concluidos: 0,
+      criado_em: new Date().toISOString(), atualizado_em: new Date().toISOString()
+    };
+    rankMemoria.set(chave, r);
+  }
+  return r;
 }
+function calcularDeltaPM(tipo, venceu, pontos, casos, divisaoAtual) {
+  if (tipo === 'semana') {
+    if (venceu) return { delta: 14 + Math.min(8, Math.round((pontos || 0) / 60)), motivo: 'caso da semana vencido' };
+    return { delta: (divisaoAtual < DIV_PROTEGIDAS) ? 0 : -6, motivo: 'caso da semana perdido' };
+  }
+  if (venceu) return { delta: Math.min(80, 60 + Math.round((pontos || 0) / 120)), motivo: 'jornada do semestre vencida' };
+  return { delta: Math.min(24, (casos || 0) * 3), motivo: 'jornada do semestre encerrada' };
+}
+
+/* único caminho de escrita para divisao/pm. partidaId (quando fornecido) garante que a
+   mesma partida nunca gera dois movimentos de PM, mesmo sob reenvio/retry/corrida. */
+async function aplicarResultadoPartida(cpf, nome, temporada, tipo, pontos, casos, venceu, partidaId) {
+  var c = soNumeros(cpf);
+  var sem = temporada || process.env.SEMESTRE || '';
+  if (['jornada', 'semana'].indexOf(tipo) < 0) return { divisao: 0, pm: 0, delta: 0, aplicado: false, erro: true };
+  if (!hasDB) {
+    if (partidaId != null && rankAplicados.has(partidaId)) {
+      var atual = rankMemoria.get(c + ':' + sem);
+      return { divisao: atual ? atual.divisao : 0, pm: atual ? atual.pm : 0, delta: 0, aplicado: false };
+    }
+    var r = estadoRankMemoria(c, sem);
+    r.nome = nome || r.nome || 'Estudante';
+    var calc = calcularDeltaPM(tipo, !!venceu, pontos, casos, r.divisao);
+    var div = r.divisao, pm = r.pm + calc.delta;
+    while (pm >= 100 && div < DIVISOES_LEN - 1) { pm -= 100; div++; }
+    while (pm < 0) {
+      if (div > DIV_PROTEGIDAS) { div--; pm += 100; } else { pm = 0; break; }
+    }
+    if (pm > 99) pm = 99;
+    r.divisao = div; r.pm = pm;
+    r.maior_divisao = Math.max(r.maior_divisao, div);
+    if (venceu) r.vitorias++; else r.derrotas++;
+    if (tipo === 'jornada') r.jornadas_concluidas++;
+    if (tipo === 'semana') r.casos_semanais_concluidos++;
+    r.atualizado_em = new Date().toISOString();
+    if (partidaId != null) rankAplicados.add(partidaId);
+    return { divisao: div, pm: pm, delta: calc.delta, aplicado: true };
+  }
+  try {
+    var q = await pool.query(
+      'SELECT * FROM aplicar_resultado_partida($1,$2,$3,$4,$5,$6,$7,$8)',
+      [c, nome || 'Estudante', sem, tipo, parseInt(pontos, 10) || 0, parseInt(casos, 10) || 0, !!venceu, partidaId || null]
+    );
+    var row = q.rows[0];
+    return { divisao: row.divisao, pm: row.pm, delta: row.delta_pm, aplicado: row.aplicado };
+  } catch (e) {
+    console.error('[db] aplicarResultadoPartida falhou:', e.message);
+    return { divisao: 0, pm: 0, delta: 0, aplicado: false, erro: true };
+  }
+}
+
 async function lerRank(cpf, temporada) {
   var c = soNumeros(cpf);
-  if (!hasDB) return rankMemoria.get(c + ':' + (temporada || '')) || null;
+  var sem = temporada || process.env.SEMESTRE || '';
+  if (!hasDB) {
+    var r = rankMemoria.get(c + ':' + sem);
+    if (!r) return null;
+    return {
+      divisao: r.divisao, pm: r.pm, maior_divisao: r.maior_divisao, vitorias: r.vitorias, derrotas: r.derrotas,
+      jornadas_concluidas: r.jornadas_concluidas, casos_semanais_concluidos: r.casos_semanais_concluidos
+    };
+  }
   try {
-    var r = await pool.query('SELECT divisao, pm FROM ' + ident(T_RANK) + ' WHERE cpf=$1 AND temporada=$2 LIMIT 1', [c, temporada || '']);
-    return r.rows[0] || null;
-  } catch (e) { return null; }
+    var r2 = await pool.query(
+      'SELECT divisao, pm, maior_divisao, vitorias, derrotas, jornadas_concluidas, casos_semanais_concluidos FROM ' +
+      ident(T_RANK) + ' WHERE cpf=$1 AND temporada=$2 LIMIT 1',
+      [c, sem]
+    );
+    return r2.rows[0] || null;
+  } catch (e) { console.error('[db] lerRank falhou:', e.message); return null; }
 }
-function clampInt(v, a, b) { v = parseInt(v, 10); if (isNaN(v)) return a; return Math.max(a, Math.min(b, v)); }
+
+/* ranking da temporada corrente — a escada da Ordem do Mérito */
+async function listarRankTemporada(temporada) {
+  var sem = temporada || process.env.SEMESTRE || '';
+  if (!hasDB) {
+    var lista = Array.from(rankMemoria.values()).filter(function (r) { return r.temporada === sem; });
+    lista.sort(function (a, b) { return b.divisao - a.divisao || b.pm - a.pm; });
+    return lista.slice(0, 50).map(function (r, i) {
+      return { cpf: r.cpf, nome: r.nome, divisao: r.divisao, pm: r.pm, maior_divisao: r.maior_divisao, vitorias: r.vitorias, derrotas: r.derrotas, posicao: i + 1 };
+    });
+  }
+  try {
+    var r = await pool.query(
+      'SELECT cpf, nome, divisao, pm, maior_divisao, vitorias, derrotas, ' +
+      'RANK() OVER (ORDER BY divisao DESC, pm DESC) AS posicao FROM ' + ident(T_RANK) +
+      ' WHERE temporada=$1 ORDER BY divisao DESC, pm DESC LIMIT 50',
+      [sem]
+    );
+    return r.rows;
+  } catch (e) { console.error('[db] listarRankTemporada falhou:', e.message); return []; }
+}
+
+/* hall histórico da Ordem do Mérito — maior divisão já alcançada, todas as temporadas */
+async function listarRankHall() {
+  if (!hasDB) {
+    var porCpf = new Map();
+    rankMemoria.forEach(function (r) {
+      var g = porCpf.get(r.cpf);
+      if (!g) { g = { cpf: r.cpf, nome: r.nome, maior_divisao: 0, vitorias: 0, derrotas: 0 }; porCpf.set(r.cpf, g); }
+      g.nome = r.nome || g.nome;
+      g.maior_divisao = Math.max(g.maior_divisao, r.maior_divisao);
+      g.vitorias += r.vitorias; g.derrotas += r.derrotas;
+    });
+    var lista = Array.from(porCpf.values());
+    lista.sort(function (a, b) { return b.maior_divisao - a.maior_divisao || b.vitorias - a.vitorias; });
+    return lista.slice(0, 50);
+  }
+  try {
+    var r = await pool.query(
+      'SELECT cpf, MAX(nome) AS nome, MAX(maior_divisao) AS maior_divisao, SUM(vitorias) AS vitorias, SUM(derrotas) AS derrotas ' +
+      'FROM ' + ident(T_RANK) + ' GROUP BY cpf ORDER BY maior_divisao DESC, vitorias DESC LIMIT 50'
+    );
+    return r.rows;
+  } catch (e) { console.error('[db] listarRankHall falhou:', e.message); return []; }
+}
+
+/* posição individual do aluno na temporada corrente */
+async function posicaoRank(cpf, temporada) {
+  var c = soNumeros(cpf);
+  var sem = temporada || process.env.SEMESTRE || '';
+  if (!hasDB) {
+    var lista = Array.from(rankMemoria.values()).filter(function (r) { return r.temporada === sem; });
+    lista.sort(function (a, b) { return b.divisao - a.divisao || b.pm - a.pm; });
+    var idx = lista.findIndex(function (r) { return r.cpf === c; });
+    return idx < 0 ? null : { posicao: idx + 1, total: lista.length };
+  }
+  try {
+    var r = await pool.query(
+      'SELECT posicao, total FROM (SELECT cpf, RANK() OVER (ORDER BY divisao DESC, pm DESC) AS posicao, COUNT(*) OVER () AS total ' +
+      'FROM ' + ident(T_RANK) + ' WHERE temporada=$1) x WHERE cpf=$2',
+      [sem, c]
+    );
+    return r.rows[0] || null;
+  } catch (e) { console.error('[db] posicaoRank falhou:', e.message); return null; }
+}
 
 /* impede injeção de nome de tabela vindo de env (identificador seguro) */
 function ident(nome) {
@@ -342,8 +512,11 @@ module.exports = {
   salvarPartida: salvarPartida,
   listarPlacar: listarPlacar,
   progressoAluno: progressoAluno,
-  salvarRank: salvarRank,
+  aplicarResultadoPartida: aplicarResultadoPartida,
   lerRank: lerRank,
+  listarRankTemporada: listarRankTemporada,
+  listarRankHall: listarRankHall,
+  posicaoRank: posicaoRank,
   ping: ping,
   FIXO: FIXO
 };

@@ -51,12 +51,23 @@ Copie `.env.example` para `.env` (ou configure no EasyPanel). Principais:
 
 ## Banco de dados
 
-`db/schema.sql` cria quatro tabelas:
+`db/schema.sql` (idempotente — pode ser rodado de novo num banco existente, `IF NOT
+EXISTS` em tudo) cria:
 
 - **`usuarios`** — `cpf`, `data_nascimento`, `nome` (+ `ra`, `curso`, `semestre`, `ativo`). Login.
 - **`disciplinas`** — `nome`, `professor` (+ `area_do_direito`, `perfil_julgador`, `foto_professor_url`, `semestre`). Cada disciplina vira um **julgador real**, com o professor no lugar do juiz e a foto no avatar, casado com a área do caso.
-- **`partidas`** — o placar persistido e também a **memória de progresso**: `modo` distingue `semestre` (a jornada única) de `semana` (a pauta semanal, com `seed` `semana-AAAA-SNN`) — é dela que `GET /api/progresso` deduz o que o aluno já jogou, em qualquer aparelho. As abas **Semestre** e **Hall de campeões** do placar somam `pontos` por aluno (`GROUP BY cpf`), não por partida — jornada + todas as pautas semanais juntas.
-- **`rank_alunos`** — a Ordem do Mérito (divisão competitiva + pontos de mérito, por temporada/semestre).
+- **`partidas`** — o placar persistido e também a **memória de progresso**: `modo` distingue `semestre` (a jornada única) de `semana` (a pauta semanal, com `seed` `semana-AAAA-SNN`) — é dela que `GET /api/progresso` deduz o que o aluno já jogou, em qualquer aparelho. As abas **Semestre** e **Hall de campeões** do placar somam `pontos` por aluno (`GROUP BY cpf`), não por partida — jornada + todas as pautas semanais juntas. Um índice único em `(cpf, modo, seed)` impede que a mesma partida seja gravada duas vezes (reenvio por retry de rede, fila offline, duplo clique).
+- **`rank_alunos`** — a Ordem do Mérito (divisão competitiva, PM, maior divisão já alcançada, vitórias/derrotas, jornadas e casos semanais concluídos — por temporada/semestre).
+- **`rank_movimentos`** — o ledger de auditoria: toda variação de PM, com motivo e a partida relacionada.
+
+> **Segurança da Ordem do Mérito.** O Postgres é a fonte da verdade: divisão/PM só
+> mudam dentro da função `aplicar_resultado_partida` (server-side, chamada por
+> `POST /api/partidas`), que recalcula o delta a partir do resultado bruto da
+> partida — nunca a partir de um valor final vindo do cliente. Não existe mais
+> `POST /api/rank`. Cada partida só gera um movimento de PM (idempotência por
+> `partida_id`), então reenvio de rede ou fila offline não pontua duas vezes.
+> Detalhes e consultas de validação estão comentados em `db/schema.sql`; para
+> reverter só a parte nova, `db/rollback_v5_elo_seguranca.sql`.
 
 > **Professores não aparecem no jogo (caem nos juízes fictícios)?** É quase sempre o filtro de semestre: `disciplinas.semestre`, se preenchido, precisa bater com o `semestre` do aluno em `usuarios` (ou ficar `NULL`, que vale para qualquer aluno). Confira com `SELECT nome, semestre, ativo FROM disciplinas;` — o mais simples é deixar `semestre` em branco na `disciplinas` enquanto não houver disciplinas de mais de um período cadastradas ao mesmo tempo.
 

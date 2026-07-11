@@ -6,10 +6,22 @@
      POST /api/logout                          → encerra a sessão
      GET  /api/session                         → perfil atual / config
      GET  /api/disciplinas                     → juízes reais (auth)
-     GET  /api/placar?aba=&sem=                → ranking (auth)
-     POST /api/partidas                        → grava a jornada (auth)
+     GET  /api/placar?aba=&sem=                → ranking por pontos
+                        aba=merito             → ranking da Ordem do Mérito (temporada)
+                        aba=merito_hall        → hall histórico da Ordem do Mérito
+     GET  /api/progresso?semana=               → memória entre aparelhos (auth)
+     GET  /api/rank                            → divisão/PM atuais do aluno (auth)
+     GET  /api/rank/posicao                    → posição do aluno no ranking (auth)
+     POST /api/partidas                        → grava a jornada e aplica o PM (auth)
      GET  /api/saude                           → healthcheck
    Sem Postgres configurado, roda em MODO MOCK (ver server/db.js).
+
+   Segurança da Ordem do Mérito (v5): divisao/pm NUNCA são aceitos como
+   valor final vindo do corpo da requisição — não existe mais POST
+   /api/rank. Toda promoção/rebaixamento é calculada no servidor, dentro
+   de POST /api/partidas, a partir do resultado bruto da partida (ver
+   db.aplicarResultadoPartida e a função aplicar_resultado_partida em
+   db/schema.sql).
    ============================================================ */
 const path = require('path');
 const express = require('express');
@@ -91,6 +103,15 @@ app.get('/api/disciplinas', auth.exigir, async function (req, res) {
 });
 
 app.get('/api/placar', auth.exigir, async function (req, res) {
+  // aba=merito / merito_hall: ranking da Ordem do Mérito (divisão+PM), não a soma de pontos
+  if (req.query.aba === 'merito') {
+    var itensM = await db.listarRankTemporada(req.query.sem || SEMESTRE);
+    return res.json({ itens: itensM });
+  }
+  if (req.query.aba === 'merito_hall') {
+    var itensH = await db.listarRankHall();
+    return res.json({ itens: itensH });
+  }
   var aba = req.query.aba === 'semestre' ? 'semestre' : 'hall';
   var itens = await db.listarPlacar(aba, req.query.sem || SEMESTRE);
   res.json({ itens: itens });
@@ -105,24 +126,44 @@ app.get('/api/progresso', auth.exigir, async function (req, res) {
   res.json(r);
 });
 
-app.post('/api/rank', auth.exigir, async function (req, res) {
-  var b = req.body || {};
-  var r = await db.salvarRank(req.usuario.cpf, req.usuario.nome, b.divisao, b.pm, SEMESTRE);
-  res.json({ ok: !!r.ok });
-});
+// NOTA DE SEGURANÇA (v5): não existe mais POST /api/rank. A divisão/PM da Ordem do
+// Mérito nunca são aceitos como valor final vindo do cliente — eles só mudam como
+// consequência de uma partida real, calculada no servidor dentro de POST /api/partidas
+// (ver db.aplicarResultadoPartida). Um cliente não pode mais se autopromover.
 app.get('/api/rank', auth.exigir, async function (req, res) {
   var r = await db.lerRank(req.usuario.cpf, SEMESTRE);
   res.json({ rank: r });
 });
+app.get('/api/rank/posicao', auth.exigir, async function (req, res) {
+  var r = await db.posicaoRank(req.usuario.cpf, SEMESTRE);
+  res.json({ posicao: r });
+});
 
+var TIPO_MERITO_POR_MODO = { semestre: 'jornada', semana: 'semana' };
 app.post('/api/partidas', auth.exigir, async function (req, res) {
   var p = req.body || {};
   // a identidade vem da sessão, não do cliente (não confiar no corpo para quem é o aluno)
   p.cpf = req.usuario.cpf;
   p.nome = req.usuario.nome;
   p.semestre = req.usuario.semestre || SEMESTRE;
-  var r = await db.salvarPartida(p);
-  res.json({ ok: !!r.ok });
+  var salvo = await db.salvarPartida(p);
+  if (!salvo.ok) return res.json({ ok: false });
+
+  // a Ordem do Mérito só se move para modos que valem PM (jornada do semestre / caso da
+  // semana); o delta é recalculado aqui a partir do resultado bruto (pontos/casos/venceu),
+  // nunca a partir de um valor final — e é amarrado ao id da partida para nunca dobrar.
+  var tipo = TIPO_MERITO_POR_MODO[p.modo];
+  var rank = null;
+  if (tipo) {
+    if (salvo.duplicado && salvo.id == null) {
+      var atual = await db.lerRank(p.cpf, p.semestre);
+      rank = atual ? Object.assign({ delta: 0, aplicado: false }, atual) : null;
+    } else {
+      var r = await db.aplicarResultadoPartida(p.cpf, p.nome, p.semestre, tipo, p.pontos, p.casos, !!p.venceu, salvo.id);
+      rank = { divisao: r.divisao, pm: r.pm, delta: r.delta, aplicado: r.aplicado };
+    }
+  }
+  res.json({ ok: true, duplicado: !!salvo.duplicado, rank: rank });
 });
 
 /* ---- estático (o jogo) ---- */

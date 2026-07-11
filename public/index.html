@@ -146,17 +146,21 @@ main{display:flex;justify-content:center;min-height:100vh}
 .cab .linha1{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
 .cab h1{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(19px,3.4vw,26px);line-height:1.08;margin:0 0 3px}
 .pont{color:var(--sand)}
-.julgador{flex:0 0 auto;background:var(--ink);color:var(--cream);border-radius:14px;padding:12px 15px;min-width:216px;max-width:330px;
-  display:flex;gap:12px;align-items:flex-start}
-body.dark .julgador{background:#211f1f;border:1px solid rgba(191,186,164,.2)}
-.julgador .foto{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(191,186,164,.4);flex:0 0 auto}
-.julgador .rotulo{color:var(--sand)}
-.julgador > div{min-width:0}
-.julgador .nome{font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.22;margin:2px 0 8px;
+/* o julgador mora dentro do painel da balança (que já é escuro) — aqui é só uma linha
+   compacta, sem caixa própria; o painel inteiro é quem dá o fundo e a cor do texto */
+.julgador{display:flex;gap:10px;align-items:center;padding-top:10px;margin-top:8px;
+  border-top:1px solid rgba(191,186,164,.18);border-radius:10px}
+.julgador .foto{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(191,186,164,.4);flex:0 0 auto}
+.julgador .jul-corpo{min-width:0;flex:1}
+.julgador .jul-linha1{display:flex;align-items:center;gap:6px}
+.julgador .info-i{border-color:rgba(191,186,164,.5);color:var(--sand)}
+.julgador .info-i:hover{border-color:var(--red);color:#fff}
+.julgador .rotulo{color:var(--sand);font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.julgador .nome{font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.2;margin:2px 0 4px;
   overflow-wrap:break-word;word-break:break-word}
-.julgador .nome.nome-longo{font-size:14px}
+.julgador .nome.nome-longo{font-size:13px}
 .julgador .nome .disc-sub{overflow-wrap:break-word;word-break:break-word}
-.mults{display:flex;gap:5px;flex-wrap:wrap}
+.mults{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
 .mult{font-size:10px;font-weight:600;padding:3px 7px;border-radius:var(--r-pill);border:1px solid rgba(191,186,164,.5);color:var(--sand)}
 .mult.fav{border-color:var(--red);color:var(--red)}
 .mult.desf{border-color:rgba(191,186,164,.35);color:#8f8b7f}
@@ -592,7 +596,6 @@ body.dark .e-alta{color:#f06f80}
   #mao::-webkit-scrollbar{display:none}
   #mao .carta{flex:0 0 132px;scroll-snap-align:start;min-height:172px}
   .cab{flex-direction:column}
-  .julgador{width:100%;min-width:0;max-width:none}
   .acoes{width:100%;flex-direction:row}
   .acoes .btn{flex:1}
   .mao-cab{flex-wrap:wrap}
@@ -612,6 +615,9 @@ body.dark .e-alta{color:#f06f80}
   .scr{padding-top:12px}
   .painel-balanca{padding:10px 16px 10px}
   #balanca{width:min(220px,50vw);margin-top:-4px}
+  .julgador{padding-top:6px;margin-top:5px;gap:8px}
+  .julgador .foto{width:26px;height:26px}
+  .julgador .nome{font-size:13px;margin:1px 0 2px}
   #mao{min-height:150px}
   .log-caixa{max-height:96px}
 }
@@ -694,15 +700,6 @@ body.dark .e-alta{color:#f06f80}
       <div class="meta-txt" id="cabPartes">—</div>
       <div class="missao-chip" id="missaoChip"></div>
     </div>
-    <div class="julgador" id="julPainel">
-      <img class="foto hidden" id="julFoto" alt="">
-      <div style="flex:1">
-        <div class="rotulo">Julgador</div>
-        <div class="nome" id="julNome">—</div>
-        <div class="disposicao" id="julDisp">—</div>
-        <div class="mults" id="julMults"></div>
-      </div>
-    </div>
   </div>
 
   <!-- régua do rito: onde o processo está, sem contagem ansiosa -->
@@ -712,6 +709,20 @@ body.dark .e-alta{color:#f06f80}
     <div class="cima">
       <span class="tit">Balança da convicção</span>
       <span id="convNum">50</span>
+    </div>
+    <!-- o julgador mora na balança: é quem avalia os argumentos dos dois lados abaixo —
+         não uma caixa à parte. i (abre a ficha) funciona a toque, não só a hover. -->
+    <div class="julgador" id="julPainel">
+      <img class="foto hidden" id="julFoto" alt="">
+      <div class="jul-corpo">
+        <div class="jul-linha1">
+          <span class="rotulo">Julgador</span>
+          <button class="info-i" id="julInfo" aria-label="O que este julgador valoriza" style="width:15px;height:15px;font-size:9px;vertical-align:1px">i</button>
+        </div>
+        <div class="nome" id="julNome">—</div>
+        <div class="disposicao" id="julDisp">—</div>
+        <div class="mults" id="julMults"></div>
+      </div>
     </div>
     <svg id="balanca" viewBox="0 0 320 132" aria-hidden="true">
       <line x1="160" y1="34" x2="160" y2="112" stroke="#BFBAA4" stroke-width="4" stroke-linecap="round" opacity=".85"/>
@@ -986,7 +997,7 @@ body.dark .e-alta{color:#f06f80}
 
 /* ---------- CONFIG (único ponto que a TI edita) ---------- */
 var CONFIG = {
-  VERSAO: '4.3.0',
+  VERSAO: '5.0.0',
   SEMESTRE: '2026-2',
   API_BASE: '/api',    // o backend Node serve o jogo e a API na mesma origem
   AI_WEBHOOK: '',      // ex.: '/api/sustentacao' — vazio: sustentação de IA oculta
@@ -1856,6 +1867,58 @@ function abrirFichaPreparo(){
     botoes:[{ t:'Entendi', ghost:true }] });
 }
 
+/* traduz o perfil numérico do julgador (MULT_PERFIL) em linguagem simples — a ficha
+   nunca mostra o multiplicador cru, só o que ele significa na mesa */
+var TIPO_LONGO = { N:'Norma — lei, precedente, doutrina', F:'Fato — provas, perícia, testemunhas',
+  R:'Retórica — narrativa, princípios, persuasão', T:'Técnica — procedimento e forma' };
+var TIPO_DICA_FORTE = {
+  N:'Cite a lei, o precedente ou a doutrina: o texto normativo pesa mais para este julgador.',
+  F:'Leve provas concretas: perícia, documento e testemunha pesam mais para este julgador.',
+  R:'Construa a narrativa e os princípios em jogo: a persuasão pesa mais para este julgador.',
+  T:'Cuide da forma e do procedimento: o rigor técnico pesa mais para este julgador.'
+};
+var TIPO_DICA_FRACA = {
+  N:'normas soltas, sem prova ou narrativa por trás, convencem menos aqui.',
+  F:'provas sem enquadramento jurídico convencem menos aqui.',
+  R:'apelos sem lastro em fato ou norma convencem menos aqui.',
+  T:'tecnicismo sem mérito por trás convence menos aqui.'
+};
+function descreverJuiz(juiz){
+  if (B && B.vogaIdx >= 0){
+    var atual = TIPO_ORDEM[B.vogaIdx];
+    return { curta:'A atenção do Plenário reveza entre os quatro tipos de argumento.',
+      longa:'O Plenário não tem preferência fixa: a cada 2 rodadas, um tipo de argumento passa a valer mais — agora é <b>' + TIPOS[atual] + '</b>. '
+        + TIPO_DICA_FORTE[atual] + ' Fique de olho no aviso de revezamento (acima) para adaptar a mão.' };
+  }
+  var mult = (juiz && juiz.mult) || { N:1, F:1, R:1, T:1 };
+  var alto = TIPO_ORDEM.reduce(function(m,t){ return mult[t] > mult[m] ? t : m; }, TIPO_ORDEM[0]);
+  var baixo = TIPO_ORDEM.reduce(function(m,t){ return mult[t] < mult[m] ? t : m; }, TIPO_ORDEM[0]);
+  if (mult[alto] <= 1 && mult[baixo] >= 1){
+    return { curta:'Pesa Norma, Fato, Retórica e Técnica da mesma forma.',
+      longa:'Este julgador não favorece nenhum tipo de argumento — o que decide é a pertinência: responder à tese com o tema certo vale mais do que escolher um tipo de carta.' };
+  }
+  return {
+    curta:'Valoriza mais ' + TIPOS[alto] + '; dá menos peso a ' + TIPOS[baixo] + '.',
+    longa:'<b>' + TIPO_LONGO[alto] + '.</b> ' + TIPO_DICA_FORTE[alto]
+      + '<br><br><b>' + TIPO_LONGO[baixo] + '.</b> ' + TIPO_DICA_FRACA[baixo]
+  };
+}
+/* ficha do julgador — a metade da estratégia que não é ler a tese; toque, não hover
+   (mesmo padrão de acessibilidade móvel do botão de preparo, acima) */
+function abrirFichaJulgador(){
+  if (!B || !B.juiz) return;
+  var juiz = B.juiz;
+  var d = descreverJuiz(juiz);
+  modal({ titulo: esc(juiz.nome), html:
+    '<div style="display:flex;flex-direction:column;gap:12px">'
+    + (juiz.disciplina ? '<div style="font-size:12px;color:var(--fg3)">' + esc(juiz.disciplina) + (juiz.area ? ' · ' + esc(juiz.area) : '') + '</div>' : '')
+    + '<div><b style="color:var(--red)">Perfil ' + esc(juiz.perfil) + '</b></div>'
+    + '<div>' + d.longa + '</div>'
+    + '<div style="border-top:1px dashed var(--line-2);padding-top:10px;font-size:12px;color:var(--fg3)">A disposição do julgador (logo abaixo do nome, em tela) também reage à balança e à credibilidade a cada rodada.</div>'
+    + '</div>',
+    botoes:[{ t:'Entendi', ghost:true }] });
+}
+
 /* ---------- acordo (deliberação) ---------- */
 function oferecerAcordo(){
   som.acordo();
@@ -2370,10 +2433,18 @@ function aplicarMerito(tipo, venceu, pontos, casos){
     else { m.pm = 0; }
   }
   store.set('ui_merito', m);
-  if (SERVIDOR.online && SERVIDOR.modo !== 'local'){
-    fetchJSON(CONFIG.API_BASE + '/rank', { method:'POST', body: JSON.stringify({ divisao: m.div, pm: m.pm }) }).catch(function(){});
-  }
   return { m: m, delta: delta };
+}
+/* aplica no aparelho a divisão/PM que o SERVIDOR devolveu como autoritativos (resposta de
+   POST /api/partidas). O cálculo local em aplicarMerito() é só uma estimativa instantânea
+   para a UI não travar esperando rede — o Postgres é quem decide de verdade; isto aqui
+   sobrescreve a estimativa com o valor real assim que ele chega. */
+function reconciliarMerito(rank){
+  if (!rank || rank.divisao == null || rank.pm == null) return;
+  var m = meritoAtual();
+  m.div = rank.divisao; m.pm = rank.pm;
+  store.set('ui_merito', m);
+  atualizarTitulo();
 }
 function textoMerito(m){ return DIVISOES[m.div] + ' · ' + m.pm + ' PM'; }
 
@@ -2400,18 +2471,20 @@ function pintarBatalha(inicial){
   julNomeEl.classList.toggle('nome-longo', (juiz.nome || '').length > 26);
   var foto = $('julFoto');
   if (juiz.foto){ foto.src = juiz.foto; foto.classList.remove('hidden'); } else foto.classList.add('hidden');
+  // tags em linguagem simples — nada de multiplicador cru (×1,4) na tela
   var mults = $('julMults'); mults.innerHTML = '';
   if (B.vogaIdx >= 0){
-    TIPO_ORDEM.forEach(function(t, i){
-      var m = el('span', 'mult' + (i === B.vogaIdx ? ' voga' : ''), TIPOS[t] + (i === B.vogaIdx ? ' ×1,5' : ' ×1'));
-      mults.appendChild(m);
-    });
+    mults.appendChild(el('span', 'mult voga', 'Em voga: ' + TIPOS[TIPO_ORDEM[B.vogaIdx]]));
+    mults.appendChild(el('span', 'mult', 'reveza a cada 2 rodadas'));
   } else {
-    TIPO_ORDEM.forEach(function(t){
-      var v = juiz.mult[t] || 1;
-      var m = el('span', 'mult' + (v>1?' fav':(v<1?' desf':'')), TIPOS[t] + ' ×' + String(v).replace('.',','));
-      mults.appendChild(m);
-    });
+    var maisAlto = TIPO_ORDEM.reduce(function(m,t){ return (juiz.mult[t]||1) > (juiz.mult[m]||1) ? t : m; }, TIPO_ORDEM[0]);
+    var maisBaixo = TIPO_ORDEM.reduce(function(m,t){ return (juiz.mult[t]||1) < (juiz.mult[m]||1) ? t : m; }, TIPO_ORDEM[0]);
+    if ((juiz.mult[maisAlto]||1) <= 1 && (juiz.mult[maisBaixo]||1) >= 1){
+      mults.appendChild(el('span', 'mult', 'Pesa todos os tipos igual'));
+    } else {
+      mults.appendChild(el('span', 'mult fav', 'Valoriza ' + TIPOS[maisAlto]));
+      mults.appendChild(el('span', 'mult desf', 'Menos peso: ' + TIPOS[maisBaixo]));
+    }
   }
 
   // disposição do juiz (deriva da balança e da credibilidade)
@@ -2896,7 +2969,7 @@ function verDemo(){
     { t:0,    foco:null,              txt:'Bem-vindo à tribuna. Esta é uma rodada de demonstração — nada aqui vale pontos.' },
     { t:3600, foco:'.painel-balanca', txt:'A balança da convicção começa em 50. Chegue a 100 — ou termine acima de 50 quando o prazo de pauta acabar.' },
     { t:8200, foco:'#painelTese',     txt:'A cada rodada a parte adversa protocola uma TESE — o sublinhado é a palavra-chave. Vencer é jogar o argumento que a refuta, não o de maior número.' },
-    { t:13400,foco:'.julgador',       txt:'A julgadora é legalista: Normas valem ×1,4 e Retórica ×0,7. Ler o julgador é a outra metade da estratégia.' },
+    { t:13400,foco:'.julgador',       txt:'A julgadora é legalista: valoriza argumentos de Norma e dá menos peso à Retórica — toque no "i" para ver a ficha completa. Ler o julgador é a outra metade da estratégia.' },
     { t:18200,foco:'#cxCred',         txt:'Argumento fora do tema custa CREDIBILIDADE. Com ela alta, tudo vale mais; zerada, o juiz indefere de plano.' },
     { t:23200,foco:'#mao',            txt:'Duas cartas refutam "Contratos" — mas só "Boa-fé objetiva" traz a marca vermelha "responde à palavra-chave": é a réplica mais forte possível agora, e dá para ver isso antes de jogar.' },
     { t:28400,foco:null,              acao:function(){ if (B && B.demo && B.mao.indexOf('boafe')>=0) jogarCarta(B.mao.indexOf('boafe')); },
@@ -3014,12 +3087,11 @@ function sincronizarProgresso(){
   fetchJSON(CONFIG.API_BASE + '/rank', {}, 5000).then(function(d){
     var r = d && d.rank;
     if (!r) return;
-    var m = meritoAtual();
-    // adota o maior progresso entre o aparelho e o servidor
-    if (r.divisao > m.div || (r.divisao === m.div && r.pm > m.pm)){
-      store.set('ui_merito', { temporada: CONFIG.SEMESTRE, div: r.divisao, pm: r.pm });
-      atualizarTitulo();
-    }
+    // o servidor é a fonte da verdade da Ordem do Mérito — mas se há partidas ainda não
+    // enviadas na fila offline, elas é que vão reconciliar o mérito quando saírem (senão
+    // a tela "voltaria" por um instante para um estado que já está prestes a avançar)
+    if (store.get('ui_fila', []).length) return;
+    reconciliarMerito(r);
   }).catch(function(){});
 }
 function mostrarLogin(){
@@ -3093,22 +3165,36 @@ function carregarDisciplinas(){
 function enviarPartida(partida){
   if (!SERVIDOR.online){ enfileirar(partida); return; }
   fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(partida) })
-    .then(function(){ processarFila(); })
+    .then(function(d){ if (d && d.rank) reconciliarMerito(d.rank); processarFila(); })
     .catch(function(){ enfileirar(partida); });
 }
 function enfileirar(partida){
   var fila = store.get('ui_fila', []);
-  fila.push(partida);
+  fila.push({ partida: partida, tentativas: 0 });
   store.set('ui_fila', fila.slice(-30));
 }
+/* reenvia a fila offline; o servidor deduplica por (cpf,modo,seed), então reenviar uma
+   partida que já foi aceita não pontua de novo — só devolve o estado atual do mérito.
+   Uma partida rejeitada pelo servidor (não por falha de rede) não pode travar as
+   próximas para sempre: depois de 5 rejeições ela é descartada e a fila segue. */
 function processarFila(){
   if (!SERVIDOR.online) return;
   var fila = store.get('ui_fila', []);
   if (!fila.length) return;
-  var prox = fila[0];
-  fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(prox) })
-    .then(function(){ fila.shift(); store.set('ui_fila', fila); if (fila.length) processarFila(); })
-    .catch(function(){});
+  var item = fila[0];
+  fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(item.partida) })
+    .then(function(d){
+      if (d && d.rank) reconciliarMerito(d.rank);
+      fila.shift(); store.set('ui_fila', fila);
+      if (fila.length) processarFila();
+    })
+    .catch(function(e){
+      if (e && e.status){
+        item.tentativas = (item.tentativas || 0) + 1;
+        if (item.tentativas >= 5) fila.shift();
+      }
+      store.set('ui_fila', fila);
+    });
 }
 
 function verPlacar(aba){
@@ -3534,6 +3620,7 @@ function ligarEventos(){
   });
   $('prepObjecao').addEventListener('click', function(){ gastarPreparo('objecao'); });
   $('prepInfo').addEventListener('click', function(ev){ ev.stopPropagation(); abrirFichaPreparo(); });
+  $('julInfo').addEventListener('click', function(ev){ ev.stopPropagation(); abrirFichaJulgador(); });
   $('btnMenuBatalha').addEventListener('click', function(){
     var semana = S && S.modo === 'semana';
     modal({ titulo: semana ? 'Caso da semana' : 'Jornada do semestre',
