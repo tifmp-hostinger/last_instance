@@ -211,6 +211,33 @@ function mapPublicoPlacar(p) {
   };
 }
 
+/* ============================================================
+   Ordem do Mérito (divisão competitiva por temporada/semestre).
+   ============================================================ */
+const T_RANK = process.env.TABELA_RANK || 'rank_alunos';
+let rankMemoria = new Map();  // modo mock
+async function salvarRank(cpf, nome, divisao, pm, temporada) {
+  var reg = { cpf: soNumeros(cpf), nome: nome || 'Estudante', divisao: clampInt(divisao, 0, 12), pm: clampInt(pm, 0, 99), temporada: temporada || '' };
+  if (!hasDB) { rankMemoria.set(reg.cpf + ':' + reg.temporada, reg); return { ok: true, mock: true }; }
+  try {
+    await pool.query(
+      'INSERT INTO ' + ident(T_RANK) + ' (cpf, nome, temporada, divisao, pm, atualizado_em) VALUES ($1,$2,$3,$4,$5,now()) ' +
+      'ON CONFLICT (cpf, temporada) DO UPDATE SET nome=$2, divisao=$4, pm=$5, atualizado_em=now()',
+      [reg.cpf, reg.nome, reg.temporada, reg.divisao, reg.pm]
+    );
+    return { ok: true };
+  } catch (e) { console.error('[db] salvarRank falhou:', e.message); return { ok: false }; }
+}
+async function lerRank(cpf, temporada) {
+  var c = soNumeros(cpf);
+  if (!hasDB) return rankMemoria.get(c + ':' + (temporada || '')) || null;
+  try {
+    var r = await pool.query('SELECT divisao, pm FROM ' + ident(T_RANK) + ' WHERE cpf=$1 AND temporada=$2 LIMIT 1', [c, temporada || '']);
+    return r.rows[0] || null;
+  } catch (e) { return null; }
+}
+function clampInt(v, a, b) { v = parseInt(v, 10); if (isNaN(v)) return a; return Math.max(a, Math.min(b, v)); }
+
 /* impede injeção de nome de tabela vindo de env (identificador seguro) */
 function ident(nome) {
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(nome)) throw new Error('nome de tabela inválido: ' + nome);
@@ -229,6 +256,8 @@ module.exports = {
   listarDisciplinas: listarDisciplinas,
   salvarPartida: salvarPartida,
   listarPlacar: listarPlacar,
+  salvarRank: salvarRank,
+  lerRank: lerRank,
   ping: ping,
   FIXO: FIXO
 };

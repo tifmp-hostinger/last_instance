@@ -1,63 +1,94 @@
-# Última Instância — game design
+# Última Instância — game design (v4 "Audiência viva")
+
+> A proposta completa de redesign, com o diagnóstico e o racional de cada sistema, está em `REDESIGN.md`. Este documento descreve **o jogo como ele é hoje**.
 
 ## Conceito
 
-O aluno é a defesa em uma jornada de 8 casos fictícios, subindo três instâncias: Foro Central de Porto Alegre (casos 1-3), TJRS (4-6) e STF (7-8, em tema escuro "prestígio"). Não existe barra de vida: existe a **balança da convicção** (0 a 100, começa em 50). Cartas de argumento empurram a balança a favor; a parte adversa empurra contra. É um roguelike de deck-building — a cada caso o baralho cresce e a estratégia muda — com o Direito como matéria-prima, não como enfeite.
-
-A tese didática do produto: ninguém aprende lendo o jogo; aprende jogando. Cada carta é um argumento real (In dubio pro reo, Pacta sunt servanda, Repercussão geral…), rodapeada com a disciplina da grade de onde vem e com uma **fala** — o que aquele argumento "diz ao juiz" — visível no log ao jogar e na ficha da carta (botão "i").
+O aluno é a defesa em uma jornada de 8 casos fictícios, subindo três instâncias: Foro Central de Porto Alegre (casos 1-3), TJRS (4-6) e STF (7-8, em tema escuro "prestígio"). Não existe barra de vida: existe a **balança da convicção** (0 a 100, começa em 50). É um roguelike de deck-building com o Direito como matéria-prima — e, na v4, um jogo em que **cada rodada é um embate com começo, tensão e conclusão**: clicar sem pensar perde; ler a mesa vence.
 
 ## O coração didático: a tese e a réplica
 
-A cada rodada a **parte adversa sustenta uma tese jurídica** concreta (real, com o tema explícito): *"O contrato foi livremente assinado e deve ser cumprido à risca, ainda que hoje se revele excessivamente oneroso"*, *"A prova dos autos é robusta e não comporta dúvida"*, etc. Vencer **não é jogar a carta de maior número** — é jogar o **argumento que refuta aquela tese**.
+A cada rodada a parte adversa **protocola uma tese jurídica** (peça carimbada em cena, com o tema e a **palavra-chave sublinhada**). Vencer é jogar o argumento que a refuta:
 
-- Cada carta argumentativa (Norma, Fato, Retórica) enfrenta um ou mais **temas** (contratos, prova, penal, consumidor, constitucional…). Jogar uma carta cujo tema bate com a tese é uma **réplica certeira**: vale cheio, com bônus (+4), e o log **explica por que** aquele argumento refuta a tese (a chave didática — direito real, uma vez por rodada).
-- Jogar um argumento fora do tema é um **argumento lateral**: rende menos da metade (×0,45) — o juiz não vê pertinência.
-- Cartas de **Técnica** são procedimentais (contenção, compra, objeção): sempre pertinentes, nunca penalizadas.
+- **Réplica certeira** (tema certo): +6, e o log explica **por quê** — a chave didática, uma vez por rodada.
+- **Réplica direta** (responde à palavra-chave): +3 adicionais. Dois níveis de acerto: tema < termo.
+- **Argumento lateral** (fora do tema): ×0,40 — e ×0,25 do terceiro em diante no caso. E custa credibilidade.
+- **Técnica** é procedimental: sempre pertinente, nunca penalizada.
 
-É o que separa clicar de advogar: o aluno precisa **ler a tese, reconhecer o tema e escolher o contra-argumento** — e ainda assim pesar o julgador (abaixo). A carta mostra só a sua **força-base**; o valor real (pertinência, julgador, combo) o aluno calcula lendo a mesa, e confirma no log depois de jogar.
+A carta mostra só a **força-base**; o valor real (pertinência, julgador, credibilidade, combo) o aluno calcula lendo a mesa e confirma no log.
 
-## Loop de um caso
+## Credibilidade — a coerência da defesa (0-10, começa em 6)
 
-1. **Sorteio do caso** (título, partes, área) e do julgador.
-2. **A tese da rodada**: a parte adversa levanta a tese (tema visível) e anuncia o movimento que fará ao fim da rodada.
-3. **Rodada do aluno**: 5 cartas na mão, 3 de fôlego. Cada carta custa fôlego. Fôlego não acumula entre rodadas — decisão de design: sobrar energia tem que doer, senão a estratégia dominante é poupar. Cartas de custo 0 existem para queimar o resto.
-4. **Fim da rodada**: a parte adversa executa o movimento anunciado (informação perfeita — o jogo é de decisão, não de sorte escondida): **sustentação** (dano), **protelação** (contenção), **pressão** (−1 fôlego) ou **questionamento** (próxima carta vale metade). Uma nova tese é levantada.
-5. A cada 3 rodadas o julgador **pondera**: a convicção anda 3 pontos em direção ao centro (freio anti-bola-de-neve, dos dois lados).
-6. **Vitória**: convicção 100 a qualquer momento ("convicção plena", +50 de bônus) ou >50 quando o prazo de pauta acaba (8-12 rodadas). **Derrota**: 0 a qualquer momento, ou ≤50 no fim do prazo.
+O sistema anti-aleatoriedade. Réplica pertinente: +1. Lateral: −1. Faixas: **8-10 tribuna dominada** (tudo ×1,15) · 4-7 neutro · **1-3 defesa advertida** (×0,7) · **0: o juiz indefere de plano** — a rodada termina e a credibilidade volta a 3. Quem erra entra em espiral; quem lê domina a tribuna. Proteções: piso 2 nos casos 1-2 da jornada; **pedido de reconsideração** 1×/caso (volta a 4, custa a rodada). Na entrada da deliberação, a credibilidade **consolida**: (cred − 5) × 2 na balança.
 
-## Tipos, julgadores e o triângulo de decisão
+## O rito do caso (fases, sem contagem ansiosa)
 
-Quatro tipos de carta: **Norma** (lei, súmula, princípio), **Fato** (prova, perícia, testemunha), **Retórica** (persuasão) e **Técnica** (processo: contenção, compra, objeção). Cada julgador multiplica tipos: a legalista dá ×1,4 em Norma e ×0,7 em Retórica; o pragmático inverte para Fato; a humanista, para Retórica; o metódico é neutro. No chefe final, o **Plenário do STF** rotaciona a "voga" (tipo favorecido ×1,5) a cada 2 rodadas.
+Régua na tela: **Distribuição → Instrução → Sustentação → Deliberação → Sentença**.
 
-A tensão nasce do cruzamento das duas leituras: a réplica pertinente à tese pode ser de um **tipo que o julgador despreza** (ex.: uma tese de *prova* pede cartas de Fato, mas a julgadora humanista dá ×0,7 em Fato). O aluno decide entre o argumento certeiro mal-recebido e o versátil bem-recebido — é aí que se pensa. **Julgadores reais**: quando o backend está ligado, cada julgador é um professor da FMP vinculado à sua disciplina (foto no avatar), casado com a área do caso.
+| Formato | Rodadas | Estrutura |
+|---|---|---|
+| Caso comum | **5** | 1 instrução + 3 sustentação + 1 deliberação |
+| Caso-chefe | **7** | 2 + 4 + 1 |
+| Plenário (final) | **8** | 2 + 4 + 2, voga ×1,5 girando a cada 2 |
 
-**Combos**: cartas ganham bônus se outro tipo específico já foi sustentado na rodada. "Ethos, pathos, logos" premia variedade; "Peroração" vale mais com a maré a favor (convicção ≥65); "In dubio pro reo" pesa mais na dúvida (convicção ≤45); "Artigo científico" escala com cartas na mão.
+- **Instrução**: a parte adversa não ataca (organiza os autos). Rodada de preparar: ensaiar cartas, abrir a linha.
+- **Sustentação**: o embate. No meio dela, o **momento de virada** (novos documentos mudam o tema; testemunha vacila — próxima prova ÷2, Técnica reabilita; o juiz sinaliza a preferência da deliberação).
+- **Deliberação**: contenção adversa **dobra**, credibilidade consolida, e pode surgir **acordo** (balança 55-75): aceitar = vitória com 60% dos pontos; recusar = sustentações adversas +30% até o fim.
+
+Vitória: 100 a qualquer momento (plena), >50 no fim da deliberação, ou acordo. Derrota: 0, ≤50 no fim.
+
+## A rodada em 5 beats
+
+1. **Pauta** — a peça desliza e o carimbo bate; palavra-chave sublinhada; movimento adverso anunciado (informação perfeita); disposição do juiz visível.
+2. **Leitura** — sem timer: pressão vem das escolhas, não do relógio.
+3. **Construção** — 1-3 cartas; argumentativas preenchem a **bandeja da linha** (fundamento → prova → arremate). **Tese fechada** (na ordem): +8 na balança, +1 credibilidade. Fora da ordem: +3, sem fecho.
+4. **Resolução** — pesos caem na balança; o juiz reage (acena/franze/anota); réplica certeira **risca e rasga a peça**; lateral balança a cabeça e desce a credibilidade à vista.
+5. **Réplica e gancho** — o movimento adverso executa; a **próxima pauta** aparece (tema; texto completo se espiada). Nunca há vazio entre rodadas.
+
+## Preparo (0-5) — a economia estratégica
+
+Ganha-se +1 ao fim de rodada com réplica pertinente. Gasta-se em: **espiar** a próxima tese (1) · **ensaiar** uma carta (2) · **objeção** — anula o movimento adverso anunciado (3). Cartas raras de impacto entram **em rascunho**: de improviso valem 60%; ensaiadas, o valor pleno. Cartas comuns ensaiadas: ×1,5. Guardar fôlego continua não existindo — mas fechar a rodada tendo acertado a réplica agora rende Preparo: não jogar também é decisão.
+
+## Adversários com arquétipos e memória
+
+Cada oponente tem um arquétipo (agressivo, protelatório, formalista) e um ciclo anunciado: **sustentação** (dano), **protelação** (contenção; dobra na deliberação), **questionamento** (próxima carta ÷2). E todos **reconhecem padrões**: três cartas do mesmo tipo em sequência → aviso claro → **impugnação direcionada** (a próxima carta daquele tipo vale metade). Variedade é obrigatória.
 
 ## Fórmula de dano (ordem exata)
 
-base → +combo → **pertinência à tese** (réplica +4 · lateral ×0,45 · técnica sem juízo) → ×multiplicador do julgador (ou voga ×1,5) → +bônus de relíquia por tipo (+2) → ÷2 se a tese foi questionada → ×2 se Repercussão geral ativa → absorção pela contenção adversa (exceto cartas perfurantes) → aplica na balança.
+base (rascunho ×0,6 / ensaiada ×1,5) → +combo → **pertinência** (réplica +6 · direta +3 · lateral ×0,40/0,25) → ×julgador (ou voga ×1,5) → +relíquia de tipo (+2) → ÷2 impugnada/questionada → ×2 repercussão → **×faixa de credibilidade** (1,15 / 1 / 0,7) → contenção adversa (exceto perfurantes) → balança.
 
-## Meta-jogo da jornada
+## Missões, tipos e julgadores
 
-- Após cada **caso comum**: escolha de 1 carta entre 3 (4 com a relíquia Rede de contatos; raras ~30% de chance de aparecer).
-- Após cada **chefe**: escolha de 1 relíquia entre 2 (8 relíquias: Vade Mecum anotado, Café da madrugada, Tese decorada…).
-- Entre instâncias, evento **"Intervalo na FMP"**: remover carta (afinar o baralho), carta rara à escolha, ou +4 de convicção inicial permanente.
-- Derrota concede **embargos**: uma única repetição do mesmo caso por jornada — o mesmo caso e o mesmo julgador, por coerência narrativa.
+Cada caso traz **uma missão opcional** (+25): vencer sem lateral, fechar uma linha na ordem, terminar com credibilidade ≥7, sustentar 3 disciplinas. Tipos e julgadores como antes: Norma/Fato/Retórica/Técnica; legalista (N ×1,4 · R ×0,7), pragmático (F ×1,4 · N ×0,7), humanista (R ×1,4 · F ×0,7), metódico neutro; Plenário com voga rotativa. A tensão central: a réplica certa pode ser do tipo que o julgador corta. **Julgadores reais**: professores das disciplinas (Postgres), com foto, casados com a área do caso.
 
-**Pontuação**: 100 por caso + margem de convicção + 10 por rodada economizada + 50 por convicção plena + até 50 da sustentação de IA + 500 pela vitória final.
+## Pontuação — qualidade jurídica, com tetos
 
-## Acesso e identidade do aluno
+Resultado (100 + margem + 50 plena) · Pertinência (≤60) · Coerência/credibilidade (≤50) · Leitura do julgador (≤40) · Teses fechadas (≤40) · Rodadas economizadas (≤30) · Missão (+25) · Recuperação após ≤30 (+30) · **Laterais (−5 cada, ≤−60)**. Acordo multiplica o total por 0,6. Jornada: soma + 500 na vitória final + até 50 da sustentação com IA. Componentes crescem com **taxa de acerto**, nunca com volume.
 
-O aluno entra com **CPF** (só números, com máscara) e **data de nascimento** — batendo contra a tabela de usuários da FMP no Postgres. A identidade da sessão alimenta o placar (o cliente nunca diz quem é; o servidor decide pela sessão). Quando o backend está ligado, os **julgadores são professores reais** vinculados às suas disciplinas (foto no avatar), casados com a área do caso. Sem banco, o jogo roda em modo de demonstração; solto como arquivo estático, roda em modo local com identificação pelo formulário.
+## Ordem do Mérito — progressão competitiva
 
-## Modos e retenção
+A divisão é a **trajetória acadêmica** (neutra — nenhuma carreira real acima de outra):
+**Calouro → Bacharelando III/II/I → Bacharel → Especialista II/I → Mestre II/I → Doutor II/I → Livre-docente → Catedrático.**
 
-**Jornada livre** (semente aleatória) e **Caso do dia** (semente derivada da data: todos os alunos enfrentam a mesma jornada — combustível do ranking). Placar em três abas: aparelho (local), semestre e hall de campeões (Postgres). A sustentação final com juiz de IA nos casos-chefe (opcional) transforma o clímax mecânico em exercício real de argumentação escrita.
+- **Pontos de Mérito**: vitória +15 a +30 (escala pela pontuação); derrota −4 a −14 (amortecida pelos casos vencidos). 100 PM = sobe.
+- **Divisões de entrada** (até Bacharelando I) não perdem PM.
+- **Temporada = semestre letivo**: na virada, desce 1 divisão e o PM zera.
+- Persistida no Postgres (`rank_alunos`) quando há sessão; local sem servidor.
 
-## Balanceamento (estado atual)
+## Meta-jogo (mantido)
 
-Calibrado por simulação (harness com dois bots, n=200): o **jogador casual** que joga ao acaso — ignorando a tese e o julgador — vence **~55%** das jornadas e precisa de embargos na maioria delas; clicar sem pensar não basta, porque metade dos argumentos cai fora do tema (×0,45) e o julgador ainda corta o tipo errado. O **bot tático** — que lê a tese, prefere a réplica certeira, guarda perfurantes e anula sustentações grandes com informação perfeita — vence **~98%** e funciona como teto de habilidade. Curva pensada para o aluno médio vencer com esforço (lendo a tese e o julgador) e o dedicado buscar recorde de pontos, não apenas vitória. Ajustes ficam em poucos lugares: movimentos em `OPONENTES`, `REPLICA_BONUS`/`LATERAL_FATOR` e números das cartas em `CARTAS` (ver CODIGO.md).
+Carta 1-de-3 após caso comum (4 com Rede de contatos, raras ~30%) · relíquia 1-de-2 após chefe · Intervalo na FMP entre instâncias · **embargos** (1 repetição do mesmo caso/julgador por jornada) · jornada livre e caso do dia (semente da data) · placar em três abas.
+
+## Balanceamento (estado atual — harness com 3 bots, n=150)
+
+| Bot | O que lê | Jornadas | Casos individuais |
+|---|---|---|---|
+| Aleatório | nada | **20%** | 71% — precisa de embargos em 93% das jornadas |
+| Aprendiz | só a pertinência da tese | **53%** | 84% |
+| Tático | tudo (tese, chave, juiz, linha, credibilidade, preparo, acordo) | **83%** | 93% |
+
+Degraus de ~30 pontos entre cada nível de leitura: a habilidade é o que decide. Botões de ajuste: `OPONENTES`, `REPLICA_BONUS`/`DIRETA_BONUS`/`LATERAL_FATOR*`, faixas de credibilidade e `FECHO_LINHA`.
 
 ## Identidade
 
-Paleta oficial (vermelho `#EE2A42`, preto `#191818`, creme `#EFEEEA`, areia `#BFBAA4`), Noto Serif Italic para títulos e Outfit para interface, símbolo real da FMP vetorizado — a estrela de 4 pontas (título, vitória, relíquias, favicon), linguagem visual liquid glass com fundos em movimento lento. Tom de voz da casa: prestígio sem distância, sentence case, sem emoji.
+Paleta oficial (vermelho `#EE2A42`, preto `#191818`, creme `#EFEEEA`, areia `#BFBAA4`), Noto Serif Italic para títulos e falas, Outfit na interface, estrela FMP de 4 pontas (título, pesos da balança, preparo, favicon), liquid glass, fundos vivos lentos, tema escuro "prestígio" no STF. A cena da batalha é **a mesa de audiência**: juiz com disposição visível, peça protocolada que se rasga, balança física, bandeja da linha. Tom: prestígio sem distância, sentence case, sem emoji. Animações ≤400 ms e todas puláveis.

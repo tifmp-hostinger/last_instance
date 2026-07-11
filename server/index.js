@@ -96,6 +96,16 @@ app.get('/api/placar', auth.exigir, async function (req, res) {
   res.json({ itens: itens });
 });
 
+app.post('/api/rank', auth.exigir, async function (req, res) {
+  var b = req.body || {};
+  var r = await db.salvarRank(req.usuario.cpf, req.usuario.nome, b.divisao, b.pm, SEMESTRE);
+  res.json({ ok: !!r.ok });
+});
+app.get('/api/rank', auth.exigir, async function (req, res) {
+  var r = await db.lerRank(req.usuario.cpf, SEMESTRE);
+  res.json({ rank: r });
+});
+
 app.post('/api/partidas', auth.exigir, async function (req, res) {
   var p = req.body || {};
   // a identidade vem da sessão, não do cliente (não confiar no corpo para quem é o aluno)

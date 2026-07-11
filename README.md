@@ -2,7 +2,7 @@
 
 O jogo de cartas da FMP — Fundação Escola Superior do Ministério Público. O aluno é a defesa em uma jornada de 8 casos fictícios, do Foro Central de Porto Alegre ao STF, empurrando a **balança da convicção** com argumentos jurídicos reais.
 
-A cada rodada a parte adversa **sustenta uma tese** e o aluno precisa jogar o **argumento que a refuta** — não a carta de maior número. Ler a tese, reconhecer o tema e escolher o contra-argumento certo (pesando ainda o perfil do julgador) é o que se aprende, e o que separa clicar de advogar. É um roguelike de deck-building com o Direito como matéria-prima: cada carta traz a disciplina da grade e a fala que "diz ao juiz".
+A cada rodada a parte adversa **protocola uma tese** (com a palavra-chave sublinhada) e o aluno joga o **argumento que a refuta** — não a carta de maior número. Errar o tema custa **credibilidade**; com ela zerada, o juiz indefere de plano. O caso segue o rito (instrução → sustentação → deliberação), com linha argumentativa, preparo, viradas, missões e acordo. É um roguelike de deck-building com o Direito como matéria-prima — rápido de entender, difícil de dominar (calibrado por simulação: bot aleatório vence 20% das jornadas; tático, 83%). A progressão competitiva é a **Ordem do Mérito** (de Calouro a Catedrático), por semestre letivo. O design completo está em `GAME-DESIGN.md` e o racional do redesign em `REDESIGN.md`.
 
 ## Arquitetura
 
@@ -54,6 +54,7 @@ Copie `.env.example` para `.env` (ou configure no EasyPanel). Principais:
 - **`usuarios`** — `cpf`, `data_nascimento`, `nome` (+ `ra`, `curso`, `semestre`, `ativo`). Login.
 - **`disciplinas`** — `nome`, `professor` (+ `area_do_direito`, `perfil_julgador`, `foto_professor_url`, `semestre`). Cada disciplina vira um **julgador real**, com o professor no lugar do juiz e a foto no avatar, casado com a área do caso.
 - **`partidas`** — o placar persistido (as três abas: aparelho, semestre e hall de campeões).
+- **`rank_alunos`** — a Ordem do Mérito (divisão competitiva + pontos de mérito, por temporada/semestre).
 
 ## Deploy (Docker / EasyPanel)
 
@@ -67,10 +68,10 @@ docker run -d -p 3000:3000 --env-file .env ultima-instancia
 ## Balanceamento
 
 ```bash
-node outputs/harness.js public/index.html 200 ambos
+node outputs/harness.js public/index.html 150 todos
 ```
 
-Dois bots jogam jornadas completas: o **ingênuo** (joga ao acaso, ignora a tese e o julgador) vence ~55% — e precisa de embargos na maioria das vezes, porque clicar sem pensar não basta; o **tático** (lê a tese, prefere a réplica certeira, joga de forma ótima) vence ~98% e é o teto de habilidade. Qualquer mudança em `CARTAS`, `TESES` ou `OPONENTES` pede nova rodada do harness.
+Três bots jogam jornadas completas: o **aleatório** (não lê nada) vence ~20%; o **aprendiz** (lê só a pertinência da tese) ~53%; o **tático** (lê tudo) ~83%. O degrau entre eles é a prova de que habilidade decide. Qualquer mudança em `CARTAS`, `TESES` ou `OPONENTES` pede nova rodada do harness.
 
 ## Documentação
 

@@ -1,6 +1,6 @@
 {
   "name": "ultima-instancia",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Última Instância — o jogo de cartas da FMP, com backend de autenticação e placar em Postgres.",
   "private": true,
   "type": "commonjs",
@@ -8,9 +8,11 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js",
-    "harness": "node outputs/harness.js public/index.html 200 ambos"
+    "harness": "node outputs/harness.js public/index.html 150 todos"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "express": "^4.21.2",

@@ -66,6 +66,20 @@ CREATE TABLE IF NOT EXISTS partidas (
 CREATE INDEX IF NOT EXISTS idx_partidas_semestre_pontos ON partidas (semestre, pontos DESC);
 CREATE INDEX IF NOT EXISTS idx_partidas_pontos ON partidas (pontos DESC);
 
+-- ---- ORDEM DO MÉRITO (divisão competitiva por temporada) ----
+-- Divisões (0-12): Calouro, Bacharelando III-I, Bacharel, Especialista II-I,
+-- Mestre II-I, Doutor II-I, Livre-docente, Catedrático. Temporada = semestre.
+CREATE TABLE IF NOT EXISTS rank_alunos (
+  cpf          TEXT NOT NULL,
+  temporada    TEXT NOT NULL,                 -- ex.: '2026-2'
+  nome         TEXT NOT NULL,
+  divisao      INTEGER NOT NULL DEFAULT 0,    -- índice 0-12
+  pm           INTEGER NOT NULL DEFAULT 0,    -- pontos de mérito 0-99 dentro da divisão
+  atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (cpf, temporada)
+);
+CREATE INDEX IF NOT EXISTS idx_rank_temporada ON rank_alunos (temporada, divisao DESC, pm DESC);
+
 -- ============================================================
 -- Exemplos de carga (apague/adapte conforme a carga real da FMP)
 -- ============================================================

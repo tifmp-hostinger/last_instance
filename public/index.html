@@ -173,15 +173,84 @@ body.dark .painel-balanca{background:#161414;border:1px solid rgba(191,186,164,.
   background:var(--cream);border:3px solid var(--red);box-shadow:0 2px 8px rgba(0,0,0,.5);transition:left .5s var(--spring)}
 .trilha-rotulos{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--sand);margin-top:6px}
 
-/* ---- painel da tese (o desafio didático da rodada) ---- */
-.painel-tese{background:var(--card);border:1px solid var(--card-line);border-left:3px solid var(--sand);
-  border-radius:14px;padding:12px 16px;margin-bottom:13px}
-.tese-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+/* ---- painel da tese: a peça protocolada ---- */
+.painel-tese{position:relative;background:var(--card);border:1px solid var(--card-line);border-left:3px solid var(--sand);
+  border-radius:3px 14px 14px 3px;padding:12px 16px;margin-bottom:13px;overflow:hidden;
+  box-shadow:var(--sombra);animation:protocola .5s var(--spring) both;
+  background-image:repeating-linear-gradient(0deg,transparent 0,transparent 26px,rgba(191,186,164,.09) 26px,rgba(191,186,164,.09) 27px)}
+@keyframes protocola{from{opacity:0;transform:translateY(-10px) rotate(-.4deg)}to{opacity:1;transform:none}}
+.painel-tese .carimbo{position:absolute;top:9px;right:12px;font-weight:700;font-size:8.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--red);border:1.5px solid var(--red);border-radius:4px;padding:2px 7px;
+  transform:rotate(6deg);opacity:.7;animation:carimba .45s var(--spring) both .15s}
+@keyframes carimba{0%{transform:rotate(6deg) scale(2.2);opacity:0}60%{transform:rotate(6deg) scale(.94);opacity:.85}100%{transform:rotate(6deg) scale(1);opacity:.7}}
+.tese-topo{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin-bottom:6px;padding-right:90px}
 .tese-tema{font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--sand);
   border:1px solid var(--sand);border-radius:var(--r-pill);padding:2px 9px;white-space:nowrap}
-.tese-texto{font-family:var(--serif);font-style:italic;font-size:15.5px;line-height:1.4;margin:0 0 7px;color:var(--fg)}
+.tese-texto{font-family:var(--serif);font-style:italic;font-size:15.5px;line-height:1.42;margin:0 0 7px;color:var(--fg);position:relative;transition:opacity .3s}
+.tese-texto u{text-decoration-color:var(--red);text-decoration-thickness:2px;text-underline-offset:3px}
+.painel-tese.riscada .tese-texto{opacity:.5}
+.painel-tese.riscada .tese-texto::after{content:'';position:absolute;left:-2px;right:-2px;top:52%;height:2.5px;
+  background:var(--red);transform:rotate(-1.2deg);animation:risca .3s ease-out both}
+@keyframes risca{from{right:100%}to{right:-2px}}
+.painel-tese.riscada .carimbo{content:'refutada';color:#2A6F6B;border-color:#2A6F6B}
+.painel-tese.negada{animation:negaTese .4s ease both}
+@keyframes negaTese{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
 .tese-dica{font-size:11px;color:var(--fg3);line-height:1.4}
 .tese-dica b{color:var(--red);font-weight:600}
+.tese-gancho{font-size:10.5px;color:var(--fg3);border-top:1px dashed var(--line-2);margin-top:8px;padding-top:7px;font-style:italic}
+.tese-gancho:empty{display:none}
+
+/* ---- régua do rito ---- */
+.rito{display:flex;align-items:center;gap:5px;margin:-4px 0 13px;flex-wrap:wrap}
+.rito .etapa{font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);
+  border:1px solid var(--line-2);border-radius:var(--r-pill);padding:3px 10px;opacity:.55;white-space:nowrap}
+.rito .etapa.feita{opacity:.85;border-color:var(--sand);color:var(--sand)}
+.rito .etapa.agora{opacity:1;background:var(--red);border-color:var(--red);color:#fff;animation:pulsa 3s ease-in-out infinite}
+.rito .seta{color:var(--line-2);font-size:10px}
+.rito .sub{font-size:10px;color:var(--fg3);margin-left:5px}
+
+/* ---- credibilidade e preparo ---- */
+#cxCred .num{transition:color .3s}
+#cxCred.alta .num{color:var(--red)}
+#cxCred.baixa .num{color:#B4763A}
+.cred-estado{font-size:8.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);margin-top:2px;min-height:11px}
+#cxCred.alta .cred-estado{color:var(--red)}
+#cxCred.baixa .cred-estado{color:#B4763A}
+.prep-estrelas{display:flex;gap:4px;justify-content:center;padding:6px 0 7px;min-height:18px}
+.prep-estrelas svg{width:13px;height:13px}
+.prep-acoes{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.prep-btn{border:1px solid var(--line-2);background:none;color:var(--fg3);font-family:var(--sans);font-weight:600;
+  font-size:9px;letter-spacing:.03em;border-radius:7px;padding:4px 7px;cursor:pointer;transition:all .15s}
+.prep-btn:not([disabled]):hover{border-color:var(--red);color:var(--red)}
+.prep-btn[disabled]{opacity:.35;cursor:not-allowed}
+.prep-btn.armado{background:var(--red);border-color:var(--red);color:#fff}
+
+/* ---- bandeja da linha argumentativa ---- */
+.bandeja{display:flex;gap:8px;margin-bottom:13px}
+.bandeja .slot{flex:1;border:1.5px dashed var(--line-2);border-radius:10px;padding:7px 10px;min-height:40px;
+  display:flex;flex-direction:column;justify-content:center;transition:border-color .25s,background .25s}
+.bandeja .slot .rot{font-weight:600;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg3)}
+.bandeja .slot .val{font-family:var(--serif);font-style:italic;font-size:11.5px;color:var(--fg);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bandeja .slot.cheio{border-style:solid;border-color:var(--sand);background:rgba(191,186,164,.08)}
+.bandeja.fechando .slot{border-color:var(--red);box-shadow:0 0 12px rgba(238,42,66,.25)}
+
+/* ---- reações do juiz ---- */
+.disposicao{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--sand);margin:-4px 0 6px;font-weight:600}
+.julgador{transition:box-shadow .3s}
+.julgador.acena{animation:jAcena .5s ease both}
+@keyframes jAcena{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 2px rgba(42,111,107,.55)}}
+.julgador.franze{animation:jFranze .5s ease both}
+@keyframes jFranze{0%,100%{transform:none}30%{transform:translateX(-3px)}60%{transform:translateX(2px)}}
+.julgador.anota{animation:jAnota .6s ease both}
+@keyframes jAnota{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 2.5px rgba(238,42,66,.6)}}
+
+/* ---- banner de fase ---- */
+#faseBanner{position:fixed;left:0;right:0;top:38%;z-index:65;pointer-events:none;display:flex;justify-content:center}
+#faseBanner span{background:var(--ink);color:var(--cream);font-size:26px;font-weight:600;
+  padding:14px 44px;border-left:4px solid var(--red);border-right:4px solid var(--red);
+  box-shadow:0 18px 50px rgba(0,0,0,.4);animation:faseIn .9s var(--spring) both}
+@keyframes faseIn{0%{opacity:0;transform:scaleX(.4)}25%{opacity:1;transform:scaleX(1)}80%{opacity:1}100%{opacity:0}}
 
 /* ---- etiqueta de tema na carta ---- */
 .tag-tema{font-size:8px;font-weight:600;letter-spacing:.03em;color:var(--t-fato);
@@ -227,6 +296,7 @@ body.dark .anuncio .desc{color:#d8a08f}
   box-shadow:0 6px 16px rgba(25,24,24,.08);display:flex;flex-direction:column;color:var(--ink);
   transition:transform .16s var(--spring),box-shadow .16s,opacity .2s;animation:sobe .3s ease both;text-align:left}
 .carta.rara{border-color:var(--sand);box-shadow:0 6px 16px rgba(25,24,24,.08),0 0 0 1.5px var(--sand)}
+.carta.ensaiada{box-shadow:0 6px 16px rgba(25,24,24,.08),0 0 0 1.5px #2A6F6B,0 0 14px rgba(42,111,107,.3)}
 .carta.pode{cursor:pointer}
 .carta.pode:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(25,24,24,.18)}
 .carta.nao{opacity:.5;cursor:not-allowed}
@@ -344,6 +414,14 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 #demoBar .btn-ghost{min-height:36px;padding:7px 14px;font-size:12px;flex:0 0 auto}
 .foco-demo{outline:2.5px solid var(--red);outline-offset:3px;border-radius:14px;transition:outline .2s}
 
+/* ---- missão do caso ---- */
+.missao-chip{display:inline-flex;align-items:center;gap:6px;margin-top:7px;font-size:10.5px;font-weight:600;
+  color:var(--fg3);border:1px dashed var(--line-2);border-radius:var(--r-pill);padding:3px 11px}
+.missao-chip::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--sand)}
+.missao-chip.ok{color:#2A6F6B;border-color:rgba(42,111,107,.5)}
+.missao-chip.ok::before{background:#2A6F6B}
+.missao-chip:empty{display:none}
+
 /* ---- jornada (mapa pequeno no cabeçalho) ---- */
 .passos{display:flex;gap:4px;align-items:center}
 .passos i{width:7px;height:7px;border-radius:50%;background:var(--line-2);font-style:normal}
@@ -364,7 +442,10 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
   .mao-cab{flex-wrap:wrap}
   .mao-cab .rotulo{white-space:nowrap}
   .anuncio{flex-basis:100%}
-  .status .caixinha{flex:1}
+  .status .caixinha{flex:1;min-width:96px}
+  .bandeja{overflow-x:auto}
+  .bandeja .slot{min-width:104px}
+  #faseBanner span{font-size:19px;padding:11px 24px}
 }
 @media (max-height:719px){
   .scr{padding-top:12px}
@@ -444,16 +525,21 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
       </div>
       <h1 id="cabTitulo">—</h1>
       <div class="meta-txt" id="cabPartes">—</div>
+      <div class="missao-chip" id="missaoChip"></div>
     </div>
-    <div class="julgador">
+    <div class="julgador" id="julPainel">
       <img class="foto hidden" id="julFoto" alt="">
       <div style="flex:1">
         <div class="rotulo">Julgador</div>
         <div class="nome" id="julNome">—</div>
+        <div class="disposicao" id="julDisp">—</div>
         <div class="mults" id="julMults"></div>
       </div>
     </div>
   </div>
+
+  <!-- régua do rito: onde o processo está, sem contagem ansiosa -->
+  <div class="rito" id="rito" aria-hidden="true"></div>
 
   <div class="painel-balanca">
     <div class="cima">
@@ -485,12 +571,14 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
   </div>
 
   <div class="painel-tese" id="painelTese">
+    <span class="carimbo" aria-hidden="true">protocolada</span>
     <div class="tese-topo">
       <span class="rotulo">A parte adversa sustenta</span>
       <span class="tese-tema" id="teseTema">—</span>
     </div>
     <p class="tese-texto" id="teseTexto">—</p>
-    <div class="tese-dica">Responda com o argumento que <b>refuta esta tese</b>. Argumento fora do tema rende menos da metade.</div>
+    <div class="tese-dica">Responda com o argumento que <b>refuta esta tese</b> — o sublinhado é a palavra-chave. Argumento fora do tema rende menos da metade e custa credibilidade.</div>
+    <div class="tese-gancho" id="gancho"></div>
   </div>
 
   <div class="status">
@@ -500,15 +588,28 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
       <div class="desc" id="oppDesc">—</div>
       <div id="statusPills"></div>
     </div>
-    <div class="caixinha">
-      <div class="rotulo">Rodada</div>
-      <div style="padding-top:3px"><span class="num" id="rodadaNum">1</span><span class="de" id="rodadaMax"> / 10</span></div>
+    <div class="caixinha" id="cxCred">
+      <div class="rotulo">Credibilidade</div>
+      <div style="padding-top:3px"><span class="num" id="credNum">6</span><span class="de"> / 10</span></div>
+      <div class="cred-estado" id="credEstado"></div>
     </div>
     <div class="caixinha" id="cxFolego">
       <div class="rotulo">Fôlego</div>
       <div class="folego" id="folego"></div>
     </div>
+    <div class="caixinha" id="cxPrep">
+      <div class="rotulo">Preparo</div>
+      <div class="prep-estrelas" id="prepEstrelas"></div>
+      <div class="prep-acoes">
+        <button class="prep-btn" id="prepEspiar" title="Antecipar a próxima pauta (1 de preparo)">Espiar · 1</button>
+        <button class="prep-btn" id="prepEnsaiar" title="Ensaiar uma carta da mão (2 de preparo)">Ensaiar · 2</button>
+        <button class="prep-btn" id="prepObjecao" title="Anular o próximo movimento adverso (3 de preparo)">Objeção · 3</button>
+      </div>
+    </div>
   </div>
+
+  <!-- bandeja da linha argumentativa: fundamento → prova → arremate -->
+  <div class="bandeja" id="bandeja" aria-label="Linha argumentativa"></div>
 
   <div class="mao-cab">
     <span class="rotulo">Sua mão</span>
@@ -524,10 +625,13 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
     </div>
     <div class="acoes">
       <button class="btn" id="btnEncerrar">Encerrar rodada</button>
+      <button class="btn-ghost hidden" id="btnReconsiderar" style="color:var(--red);border-color:rgba(238,42,66,.4)">Pedir reconsideração</button>
       <button class="btn-ghost" id="btnMenuBatalha">Jornada</button>
     </div>
   </div>
 </section>
+
+<div id="faseBanner" class="hidden" aria-hidden="true"><span class="serif" id="faseBannerTxt"></span></div>
 
 <!-- ============ RECOMPENSA ============ -->
 <section id="scr-reward" class="scr hidden">
@@ -650,7 +754,7 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 
 /* ---------- CONFIG (único ponto que a TI edita) ---------- */
 var CONFIG = {
-  VERSAO: '3.0.0',
+  VERSAO: '4.0.0',
   SEMESTRE: '2026-2',
   API_BASE: '/api',    // o backend Node serve o jogo e a API na mesma origem
   AI_WEBHOOK: '',      // ex.: '/api/sustentacao' — vazio: sustentação de IA oculta
@@ -700,45 +804,45 @@ var TIPO_ORDEM = ['N','F','R','T'];
 /* ---------- conteúdo: CARTAS (uma linha por carta; o pool deriva sozinho) ---------- */
 var CARTAS = {
   /* Norma */
-  pacta:      { nome:'Pacta sunt servanda', tipo:'N', custo:1, base:7, rar:'c', disc:'Direito Civil', texto:'O contrato obriga — e com um fato provado ao lado, obriga em dobro.', combo:{req:'F',b:3,txt:'+3 se um Fato já foi sustentado'}, fala:'"O contrato faz lei entre as partes, Excelência — e deve ser honrado."' },
-  boafe:      { nome:'Boa-fé objetiva', tipo:'N', custo:1, base:5, rar:'c', disc:'Direito Civil', texto:'Princípio que sustenta a conduta leal das partes.', fala:'"A boa-fé objetiva rege a relação desde a proposta, não só a assinatura."' },
-  indubio:    { nome:'In dubio pro reo', tipo:'N', custo:1, base:6, rar:'c', disc:'Processo Penal', texto:'A dúvida pesa a favor do réu — mais forte quando a maré está contra.', combo:{req:'DUVIDA',b:4,txt:'+4 com a convicção ≤ 45'}, fala:'"Se resta dúvida, Excelência, ela pesa — por imposição legal — a favor do réu."' },
-  dignidade:  { nome:'Dignidade da pessoa humana', tipo:'N', custo:2, base:6, rar:'c', disc:'Direito Constitucional', texto:'Norma que precisa de narrativa para pesar.', combo:{req:'R',b:4,txt:'+4 se uma Retórica já foi sustentada'}, fala:'"Antes do débito, Excelência, há pessoas e um lar em jogo."' },
-  legalidade: { nome:'Princípio da legalidade', tipo:'N', custo:1, base:4, rar:'c', disc:'Direito Constitucional', texto:'Anula o questionamento pendente sobre a sua tese.', fx:{cleanse:1}, fala:'"Ninguém será obrigado a fazer ou deixar de fazer algo senão em virtude de lei."' },
-  cdc:        { nome:'Código de Defesa do Consumidor', tipo:'N', custo:1, base:6, rar:'c', disc:'Direito do Consumidor', texto:'A vulnerabilidade é presunção legal; prove o fato e a norma decide.', combo:{req:'F',b:3,txt:'+3 se um Fato já foi sustentado'}, fala:'"A vulnerabilidade do consumidor não é tese, Excelência: é presunção legal."' },
-  devido:     { nome:'Devido processo legal', tipo:'N', custo:2, base:6, rar:'c', disc:'Processo Civil', texto:'Contém até 4 da próxima sustentação adversa.', fx:{block:4}, fala:'"Não há justiça no resultado quando o caminho a atropela."' },
-  sumula:     { nome:'Súmula vinculante', tipo:'N', custo:2, base:9, rar:'r', disc:'Direito Constitucional', texto:'Vincula: atravessa qualquer contenção adversa.', fx:{pierce:1}, fala:'"A questão está sumulada, Excelência — e a súmula vincula."' },
-  habeas:     { nome:'Habeas corpus', tipo:'N', custo:2, base:8, rar:'r', disc:'Processo Penal', texto:'Remédio heroico: atravessa a contenção adversa.', fx:{pierce:1}, fala:'"Contra a liberdade de ir e vir não há protelação que se sustente."' },
-  doutrina:   { nome:'Artigo científico', tipo:'N', custo:1, base:2, rar:'r', disc:'Metodologia Jurídica', texto:'Escala com o estudo: +2 por carta restante na mão.', combo:{req:'MAO',b:2,txt:'+2 por carta na mão'}, fala:'"A doutrina mais recente enfrenta exatamente este ponto — e conclui pela defesa."' },
+  pacta:      { nome:'Pacta sunt servanda', tipo:'N', custo:1, base:10, rar:'c', disc:'Direito Civil', texto:'O contrato obriga — e com um fato provado ao lado, obriga em dobro.', combo:{req:'F',b:4,txt:'+4 se um Fato já foi sustentado'}, fala:'"O contrato faz lei entre as partes, Excelência — e deve ser honrado."' },
+  boafe:      { nome:'Boa-fé objetiva', tipo:'N', custo:1, base:7, rar:'c', disc:'Direito Civil', texto:'Princípio que sustenta a conduta leal das partes.', fala:'"A boa-fé objetiva rege a relação desde a proposta, não só a assinatura."' },
+  indubio:    { nome:'In dubio pro reo', tipo:'N', custo:1, base:8, rar:'c', disc:'Processo Penal', texto:'A dúvida pesa a favor do réu — mais forte quando a maré está contra.', combo:{req:'DUVIDA',b:6,txt:'+6 com a convicção ≤ 45'}, fala:'"Se resta dúvida, Excelência, ela pesa — por imposição legal — a favor do réu."' },
+  dignidade:  { nome:'Dignidade da pessoa humana', tipo:'N', custo:2, base:8, rar:'c', disc:'Direito Constitucional', texto:'Norma que precisa de narrativa para pesar.', combo:{req:'R',b:6,txt:'+6 se uma Retórica já foi sustentada'}, fala:'"Antes do débito, Excelência, há pessoas e um lar em jogo."' },
+  legalidade: { nome:'Princípio da legalidade', tipo:'N', custo:1, base:6, rar:'c', disc:'Direito Constitucional', texto:'Anula o questionamento pendente sobre a sua tese.', fx:{cleanse:1}, fala:'"Ninguém será obrigado a fazer ou deixar de fazer algo senão em virtude de lei."' },
+  cdc:        { nome:'Código de Defesa do Consumidor', tipo:'N', custo:1, base:8, rar:'c', disc:'Direito do Consumidor', texto:'A vulnerabilidade é presunção legal; prove o fato e a norma decide.', combo:{req:'F',b:4,txt:'+4 se um Fato já foi sustentado'}, fala:'"A vulnerabilidade do consumidor não é tese, Excelência: é presunção legal."' },
+  devido:     { nome:'Devido processo legal', tipo:'N', custo:2, base:8, rar:'c', disc:'Processo Civil', texto:'Contém até 6 da próxima sustentação adversa.', fx:{block:6}, fala:'"Não há justiça no resultado quando o caminho a atropela."' },
+  sumula:     { nome:'Súmula vinculante', tipo:'N', custo:2, base:13, rar:'r', rascunho:true, disc:'Direito Constitucional', texto:'Vincula e atravessa a contenção. Em rascunho: ensaiada vale cheio; jogada de improviso, 60%.', fx:{pierce:1}, fala:'"A questão está sumulada, Excelência — e a súmula vincula."' },
+  habeas:     { nome:'Habeas corpus', tipo:'N', custo:2, base:11, rar:'r', disc:'Processo Penal', texto:'Remédio heroico: atravessa a contenção adversa.', fx:{pierce:1}, fala:'"Contra a liberdade de ir e vir não há protelação que se sustente."' },
+  doutrina:   { nome:'Artigo científico', tipo:'N', custo:1, base:3, rar:'r', disc:'Metodologia Jurídica', texto:'Escala com o estudo: +3 por carta restante na mão.', combo:{req:'MAO',b:3,txt:'+3 por carta na mão'}, fala:'"A doutrina mais recente enfrenta exatamente este ponto — e conclui pela defesa."' },
   /* Fato */
-  pericia:    { nome:'Laudo pericial', tipo:'F', custo:2, base:9, rar:'c', disc:'Processo Civil', texto:'Prova técnica robusta; atravessa a contenção adversa.', fx:{pierce:1}, fala:'"O laudo é inequívoco quanto à origem do dano, Excelência."' },
-  testemunha: { nome:'Testemunha-chave', tipo:'F', custo:1, base:5, rar:'c', disc:'Processo Civil', texto:'Depoimento que fixa os fatos da causa.', fala:'"A testemunha presenciou os fatos e não titubeou em juízo."' },
-  documento:  { nome:'Prova documental', tipo:'F', custo:1, base:6, rar:'c', disc:'Processo Civil', texto:'O que está escrito dispensa adjetivos.', fala:'"O documento está nos autos, assinado e datado."' },
-  registro:   { nome:'Registro em cartório', tipo:'F', custo:1, base:5, rar:'c', disc:'Direito Civil', texto:'Prova plena quando a norma já foi posta.', combo:{req:'N',b:3,txt:'+3 se uma Norma já foi sustentada'}, fala:'"O registro público faz prova plena — e a lei o diz expressamente."' },
-  reconstituicao:{ nome:'Reconstituição dos fatos', tipo:'F', custo:2, base:7, rar:'c', disc:'Processo Penal', texto:'Fatos corroboram fatos.', combo:{req:'F',b:3,txt:'+3 se um Fato já foi sustentado'}, fala:'"Refeito o percurso, Excelência, a versão da acusação não fica em pé."' },
-  gravacao:   { nome:'Gravação da ocorrência', tipo:'F', custo:2, base:8, rar:'c', disc:'Processo Penal', texto:'A câmera não tem lado.', fala:'"A câmera não tem lado: registrou o que registrou."' },
-  dna:        { nome:'Exame de DNA', tipo:'F', custo:2, base:10, rar:'r', disc:'Processo Penal', texto:'Ciência de ponta; atravessa a contenção adversa.', fx:{pierce:1}, fala:'"A ciência exclui o acusado, Excelência — com 99,99% de certeza."' },
-  confissao:  { nome:'Confissão da parte adversa', tipo:'F', custo:3, base:13, rar:'r', disc:'Processo Civil', texto:'A rainha das provas — quando cabe no fôlego.', fala:'"Foi a própria parte quem o admitiu, Excelência — está na ata."' },
+  pericia:    { nome:'Laudo pericial', tipo:'F', custo:2, base:13, rar:'c', disc:'Processo Civil', texto:'Prova técnica robusta; atravessa a contenção adversa.', fx:{pierce:1}, fala:'"O laudo é inequívoco quanto à origem do dano, Excelência."' },
+  testemunha: { nome:'Testemunha-chave', tipo:'F', custo:1, base:7, rar:'c', disc:'Processo Civil', texto:'Depoimento que fixa os fatos da causa.', fala:'"A testemunha presenciou os fatos e não titubeou em juízo."' },
+  documento:  { nome:'Prova documental', tipo:'F', custo:1, base:8, rar:'c', disc:'Processo Civil', texto:'O que está escrito dispensa adjetivos.', fala:'"O documento está nos autos, assinado e datado."' },
+  registro:   { nome:'Registro em cartório', tipo:'F', custo:1, base:7, rar:'c', disc:'Direito Civil', texto:'Prova plena quando a norma já foi posta.', combo:{req:'N',b:4,txt:'+4 se uma Norma já foi sustentada'}, fala:'"O registro público faz prova plena — e a lei o diz expressamente."' },
+  reconstituicao:{ nome:'Reconstituição dos fatos', tipo:'F', custo:2, base:10, rar:'c', disc:'Processo Penal', texto:'Fatos corroboram fatos.', combo:{req:'F',b:4,txt:'+4 se um Fato já foi sustentado'}, fala:'"Refeito o percurso, Excelência, a versão da acusação não fica em pé."' },
+  gravacao:   { nome:'Gravação da ocorrência', tipo:'F', custo:2, base:11, rar:'c', disc:'Processo Penal', texto:'A câmera não tem lado.', fala:'"A câmera não tem lado: registrou o que registrou."' },
+  dna:        { nome:'Exame de DNA', tipo:'F', custo:2, base:14, rar:'r', rascunho:true, disc:'Processo Penal', texto:'Ciência de ponta, perfurante. Em rascunho: ensaiada vale cheio; de improviso, 60%.', fx:{pierce:1}, fala:'"A ciência exclui o acusado, Excelência — com 99,99% de certeza."' },
+  confissao:  { nome:'Confissão da parte adversa', tipo:'F', custo:3, base:18, rar:'r', rascunho:true, disc:'Processo Civil', texto:'A rainha das provas. Em rascunho: ensaiada vale cheio; de improviso, 60%.', fala:'"Foi a própria parte quem o admitiu, Excelência — está na ata."' },
   /* Retórica */
-  peroracao:  { nome:'Peroração', tipo:'R', custo:1, base:6, rar:'c', disc:'Retórica Forense', texto:'Fecho persuasivo; rende mais com a maré a favor.', combo:{req:'MARE',b:5,txt:'+5 com a convicção ≥ 65'}, fala:'"Não se pede favor — pede-se justiça, e ela tem lado nesta causa."' },
-  ethos:      { nome:'Ethos, pathos, logos', tipo:'R', custo:1, base:4, rar:'c', disc:'Retórica Forense', texto:'Premia a variedade de argumentos na rodada.', combo:{req:'VAR',b:2,txt:'+2 por tipo distinto já sustentado'}, fala:'"Caráter, emoção e razão convergem para uma só conclusão."' },
-  exordio:    { nome:'Exórdio', tipo:'R', custo:0, base:2, rar:'c', disc:'Retórica Forense', texto:'Custo zero para queimar o resto do fôlego.', fala:'"Peço a atenção do juízo para o que os autos realmente dizem."' },
-  analogia:   { nome:'Analogia certeira', tipo:'R', custo:1, base:5, rar:'c', disc:'Retórica Forense', texto:'Um caso igual, com outros nomes.', combo:{req:'F',b:3,txt:'+3 se um Fato já foi sustentado'}, fala:'"O caso é o mesmo, Excelência — mudam apenas os nomes."' },
+  peroracao:  { nome:'Peroração', tipo:'R', custo:1, base:8, rar:'c', disc:'Retórica Forense', texto:'Fecho persuasivo; rende mais com a maré a favor.', combo:{req:'MARE',b:7,txt:'+7 com a convicção ≥ 65'}, fala:'"Não se pede favor — pede-se justiça, e ela tem lado nesta causa."' },
+  ethos:      { nome:'Ethos, pathos, logos', tipo:'R', custo:1, base:6, rar:'c', disc:'Retórica Forense', texto:'Premia a variedade de argumentos na rodada.', combo:{req:'VAR',b:3,txt:'+3 por tipo distinto já sustentado'}, fala:'"Caráter, emoção e razão convergem para uma só conclusão."' },
+  exordio:    { nome:'Exórdio', tipo:'R', custo:0, base:3, rar:'c', disc:'Retórica Forense', texto:'Custo zero para queimar o resto do fôlego.', fala:'"Peço a atenção do juízo para o que os autos realmente dizem."' },
+  analogia:   { nome:'Analogia certeira', tipo:'R', custo:1, base:7, rar:'c', disc:'Retórica Forense', texto:'Um caso igual, com outros nomes.', combo:{req:'F',b:4,txt:'+4 se um Fato já foi sustentado'}, fala:'"O caso é o mesmo, Excelência — mudam apenas os nomes."' },
   pausa:      { nome:'Pausa dramática', tipo:'R', custo:0, base:0, rar:'c', disc:'Retórica Forense', texto:'Compra 1 carta.', fx:{draw:1}, fala:'"(O silêncio, bem colocado, também argumenta.)"' },
-  narrativa:  { nome:'Narrativa dos autos', tipo:'R', custo:2, base:8, rar:'c', disc:'Retórica Forense', texto:'A história ganha peso quando os fatos já falaram.', combo:{req:'F',b:4,txt:'+4 se um Fato já foi sustentado'}, fala:'"Os autos contam uma história — e ela absolve a defesa."' },
-  sustentacao:{ nome:'Sustentação oral', tipo:'R', custo:3, base:12, rar:'r', disc:'Retórica Forense', texto:'A tribuna inteira em uma carta.', fala:'"Da tribuna, Excelência, a defesa reafirma cada linha do memorial."' },
-  consequencias:{ nome:'Apelo às consequências', tipo:'R', custo:2, base:9, rar:'r', disc:'Retórica Forense', texto:'A decisão de hoje é a jurisprudência de amanhã.', fala:'"A decisão de hoje será a jurisprudência de amanhã — que ela honre o Direito."' },
+  narrativa:  { nome:'Narrativa dos autos', tipo:'R', custo:2, base:11, rar:'c', disc:'Retórica Forense', texto:'A história ganha peso quando os fatos já falaram.', combo:{req:'F',b:6,txt:'+6 se um Fato já foi sustentado'}, fala:'"Os autos contam uma história — e ela absolve a defesa."' },
+  sustentacao:{ nome:'Sustentação oral', tipo:'R', custo:3, base:17, rar:'r', rascunho:true, disc:'Retórica Forense', texto:'A tribuna inteira em uma carta. Em rascunho: ensaiada vale cheio; de improviso, 60%.', fala:'"Da tribuna, Excelência, a defesa reafirma cada linha do memorial."' },
+  consequencias:{ nome:'Apelo às consequências', tipo:'R', custo:2, base:13, rar:'r', disc:'Retórica Forense', texto:'A decisão de hoje é a jurisprudência de amanhã.', fala:'"A decisão de hoje será a jurisprudência de amanhã — que ela honre o Direito."' },
   /* Técnica */
-  objecao:    { nome:'Objeção processual', tipo:'T', custo:0, base:2, rar:'c', disc:'Processo Civil', texto:'Custo zero; atravessa a contenção adversa.', fx:{pierce:1}, fala:'"Requeiro seja desconsiderada a prova juntada a destempo."' },
+  objecao:    { nome:'Objeção processual', tipo:'T', custo:0, base:3, rar:'c', disc:'Processo Civil', texto:'Custo zero; atravessa a contenção adversa.', fx:{pierce:1}, fala:'"Requeiro seja desconsiderada a prova juntada a destempo."' },
   juntada:    { nome:'Juntada de documentos', tipo:'T', custo:1, base:0, rar:'c', disc:'Processo Civil', texto:'Compra 2 cartas.', fx:{draw:2}, fala:'"Requeiro a juntada, Excelência — o processo agradece."' },
   dilacao:    { nome:'Dilação de prazo', tipo:'T', custo:0, base:0, rar:'c', disc:'Processo Civil', texto:'+1 de fôlego nesta rodada.', fx:{energy:1}, fala:'"A defesa requer prazo — breve — para melhor instruir a causa."' },
-  preliminar: { nome:'Preliminar de mérito', tipo:'T', custo:1, base:3, rar:'c', disc:'Processo Civil', texto:'Contém até 5 da próxima sustentação adversa.', fx:{block:5}, fala:'"Antes do mérito, Excelência, há questão que o antecede."' },
-  cautelar:   { nome:'Medida cautelar', tipo:'T', custo:2, base:4, rar:'c', disc:'Processo Civil', texto:'Contém até 7 da próxima sustentação adversa.', fx:{block:7}, fala:'"O perigo da demora, Excelência, não espera o trânsito em julgado."' },
-  embargosdec:{ nome:'Embargos de declaração', tipo:'T', custo:2, base:2, rar:'c', disc:'Processo Civil', texto:'Anula o próximo movimento anunciado da parte adversa.', fx:{negate:1}, fala:'"Há omissão no que a parte adversa anuncia — e ela precisa ser sanada."' },
-  questao:    { nome:'Questão de ordem', tipo:'T', custo:1, base:3, rar:'c', disc:'Processo Civil', texto:'Procedimento chama procedimento.', combo:{req:'T',b:3,txt:'+3 se uma Técnica já foi sustentada'}, fala:'"Pela ordem, Excelência."' },
+  preliminar: { nome:'Preliminar de mérito', tipo:'T', custo:1, base:4, rar:'c', disc:'Processo Civil', texto:'Contém até 7 da próxima sustentação adversa.', fx:{block:7}, fala:'"Antes do mérito, Excelência, há questão que o antecede."' },
+  cautelar:   { nome:'Medida cautelar', tipo:'T', custo:2, base:6, rar:'c', disc:'Processo Civil', texto:'Contém até 10 da próxima sustentação adversa.', fx:{block:10}, fala:'"O perigo da demora, Excelência, não espera o trânsito em julgado."' },
+  embargosdec:{ nome:'Embargos de declaração', tipo:'T', custo:2, base:3, rar:'c', disc:'Processo Civil', texto:'Anula o próximo movimento anunciado da parte adversa.', fx:{negate:1}, fala:'"Há omissão no que a parte adversa anuncia — e ela precisa ser sanada."' },
+  questao:    { nome:'Questão de ordem', tipo:'T', custo:1, base:4, rar:'c', disc:'Processo Civil', texto:'Procedimento chama procedimento.', combo:{req:'T',b:4,txt:'+4 se uma Técnica já foi sustentada'}, fala:'"Pela ordem, Excelência."' },
   repercussao:{ nome:'Repercussão geral', tipo:'T', custo:2, base:0, rar:'r', disc:'Direito Constitucional', texto:'A sua próxima carta vale em dobro. Uma vez por caso.', fx:{dobra:1, exaust:1}, fala:'"A tese transcende as partes, Excelência: interessa a todo o país."' },
-  amicus:     { nome:'Amicus curiae', tipo:'T', custo:1, base:3, rar:'r', disc:'Processo Constitucional', texto:'Compra 1 carta.', fx:{draw:1}, fala:'"A sociedade pede vista, Excelência — e tem o que dizer."' },
-  tutela:     { nome:'Tutela de urgência', tipo:'T', custo:3, base:6, rar:'r', disc:'Processo Civil', texto:'Contém até 9 da próxima sustentação adversa. Uma vez por caso.', fx:{block:9, exaust:1}, fala:'"O direito que se perde no caminho não se recupera na sentença."' }
+  amicus:     { nome:'Amicus curiae', tipo:'T', custo:1, base:4, rar:'r', disc:'Processo Constitucional', texto:'Compra 1 carta.', fx:{draw:1}, fala:'"A sociedade pede vista, Excelência — e tem o que dizer."' },
+  tutela:     { nome:'Tutela de urgência', tipo:'T', custo:3, base:8, rar:'r', disc:'Processo Civil', texto:'Contém até 13 da próxima sustentação adversa. Uma vez por caso.', fx:{block:13, exaust:1}, fala:'"O direito que se perde no caminho não se recupera na sentença."' }
 };
 Object.keys(CARTAS).forEach(function(id){ CARTAS[id].id = id; });
 
@@ -755,8 +859,11 @@ var DECK_INICIAL = ['pacta','boafe','testemunha','documento','pericia','peroraca
    são penalizadas. Ler a tese e escolher o contra-argumento certo é
    o que se aprende — e o que separa clicar de advogar.
    ============================================================ */
-var REPLICA_BONUS = 4;   // acréscimo à réplica pertinente (antes do multiplicador do julgador)
-var LATERAL_FATOR = 0.45; // argumento fora do tema rende menos da metade
+var REPLICA_BONUS = 6;    // acréscimo à réplica pertinente (antes do multiplicador do julgador)
+var DIRETA_BONUS = 3;     // acréscimo extra quando a carta responde a palavra-chave da tese
+var LATERAL_FATOR = 0.40; // argumento fora do tema rende menos da metade
+var LATERAL_FATOR_REINCIDENTE = 0.25; // do terceiro lateral em diante no mesmo caso
+var FECHO_LINHA = 8;      // bônus na balança ao fechar a linha argumentativa na ordem
 
 var TEMA_ROTULO = {
   contrato:'Contratos', consumidor:'Consumidor', dano:'Responsabilidade', prova:'Prova',
@@ -764,28 +871,37 @@ var TEMA_ROTULO = {
   posse:'Posse e propriedade', familia:'Família', trabalho:'Trabalho', coringa:'Argumento versátil'
 };
 
-/* Cada tese: o que a parte adversa afirma + a chave didática (porque) da réplica correta. */
+/* Cada tese: o que a parte adversa afirma + a palavra-chave (sublinhada em cena; refutá-la
+   com a carta certa é "réplica direta", +DIRETA_BONUS) + a chave didática (porque). */
 var TESES = [
-  { tema:'contrato', texto:'O contrato foi livremente assinado e deve ser cumprido à risca, ainda que hoje se revele excessivamente oneroso a uma das partes.', porque:'À força cega do pacto opõem-se a função social do contrato e a boa-fé objetiva, além da revisão por onerosidade excessiva (arts. 421 e 478 do Código Civil).' },
-  { tema:'contrato', texto:'Quem assina um contrato assume o que nele está; alegar depois que não entendeu a cláusula é má-fé.', porque:'A boa-fé objetiva também protege quem confiou de boa-fé, e cláusulas ambíguas interpretam-se contra quem as redigiu.' },
-  { tema:'consumidor', texto:'O consumidor leu e aceitou todas as cláusulas do contrato; não pode agora alegar desconhecimento.', porque:'O CDC presume a vulnerabilidade do consumidor e impõe ao fornecedor o dever de informação clara; cláusula abusiva é nula de pleno direito.' },
-  { tema:'consumidor', texto:'O serviço foi prestado exatamente como contratado; não há defeito que gere dever de reparar.', porque:'No CDC responde-se pelo defeito independentemente de culpa, e o ônus da prova pode ser invertido em favor do consumidor.' },
-  { tema:'dano', texto:'O prejuízo decorreu de culpa exclusiva da vítima; não há dever de indenizar.', porque:'A prova técnica rompe (ou confirma) o nexo causal; e quem explora o risco da atividade responde objetivamente por ele.' },
-  { tema:'dano', texto:'Não há prova de que a conduta do réu tenha causado o dano que se alega.', porque:'O laudo pericial e a prova documental fixam o nexo entre a conduta e o dano — ou demonstram a sua ausência.' },
-  { tema:'prova', texto:'A prova dos autos é robusta e não comporta dúvida alguma; a condenação se impõe.', porque:'Havendo dúvida razoável, ela milita a favor do réu (in dubio pro reo); e prova obtida por meio ilícito não se aproveita.' },
-  { tema:'prova', texto:'Todas as provas se harmonizam e apontam para a mesma e única conclusão.', porque:'Uma só contraprova técnica bem colocada basta para abalar a certeza que a acusação diz ter.' },
-  { tema:'penal', texto:'A materialidade e a autoria do crime estão plenamente demonstradas nos autos.', porque:'Vige a presunção de inocência; perícia excludente, álibi e a fragilidade do reconhecimento afastam a autoria.' },
-  { tema:'penal', texto:'O acusado foi reconhecido pela vítima e não há álibi que o socorra.', porque:'Reconhecimento sem o rito do art. 226 do CPP é frágil; a ciência (DNA, perícia) se sobrepõe à palavra isolada.' },
-  { tema:'constitucional', texto:'O interesse público autoriza restringir o direito individual neste caso concreto.', porque:'A restrição só se admite por lei, com proporcionalidade e sem violar o núcleo da dignidade da pessoa humana.' },
-  { tema:'constitucional', texto:'A urgência da medida justifica dispensar formalidades que só atrasariam a Justiça.', porque:'Nem a urgência afasta o devido processo legal e o contraditório — são garantias, não formalidades.' },
-  { tema:'processo', texto:'Todas as formalidades processuais foram observadas; não há nulidade a reconhecer.', porque:'Cerceamento de defesa e ofensa ao contraditório geram nulidade, ainda que a forma pareça, por fora, cumprida.' },
-  { tema:'processo', texto:'O ato atingiu a sua finalidade; qualquer vício é mera irregularidade sem prejuízo.', porque:'Quando o vício compromete a defesa, há prejuízo — e sem prejuízo aferido não se convalida o que a lei exige.' },
-  { tema:'posse', texto:'O título de propriedade prevalece sobre a mera posse que a outra parte invoca.', porque:'A posse tem proteção própria; e o registro só vale com a cadeia dominial íntegra a sustentá-lo.' },
-  { tema:'posse', texto:'A ocupação do imóvel é clandestina e não gera direito nenhum.', porque:'Posse mansa, pacífica e prolongada, provada por testemunhas e documentos, produz efeitos jurídicos.' },
-  { tema:'familia', texto:'O vínculo formal deve prevalecer sobre a situação de fato que se alega.', porque:'Prevalecem o melhor interesse e a socioafetividade, à luz da dignidade da pessoa humana.' },
-  { tema:'familia', texto:'Não há prova da convivência familiar que a outra parte afirma existir.', porque:'Testemunhas e documentos do cotidiano provam a relação de fato e os seus efeitos.' },
-  { tema:'trabalho', texto:'Havia autonomia na prestação do serviço; não se configura vínculo de emprego.', porque:'Subordinação, habitualidade e pessoalidade, provadas por testemunhas, revelam o vínculo empregatício.' },
-  { tema:'trabalho', texto:'Todos os pagamentos foram quitados conforme os recibos juntados.', porque:'A prova documental e a testemunhal podem demonstrar diferenças e verbas não quitadas.' }
+  { tema:'contrato', texto:'O contrato foi livremente assinado e deve ser cumprido à risca, ainda que hoje se revele excessivamente oneroso a uma das partes.', chave:'excessivamente oneroso', direta:['boafe'], porque:'À força cega do pacto opõem-se a função social do contrato e a boa-fé objetiva, além da revisão por onerosidade excessiva (arts. 421 e 478 do Código Civil).' },
+  { tema:'contrato', texto:'Quem assina um contrato assume o que nele está; alegar depois que não entendeu a cláusula é má-fé.', chave:'má-fé', direta:['boafe'], porque:'A boa-fé objetiva também protege quem confiou de boa-fé, e cláusulas ambíguas interpretam-se contra quem as redigiu.' },
+  { tema:'consumidor', texto:'O consumidor leu e aceitou todas as cláusulas do contrato; não pode agora alegar desconhecimento.', chave:'desconhecimento', direta:['cdc'], porque:'O CDC presume a vulnerabilidade do consumidor e impõe ao fornecedor o dever de informação clara; cláusula abusiva é nula de pleno direito.' },
+  { tema:'consumidor', texto:'O serviço foi prestado exatamente como contratado; não há defeito que gere dever de reparar.', chave:'defeito', direta:['cdc'], porque:'No CDC responde-se pelo defeito independentemente de culpa, e o ônus da prova pode ser invertido em favor do consumidor.' },
+  { tema:'dano', texto:'O prejuízo decorreu de culpa exclusiva da vítima; não há dever de indenizar.', chave:'culpa exclusiva', direta:['pericia'], porque:'A prova técnica rompe (ou confirma) o nexo causal; e quem explora o risco da atividade responde objetivamente por ele.' },
+  { tema:'dano', texto:'Não há prova de que a conduta do réu tenha causado o dano que se alega.', chave:'causado', direta:['pericia','documento'], porque:'O laudo pericial e a prova documental fixam o nexo entre a conduta e o dano — ou demonstram a sua ausência.' },
+  { tema:'prova', texto:'A prova dos autos é robusta e não comporta dúvida alguma; a condenação se impõe.', chave:'dúvida', direta:['indubio'], porque:'Havendo dúvida razoável, ela milita a favor do réu (in dubio pro reo); e prova obtida por meio ilícito não se aproveita.' },
+  { tema:'prova', texto:'Todas as provas se harmonizam e apontam para a mesma e única conclusão.', chave:'única conclusão', direta:['pericia'], porque:'Uma só contraprova técnica bem colocada basta para abalar a certeza que a acusação diz ter.' },
+  { tema:'penal', texto:'A materialidade e a autoria do crime estão plenamente demonstradas nos autos.', chave:'autoria', direta:['dna','indubio'], porque:'Vige a presunção de inocência; perícia excludente, álibi e a fragilidade do reconhecimento afastam a autoria.' },
+  { tema:'penal', texto:'O acusado foi reconhecido pela vítima e não há álibi que o socorra.', chave:'reconhecido', direta:['dna','reconstituicao'], porque:'Reconhecimento sem o rito do art. 226 do CPP é frágil; a ciência (DNA, perícia) se sobrepõe à palavra isolada.' },
+  { tema:'constitucional', texto:'O interesse público autoriza restringir o direito individual neste caso concreto.', chave:'interesse público', direta:['dignidade'], porque:'A restrição só se admite por lei, com proporcionalidade e sem violar o núcleo da dignidade da pessoa humana.' },
+  { tema:'constitucional', texto:'A urgência da medida justifica dispensar formalidades que só atrasariam a Justiça.', chave:'formalidades', direta:['devido'], porque:'Nem a urgência afasta o devido processo legal e o contraditório — são garantias, não formalidades.' },
+  { tema:'processo', texto:'Todas as formalidades processuais foram observadas; não há nulidade a reconhecer.', chave:'nulidade', direta:['devido'], porque:'Cerceamento de defesa e ofensa ao contraditório geram nulidade, ainda que a forma pareça, por fora, cumprida.' },
+  { tema:'processo', texto:'O ato atingiu a sua finalidade; qualquer vício é mera irregularidade sem prejuízo.', chave:'prejuízo', direta:['devido'], porque:'Quando o vício compromete a defesa, há prejuízo — e sem prejuízo aferido não se convalida o que a lei exige.' },
+  { tema:'posse', texto:'O título de propriedade prevalece sobre a mera posse que a outra parte invoca.', chave:'título', direta:['registro'], porque:'A posse tem proteção própria; e o registro só vale com a cadeia dominial íntegra a sustentá-lo.' },
+  { tema:'posse', texto:'A ocupação do imóvel é clandestina e não gera direito nenhum.', chave:'clandestina', direta:['testemunha','registro'], porque:'Posse mansa, pacífica e prolongada, provada por testemunhas e documentos, produz efeitos jurídicos.' },
+  { tema:'familia', texto:'O vínculo formal deve prevalecer sobre a situação de fato que se alega.', chave:'vínculo formal', direta:['dignidade','narrativa'], porque:'Prevalecem o melhor interesse e a socioafetividade, à luz da dignidade da pessoa humana.' },
+  { tema:'familia', texto:'Não há prova da convivência familiar que a outra parte afirma existir.', chave:'convivência', direta:['testemunha','documento'], porque:'Testemunhas e documentos do cotidiano provam a relação de fato e os seus efeitos.' },
+  { tema:'trabalho', texto:'Havia autonomia na prestação do serviço; não se configura vínculo de emprego.', chave:'autonomia', direta:['testemunha'], porque:'Subordinação, habitualidade e pessoalidade, provadas por testemunhas, revelam o vínculo empregatício.' },
+  { tema:'trabalho', texto:'Todos os pagamentos foram quitados conforme os recibos juntados.', chave:'recibos', direta:['documento','testemunha'], porque:'A prova documental e a testemunhal podem demonstrar diferenças e verbas não quitadas.' }
+];
+
+/* Missões de caso (objetivo secundário opcional; +25 na pontuação) */
+var MISSOES = [
+  { id:'semLaterais', desc:'Vença sem jogar argumento lateral' },
+  { id:'linha',       desc:'Feche uma linha argumentativa na ordem' },
+  { id:'cred7',       desc:'Termine com credibilidade 7 ou mais' },
+  { id:'disc3',       desc:'Sustente cartas de 3 disciplinas diferentes' }
 ];
 
 /* Área do caso → temas de tese mais prováveis (o resto entra como surpresa, forçando adaptação). */
@@ -854,34 +970,43 @@ function perfilPorNome(nome){
 /* área do direito da disciplina → área de caso, para casar julgador e matéria */
 function areaDaDisciplina(area){ return area || ''; }
 
-/* ---------- conteúdo: OPONENTES (os números aqui são o botão de dificuldade) ---------- */
+/* ---------- conteúdo: OPONENTES (arquétipos; os números são o botão de dificuldade) ----------
+   Arquétipos: 'agressivo' sustenta pesado; 'protelatorio' contém; 'formalista' questiona.
+   Todo oponente reconhece padrão: 3 cartas do MESMO tipo em sequência → impugnação direcionada. */
 function mv(t,v,nome,desc){ return {t:t, v:v||0, nome:nome, desc:desc}; }
 function mvDano(v){ return mv('dano', v, 'Sustentação', 'Empurra a balança em '+v+' contra você.'); }
 function mvConten(v){ return mv('conten', v, 'Protelação', 'Contém até '+v+' da sua próxima sustentação.'); }
-function mvPress(){ return mv('press', 0, 'Pressão', 'Você abre a próxima rodada com −1 de fôlego.'); }
 function mvQuest(){ return mv('quest', 0, 'Questionamento', 'A sua próxima carta vale metade.'); }
+function mvPrep(){ return mv('prep', 0, 'Preparação adversa', 'A parte adversa organiza os autos: nada acontece nesta fase de instrução.'); }
 var OPONENTES = {
-  iniciante:  { nome:'Advogado recém-inscrito',   moves:[mvDano(12), mvQuest(), mvDano(13), mvConten(9),  mvPress()] },
-  bairro:     { nome:'Escritório de bairro',      moves:[mvDano(14), mvConten(11), mvQuest(), mvDano(15), mvPress()] },
-  banca:      { nome:'Banca renomada',            moves:[mvDano(15), mvQuest(), mvDano(16), mvConten(12), mvPress(), mvDano(16)] },
-  procurador: { nome:'Procuradoria do Estado',    moves:[mvDano(16), mvConten(12), mvQuest(), mvDano(17), mvPress()] },
-  massa:      { nome:'Advocacia de massa',        moves:[mvDano(18), mvPress(), mvConten(14), mvDano(19), mvQuest()] },
-  apelacao:   { nome:'Grande banca de apelação',  moves:[mvDano(19), mvQuest(), mvConten(15), mvDano(20), mvPress(), mvDano(20)] },
-  pgr:        { nome:'Procuradoria-Geral',        moves:[mvDano(19), mvConten(14), mvQuest(), mvDano(20), mvPress()] },
-  agu:        { nome:'Advocacia-Geral da União',  moves:[mvDano(20), mvQuest(), mvDano(21), mvConten(17), mvPress(), mvDano(22)] }
+  iniciante:  { nome:'Advogado recém-inscrito',   arq:'estreante',    moves:[mvDano(48), mvQuest(), mvDano(50), mvConten(42)] },
+  bairro:     { nome:'Escritório de bairro',      arq:'protelatorio', moves:[mvConten(42), mvDano(50), mvQuest(), mvDano(52)] },
+  banca:      { nome:'Banca renomada',            arq:'agressivo',    moves:[mvDano(48), mvQuest(), mvDano(50), mvConten(46), mvDano(52)] },
+  procurador: { nome:'Procuradoria do Estado',    arq:'formalista',   moves:[mvDano(48), mvConten(46), mvQuest(), mvDano(50)] },
+  massa:      { nome:'Advocacia de massa',        arq:'agressivo',    moves:[mvDano(50), mvQuest(), mvDano(52), mvConten(44)] },
+  apelacao:   { nome:'Grande banca de apelação',  arq:'formalista',   moves:[mvDano(52), mvConten(50), mvQuest(), mvDano(54), mvDano(56)] },
+  pgr:        { nome:'Procuradoria-Geral',        arq:'protelatorio', moves:[mvConten(44), mvDano(52), mvQuest(), mvDano(54)] },
+  agu:        { nome:'Advocacia-Geral da União',  arq:'agressivo',    moves:[mvDano(56), mvQuest(), mvDano(58), mvConten(54), mvDano(60)] }
 };
 
-/* ---------- conteúdo: estrutura da JORNADA ---------- */
+/* ---------- conteúdo: estrutura da JORNADA (prazos curtos, fases do rito) ----------
+   instrucao/deliberacao = nº de rodadas de cada fase; o meio é a sustentação. */
 var JORNADA = [
-  { inst:'Foro Central de Porto Alegre', opon:'iniciante',  prazo:10 },
-  { inst:'Foro Central de Porto Alegre', opon:'bairro',     prazo:10 },
-  { inst:'Foro Central de Porto Alegre', opon:'banca',      prazo:10, boss:true },
-  { inst:'Tribunal de Justiça do RS',    opon:'procurador', prazo:9 },
-  { inst:'Tribunal de Justiça do RS',    opon:'massa',      prazo:9 },
-  { inst:'Tribunal de Justiça do RS',    opon:'apelacao',   prazo:10, boss:true },
-  { inst:'Supremo Tribunal Federal',     opon:'pgr',        prazo:8,  dark:true },
-  { inst:'Supremo Tribunal Federal',     opon:'agu',        prazo:12, dark:true, boss:true, plenario:true }
+  { inst:'Foro Central de Porto Alegre', opon:'iniciante',  prazo:5, instrucao:1, delib:1 },
+  { inst:'Foro Central de Porto Alegre', opon:'bairro',     prazo:5, instrucao:1, delib:1 },
+  { inst:'Foro Central de Porto Alegre', opon:'banca',      prazo:7, instrucao:2, delib:1, boss:true },
+  { inst:'Tribunal de Justiça do RS',    opon:'procurador', prazo:5, instrucao:1, delib:1 },
+  { inst:'Tribunal de Justiça do RS',    opon:'massa',      prazo:5, instrucao:1, delib:1 },
+  { inst:'Tribunal de Justiça do RS',    opon:'apelacao',   prazo:7, instrucao:2, delib:1, boss:true },
+  { inst:'Supremo Tribunal Federal',     opon:'pgr',        prazo:5, instrucao:1, delib:1, dark:true },
+  { inst:'Supremo Tribunal Federal',     opon:'agu',        prazo:8, instrucao:2, delib:2, dark:true, boss:true, plenario:true }
 ];
+function faseDaRodada(meta, rodada){
+  if (rodada <= meta.instrucao) return 'instrucao';
+  if (rodada > meta.prazo - meta.delib) return 'deliberacao';
+  return 'sustentacao';
+}
+var FASE_ROTULO = { instrucao:'Instrução', sustentacao:'Sustentação', deliberacao:'Deliberação' };
 
 /* ---------- conteúdo: casos procedurais ---------- */
 var SOBRENOMES = ['Almeida','Barcellos','Camargo','Duarte','Escobar','Fonseca','Guterres','Haas','Jobim','Klein','Lousada','Machado','Nascimento','Osório','Prates','Quevedo','Rosales','Sarmento','Tavares','Uriarte','Velasco','Wolff','Ximenes','Zanetti'];
@@ -1022,36 +1147,50 @@ function sortearCaso(i){
 }
 
 /* ---------- batalha ---------- */
-function iniciarCaso(retry){
-  var i = S.caso;
+function novaBatalha(i, retry){
   var meta = JORNADA[i];
-  if (!retry || !S.casoDados) S.casoDados = sortearCaso(i);   // embargos reusam caso e julgador
   var dados = S.casoDados;
   var rngB = rngDe('batalha', i, retry ? 'embargos' : 'normal');
   var convIni = clamp(50 + S.bonusIni + (S.relics.indexOf('anel')>=0 ? 4 : 0), 0, 70);
-  B = {
+  var rngM = rngDe('missao', i);
+  return {
     caso: i, meta: meta, dados: dados,
     juiz: JUIZES[dados.juiz], opon: OPONENTES[meta.opon],
-    p: convIni, rodada: 1, prazo: meta.prazo,
+    p: convIni, rodada: 1, prazo: meta.prazo, fase: '', faseVista: '',
     compra: embaralhar(S.deck.slice(), rngB), descarte: [], mao: [], exauridas: [],
     folego: 3, folegoMax: 3,
     movIdx: 0, conten: 0, bloqueio: 0,
-    pressa: false, quest: false, dobra: false, negate: false,
-    teseUsada: false, tiposRodada: [], jogadas: [],
+    quest: false, questTipo: null, dobra: false, negate: false,
+    cred: 6, credPiso: (i < 2 ? 2 : 0), reconsideracaoUsada: false,
+    prep: 1, ensaiadas: {},
+    linha: { f:null, p:null, a:null, ordem: [] },
+    lateraisCaso: 0, histTipos: [],
+    viradaFeita: false, viradaProva: false,
+    missao: amostra(MISSOES, rngM),
+    acordoPendente: false, acordoResolvido: false, acordoRecusado: false,
+    comebackUsado: false, rodadaTevePert: false,
+    teseUsada: false, tese: null, teseProxima: null, espiada: false,
+    tiposRodada: [], jogadas: [],
+    stats: { certas:0, diretas:0, laterais:0, arg:0, credSoma:0, credN:0, linhas:0, fav:0, favN:0, minP:convIni, disciplinas:{}, melhor:null },
     rng: rngB, vogaIdx: meta.plenario ? Math.floor(rngB()*4) : -1,
     fim: null, demo: false, travado: false
   };
+}
+function iniciarCaso(retry){
+  var i = S.caso;
+  if (!retry || !S.casoDados) S.casoDados = sortearCaso(i);   // embargos reusam caso e julgador
+  B = novaBatalha(i, retry);
   S.fase = 'caso';
   salvarRun();
-  setTema(!!meta.dark);
+  setTema(!!B.meta.dark);
+  logLimpo();
+  logJuiz('Pregão: ' + B.dados.titulo + '. A ' + (B.opon.nome) + ' representa a parte adversa.');
+  if (retry) logJuiz('Embargos acolhidos: o caso volta à pauta, com o mesmo julgador.');
+  if (B.vogaIdx >= 0) logJuiz('Voga do plenário: argumentos de ' + TIPOS[TIPO_ORDEM[B.vogaIdx]] + ' pesam ×1,5 nesta abertura.');
+  logJuiz('Missão do caso: ' + B.missao.desc.toLowerCase() + ' (+25 pontos).');
   iniciarRodada(true);
   pintarBatalha(true);
   mostrar('scr-battle');
-  logLimpo();
-  logJuiz('Pregão: ' + dados.titulo + '. A ' + (B.opon.nome) + ' representa a parte adversa.');
-  if (retry) logJuiz('Embargos acolhidos: o caso volta à pauta, com o mesmo julgador.');
-  if (B.vogaIdx >= 0) logJuiz('Voga do plenário: argumentos de ' + TIPOS[TIPO_ORDEM[B.vogaIdx]] + ' pesam ×1,5 nesta abertura.');
-  logTese();
   som.abrir();
 }
 
@@ -1070,14 +1209,73 @@ function iniciarRodada(primeira){
   B.bloqueio = 0;                      // contenção própria expira
   B.tiposRodada = [];
   B.explicou = false;                  // a chave didática da tese aparece uma vez por rodada
-  B.tese = sortearTese(B.rng, B.dados.area);   // a parte adversa levanta uma nova tese
+  B.rodadaTevePert = false;
+  // fase do rito
+  B.fase = faseDaRodada(B.meta, B.rodada);
+  var faseNova = B.fase !== B.faseVista;
+  B.faseVista = B.fase;
+  // tese da rodada (o gancho da rodada anterior vira a pauta; a próxima já fica sorteada)
+  B.tese = B.teseProxima || sortearTese(B.rng, B.dados.area);
+  B.teseProxima = sortearTese(B.rng, B.dados.area);
+  B.espiada = false;
+  if (faseNova && !primeira){
+    logJuiz('O processo avança: ' + FASE_ROTULO[B.fase] + '.');
+    som.martelo(); mostrarFaseBanner(FASE_ROTULO[B.fase]);
+  }
+  if (faseNova && B.fase === 'deliberacao') entrarDeliberacao();
+  // momento de virada: no meio da sustentação
+  if (!B.viradaFeita && B.rodada === B.meta.instrucao + 2){ B.viradaFeita = true; aplicarVirada(); }
+  // comeback legível: o juízo reabre a instrução uma vez
+  var extraCompra = 0;
+  if (B.p <= 30 && !B.comebackUsado){
+    B.comebackUsado = true; extraCompra = 1;
+    logJuiz('Com a defesa acuada, o juízo reabre a instrução: você compra uma carta a mais e a dúvida pesa mais a seu favor.');
+  }
   B.folegoMax = 3 + ((primeira && S.relics.indexOf('cafe')>=0) ? 1 : 0);
-  B.folego = Math.max(0, B.folegoMax - (B.pressa ? 1 : 0));
-  if (B.pressa) logJuiz('A pressão surte efeito: você abre a rodada com −1 de fôlego.');
-  B.pressa = false;
+  B.folego = B.folegoMax;
   B.descarte = B.descarte.concat(B.mao); B.mao = [];
-  comprarCartas(5);
+  comprarCartas(5 + extraCompra);
+  B.stats.minP = Math.min(B.stats.minP, B.p);
+  // a nova peça entra em cena: reseta o rasgo e bate o carimbo
+  B.teseRiscada = false;
+  var pt = $('painelTese');
+  if (pt && pt.style){ pt.classList.remove('riscada'); pt.style.animation = 'none'; if (pt.offsetWidth !== undefined) void pt.offsetWidth; pt.style.animation = ''; }
+  if (!primeira) som.carimbo();
   if (!primeira) logTese();
+  else { logTese(); if (B.fase === 'instrucao') logJuiz('Fase de instrução: a parte adversa organiza os autos. Aproveite para ensaiar cartas e abrir a sua linha.'); }
+}
+function entrarDeliberacao(){
+  // a impressão acumulada consolida: credibilidade converte em convicção
+  var delta = Math.round((B.cred - 5) * 2);
+  if (delta !== 0){
+    B.p = clamp(B.p + delta, 1, 100);  // a consolidação não encerra o caso sozinha
+    logJuiz('Deliberação: o julgador consolida a impressão da defesa (' + (delta>0?'+':'') + delta + ' na balança). A contenção adversa dobra nesta fase.');
+  } else {
+    logJuiz('Deliberação: o julgador pede a síntese. A contenção adversa dobra nesta fase.');
+  }
+  // oferta de acordo na entrada da deliberação
+  if (!B.acordoResolvido && B.p >= 55 && B.p <= 75 && !B.demo){
+    B.acordoPendente = true;
+    oferecerAcordo();
+  }
+}
+function aplicarVirada(){
+  var rngV = rngDe('virada', B.caso);
+  var tipo = Math.floor(rngV() * 3);
+  if (tipo === 0){
+    // novos documentos mudam o objeto da controvérsia
+    var outra = amostra(TODOS_TEMAS.filter(function(t){ return t !== B.tese.tema; }), rngV);
+    var cand = TESES.filter(function(t){ return t.tema === outra; });
+    if (cand.length) B.teseProxima = amostra(cand, rngV);
+    logAdverso('Virada no processo: a parte adversa junta documentos novos — a controvérsia muda de rumo (' + (TEMA_ROTULO[outra]||outra).toLowerCase() + ').');
+  } else if (tipo === 1){
+    B.viradaProva = true;  // a próxima carta de Fato vale 50% (testemunha vacilou)
+    logAdverso('Virada no processo: uma testemunha vacila — a sua próxima prova valerá metade. Uma carta de Técnica nesta rodada reabilita o depoimento.');
+  } else {
+    B.vogaRevelada = true;
+    var fav = TIPO_ORDEM.reduce(function(m,t){ return (B.juiz.mult[t]||1) > (B.juiz.mult[m]||1) ? t : m; }, 'N');
+    logJuiz('O julgador sinaliza: na deliberação, dará atenção especial a argumentos de ' + TIPOS[fav] + '.');
+  }
 }
 function logTese(){
   if (!B || !B.tese) return;
@@ -1085,24 +1283,38 @@ function logTese(){
 }
 
 function computarDano(carta, situacao){
-  // ordem exata: base → +combo → pertinência à tese (réplica +bônus / lateral ×0,45)
-  //   → ×julgador → +relíquia por tipo → ÷2 questionada → ×2 repercussão → contenção
+  // ordem exata: base (rascunho/ensaio) → +combo → pertinência (réplica +6 · direta +3 ·
+  //   lateral ×0,45/×0,30) → ×julgador/voga → +relíquia → ÷2 impugnada → ×2 repercussão
+  //   → ×faixa de credibilidade → contenção adversa (exceto perfurantes)
   var s = situacao || B;
+  var ensaio = '';
   var d = carta.base;
+  if (carta.rascunho){
+    if (s.ensaiadas && s.ensaiadas[carta.id]){ ensaio = 'ensaiada'; }
+    else { d = d * 0.6; ensaio = 'de improviso ×0,6'; }
+  } else if (s.ensaiadas && s.ensaiadas[carta.id]){ d = d * 1.5; ensaio = 'ensaiada ×1,5'; }
   var comboTxt = '';
   if (carta.combo){
     var c = carta.combo, b = 0;
     if (c.req === 'MARE'){ if (s.p >= 65){ b = c.b; comboTxt = 'maré favorável +' + b; } }
-    else if (c.req === 'DUVIDA'){ if (s.p <= 45){ b = c.b; comboTxt = 'na dúvida +' + b; } }
+    else if (c.req === 'DUVIDA'){ if (s.p <= 45){ b = c.b + (s.comebackUsado ? 2 : 0); comboTxt = 'na dúvida +' + b; } }
     else if (c.req === 'VAR'){ var dist = {}; s.tiposRodada.forEach(function(t){ dist[t]=1; }); var nd = Object.keys(dist).length; if (nd>0){ b = nd*c.b; comboTxt = 'variedade +' + b; } }
     else if (c.req === 'MAO'){ var resto = Math.max(0, s.mao.length - 1); if (resto>0){ b = resto*c.b; comboTxt = 'estudo +' + b; } }
     else if (s.tiposRodada.indexOf(c.req) >= 0){ b = c.b; comboTxt = 'combo +' + b; }
     d += b;
   }
   // pertinência à tese da parte adversa (o coração didático)
-  var pert = cartaPertinente(carta, s.tese);   // true = réplica certeira · false = lateral · null = procedimental
-  if (pert === true){ d += REPLICA_BONUS; }
-  else if (pert === false){ d = d * LATERAL_FATOR; }
+  var pert = cartaPertinente(carta, s.tese);   // true = réplica · false = lateral · null = procedimental
+  var direta = false;
+  if (pert === true){
+    d += REPLICA_BONUS;
+    if (s.tese && s.tese.direta && s.tese.direta.indexOf(carta.id) >= 0){ d += DIRETA_BONUS; direta = true; }
+  } else if (pert === false){
+    d = d * ((s.lateraisCaso || 0) >= 2 ? LATERAL_FATOR_REINCIDENTE : LATERAL_FATOR);
+  }
+  // virada: testemunha vacilou — a próxima prova vale metade
+  var vacilo = false;
+  if (s.viradaProva && carta.tipo === 'F'){ d = d * 0.5; vacilo = true; }
   var mult = s.juiz.mult[carta.tipo] || 1;
   if (s.vogaIdx >= 0 && TIPO_ORDEM[s.vogaIdx] === carta.tipo) mult = 1.5;
   d *= mult;
@@ -1110,12 +1322,20 @@ function computarDano(carta, situacao){
   Object.keys(RELIQUIA_TIPO).forEach(function(rid){ if (S.relics.indexOf(rid)>=0 && RELIQUIA_TIPO[rid]===carta.tipo) relTipo = rid; });
   if (relTipo) d += 2;
   var metade = false;
-  if (s.quest){ d = d/2; metade = true; }
+  if (s.quest && (!s.questTipo || s.questTipo === carta.tipo)){ d = d/2; metade = true; }
   var dobrada = false;
   if (s.dobra){ d = d*2; dobrada = true; }
+  // faixa de credibilidade: a tribuna reage à coerência da defesa
+  var credMult = 1, credTxt = '';
+  if (s.cred != null){
+    if (s.cred >= 8){ credMult = 1.15; credTxt = 'tribuna dominada ×1,15'; }
+    else if (s.cred <= 3){ credMult = 0.7; credTxt = 'defesa advertida ×0,7'; }
+  }
+  d *= credMult;
   var contido = 0;
   if (!(carta.fx && carta.fx.pierce) && s.conten > 0){ contido = Math.min(s.conten, d); d -= contido; }
-  return { dano: Math.round(d), comboTxt: comboTxt, pert: pert, mult: mult, reliquia: relTipo, metade: metade, dobrada: dobrada, contido: Math.round(contido) };
+  return { dano: Math.round(d), comboTxt: comboTxt, pert: pert, direta: direta, ensaio: ensaio, vacilo: vacilo,
+    mult: mult, reliquia: relTipo, metade: metade, dobrada: dobrada, credTxt: credTxt, contido: Math.round(contido) };
 }
 
 function jogarCarta(idx){
@@ -1141,17 +1361,21 @@ function jogarCarta(idx){
   // efeitos
   var notas = [];
   if (sanou) notas.push('questionamento sanado');
-  if (r.pert === true) notas.push('réplica certeira +' + REPLICA_BONUS);
-  else if (r.pert === false) notas.push('argumento lateral ×0,45');
+  if (r.ensaio) notas.push(r.ensaio);
+  if (r.pert === true){ notas.push('réplica certeira +' + REPLICA_BONUS); if (r.direta) notas.push('responde à palavra-chave +' + DIRETA_BONUS); }
+  else if (r.pert === false) notas.push('argumento lateral ×' + (((B.lateraisCaso||0) >= 2) ? '0,25' : '0,40'));
+  if (r.vacilo) notas.push('testemunha vacilante ×0,5');
   if (r.comboTxt) notas.push(r.comboTxt);
   if (r.mult !== 1) notas.push((B.vogaIdx>=0 && TIPO_ORDEM[B.vogaIdx]===carta.tipo ? 'voga' : 'julgador') + ' ×' + String(r.mult).replace('.',','));
   if (r.reliquia) notas.push(RELIQUIAS[r.reliquia].nome.toLowerCase() + ' +2');
-  if (r.metade) notas.push('questionada ÷2');
+  if (r.metade) notas.push(B.questTipo ? 'impugnada ÷2' : 'questionada ÷2');
   if (r.dobrada) notas.push('repercussão ×2');
+  if (r.credTxt) notas.push(r.credTxt);
   if (r.contido) notas.push('contida −' + r.contido);
-  if (B.quest) B.quest = false;
+  if (r.metade){ B.quest = false; B.questTipo = null; }
   if (B.dobra && r.dobrada) B.dobra = false;
   if (!(carta.fx && carta.fx.pierce)) B.conten = Math.max(0, B.conten - r.contido);
+  if (B.ensaiadas[id]) delete B.ensaiadas[id];
 
   if (carta.fx){
     if (carta.fx.draw){ comprarCartas(carta.fx.draw); notas.push('compra ' + carta.fx.draw); }
@@ -1160,21 +1384,137 @@ function jogarCarta(idx){
     if (carta.fx.negate){ B.negate = true; notas.push('anula o próximo movimento'); }
     if (carta.fx.dobra){ B.dobra = true; }
   }
+  // técnica reabilita a testemunha vacilante (virada)
+  if (B.viradaProva && carta.tipo === 'T'){ B.viradaProva = false; notas.push('depoimento reabilitado'); }
 
   B.p = clamp(B.p + r.dano, 0, 100);
   B.tiposRodada.push(carta.tipo);
+  B.histTipos.push(carta.tipo);
   B.jogadas.push({ carta:id, rodada:B.rodada, dano:r.dano });
+
+  // credibilidade: a tribuna reage à pertinência
+  if (r.pert === true){
+    B.cred = Math.min(10, B.cred + 1);
+    B.rodadaTevePert = true;
+    reacaoJuiz('acena');
+  } else if (r.pert === false){
+    B.lateraisCaso++;
+    B.cred = Math.max(B.credPiso, B.cred - 1);
+    reacaoJuiz('franze');
+  }
+  // estatísticas para a pontuação e o relatório
+  if (r.pert !== null){
+    B.stats.arg++;
+    if (r.pert === true){ B.stats.certas++; if (r.direta) B.stats.diretas++; }
+    else B.stats.laterais++;
+    if (B.juizTemFav == null) B.juizTemFav = TIPO_ORDEM.some(function(t){ return (B.juiz.mult[t]||1) > 1; }) || B.vogaIdx >= 0;
+    if (B.juizTemFav){ B.stats.favN++; if (r.mult > 1) B.stats.fav++; }
+  }
+  B.stats.credSoma += B.cred; B.stats.credN++;
+  B.stats.disciplinas[carta.disc] = 1;
+  if (!B.stats.melhor || r.dano > B.stats.melhor.dano) B.stats.melhor = { nome: carta.nome, dano: r.dano };
+  B.stats.minP = Math.min(B.stats.minP, B.p);
+
+  // linha argumentativa: fundamento (N) → prova (F) → arremate (R)
+  encaixarNaLinha(carta, id);
+
   logCarta(carta, r.dano, notas.join(' · '), r.pert);
   // chave didática: por que aquele argumento refuta (ou não) a tese — uma vez por rodada
   if (!B.explicou && B.tese){
     if (r.pert === true){ B.explicou = true; logJuiz('Réplica pertinente. ' + B.tese.porque); }
     else if (r.pert === false){ B.explicou = true; logJuiz('O juiz não vê pertinência: esse argumento não enfrenta a tese sobre ' + (TEMA_ROTULO[B.tese.tema]||B.tese.tema).toLowerCase() + '. Procure o contra-argumento do tema.'); }
   }
+  marcarTese(r.pert);
   vibra(12);
   if (r.dano > 0){ som.carta(r.pert === true || r.comboTxt ? true : false); fxCarta(carta.tipo, r.dano); } else som.tecnica();
 
+  // credibilidade zerada: o juiz indefere de plano e encerra a rodada
+  if (B.cred <= 0 && !B.fim){
+    B.cred = 3;
+    logJuiz('O julgador indefere de plano: a defesa perdeu a coerência e a palavra nesta rodada. Recomponha-se.');
+    som.nega(); vibra(60);
+    pintarBatalha();
+    if (!checarFim(false)) encerrarRodada();
+    return;
+  }
+
   pintarBatalha();
   checarFim(false);
+}
+
+/* ---------- linha argumentativa (fundamento → prova → arremate) ---------- */
+function encaixarNaLinha(carta, id){
+  var slot = carta.tipo === 'N' ? 'f' : carta.tipo === 'F' ? 'p' : carta.tipo === 'R' ? 'a' : null;
+  if (!slot || B.linha[slot]) return;
+  B.linha[slot] = { id: id, nome: carta.nome };
+  B.linha.ordem.push(slot);
+  if (B.linha.f && B.linha.p && B.linha.a){
+    var naOrdem = B.linha.ordem.join('') === 'fpa';
+    if (naOrdem){
+      B.p = clamp(B.p + FECHO_LINHA, 0, 100);
+      B.cred = Math.min(10, B.cred + 1);
+      B.stats.linhas++;
+      logJuiz('Tese fechada: fundamento, prova e arremate na ordem (+' + FECHO_LINHA + ' na balança, +1 de credibilidade).');
+      som.boa(); fxVitoria(false); reacaoJuiz('anota');
+    } else {
+      B.p = clamp(B.p + 3, 0, 100);
+      logJuiz('Linha concluída fora da ordem (+3). Na ordem — fundamento, prova, arremate — ela fecharia a tese.');
+    }
+    B.linha = { f:null, p:null, a:null, ordem: [] };
+  }
+}
+
+/* ---------- preparo: espiar, ensaiar, objeção ---------- */
+function gastarPreparo(acao, idx){
+  if (!B || B.fim || B.travado) return false;
+  if (acao === 'espiar'){
+    if (B.prep < 1 || B.espiada) return false;
+    B.prep -= 1; B.espiada = true;
+    logJuiz('Preparo: você antecipa a próxima pauta — “' + B.teseProxima.texto + '” (' + (TEMA_ROTULO[B.teseProxima.tema]||'') + ').');
+  } else if (acao === 'ensaiar'){
+    if (B.prep < 2) return false;
+    var id = B.mao[idx];
+    if (!id || B.ensaiadas[id]) return false;
+    B.prep -= 2; B.ensaiadas[id] = true;
+    logJuiz('Preparo: ' + CARTAS[id].nome + ' ensaiada — valerá o seu potencial pleno.');
+  } else if (acao === 'objecao'){
+    if (B.prep < 3 || B.negate) return false;
+    B.prep -= 3; B.negate = true;
+    logJuiz('Preparo: objeção pronta — o próximo movimento adverso será anulado.');
+  } else return false;
+  som.tecnica();
+  pintarBatalha();
+  return true;
+}
+function reconsiderar(){
+  if (!B || B.fim || B.travado || B.reconsideracaoUsada || B.cred > 3) return false;
+  B.reconsideracaoUsada = true;
+  B.cred = 4;
+  logJuiz('Pedido de reconsideração acolhido: a defesa reorganiza a tese (credibilidade 4), mas a rodada se encerra.');
+  som.pondera();
+  encerrarRodada();
+  return true;
+}
+
+/* ---------- acordo (deliberação) ---------- */
+function oferecerAcordo(){
+  modal({ escuro:true, travado:true, titulo:'Proposta de acordo',
+    html:'Com a balança em <b style="color:var(--cream)">' + Math.round(B.p) + '</b>, a parte adversa propõe encerrar o caso já. Aceitar garante a vitória com <b style="color:var(--cream)">60% dos pontos</b>. Recusar leva o caso à decisão final — e a parte adversa virá com tudo (+30% de dano).',
+    botoes: [
+      { t:'Aceitar o acordo', fn: aceitarAcordo },
+      { t:'Recusar e ir a julgamento', ghost:true, fn: recusarAcordo }
+    ]});
+}
+function aceitarAcordo(){
+  if (!B || B.fim) return;
+  B.acordoPendente = false; B.acordoResolvido = true;
+  finalizarCaso(true, 'acordo');
+}
+function recusarAcordo(){
+  if (!B || B.fim) return;
+  B.acordoPendente = false; B.acordoResolvido = true; B.acordoRecusado = true;
+  logAdverso('Acordo recusado. A parte adversa promete levar a disputa até a última linha (+30% nas sustentações).');
+  pintarBatalha();
 }
 
 function encerrarRodada(){
@@ -1185,46 +1525,62 @@ function encerrarRodada(){
   agenda(function(){ turnoAdversario(); }, 480);
 }
 
+function movimentoAtual(){
+  if (!B) return null;
+  if (B.movOverride) return B.movOverride;
+  if (B.fase === 'instrucao') return mvPrep();
+  return B.opon.moves[B.movIdx % B.opon.moves.length];
+}
+
 function turnoAdversario(){
-  var opon = B.opon;
-  var mov = opon.moves[B.movIdx % opon.moves.length];
-  B.movIdx++;
+  var mov = movimentoAtual();
+  var eraOverride = !!B.movOverride;
+  B.movOverride = null;
+  if (!eraOverride && B.fase !== 'instrucao') B.movIdx++;
   B.descarte = B.descarte.concat(B.mao); B.mao = [];
 
-  if (B.negate){
+  if (B.negate && mov.t !== 'prep'){
     B.negate = false;
-    logAdverso('Embargos acolhidos: ' + mov.nome.toLowerCase() + ' da parte adversa não se realiza.');
+    logAdverso('Objeção acolhida: ' + mov.nome.toLowerCase() + ' da parte adversa não se realiza.');
+    som.bloqueio();
+  } else if (mov.t === 'prep'){
+    logAdverso('A parte adversa organiza os autos e observa a sua estratégia.');
   } else if (mov.t === 'dano'){
-    var bruto = mov.v;
+    var bruto = Math.round(mov.v * (B.acordoRecusado ? 1.3 : 1));
     var absorvido = Math.min(B.bloqueio, bruto);
     var efetivo = bruto - absorvido;
     B.bloqueio -= absorvido;
     B.p = clamp(B.p - efetivo, 0, 100);
-    logAdverso('Sustentação adversa: −' + efetivo + ' na balança' + (absorvido ? ' (contido ' + absorvido + ')' : '') + '.');
+    B.stats.minP = Math.min(B.stats.minP, B.p);
+    logAdverso('Sustentação adversa: −' + efetivo + ' na balança' + (absorvido ? ' (contido ' + absorvido + ')' : '') + (B.acordoRecusado ? ' — sem acordo, sem trégua' : '') + '.');
     if (efetivo > 0){ som.dano(); fxDano(); vibra(30); } else som.bloqueio();
   } else if (mov.t === 'conten'){
-    B.conten = mov.v;
-    logAdverso('Protelação: contém até ' + mov.v + ' da sua próxima sustentação.');
+    B.conten = mov.v * (B.fase === 'deliberacao' ? 2 : 1);
+    logAdverso('Protelação: contém até ' + B.conten + ' da sua próxima sustentação' + (B.fase === 'deliberacao' ? ' (dobrada na deliberação)' : '') + '.');
     som.tecnica();
   } else if (mov.t === 'quest'){
-    B.quest = true;
+    B.quest = true; B.questTipo = null;
     logAdverso('Questionamento: a sua próxima carta valerá metade.');
     som.tecnica();
-  } else if (mov.t === 'press'){
-    B.pressa = true;
-    logAdverso('Pressão: você abrirá a próxima rodada com −1 de fôlego.');
+  } else if (mov.t === 'impugna'){
+    B.quest = true; B.questTipo = mov.tipo;
+    logAdverso('Impugnação direcionada: a sua próxima carta de ' + TIPOS[mov.tipo] + ' valerá metade.');
     som.tecnica();
-  }
-
-  // ponderação do julgador a cada 3 rodadas
-  if (B.rodada % 3 === 0 && !B.fim){
-    if (B.p > 50){ B.p = Math.max(50, B.p - 3); logJuiz('O julgador pondera: a convicção recua 3 rumo ao centro.'); }
-    else if (B.p < 50){ B.p = Math.min(50, B.p + 3); logJuiz('O julgador pondera: a convicção avança 3 rumo ao centro.'); }
-    som.pondera();
   }
 
   pintarBatalha();
   if (checarFim(true)) return;
+
+  // a parte adversa reconhece padrões: três cartas do mesmo tipo em sequência
+  var h = B.histTipos;
+  if (h.length >= 3 && !B.movOverride){
+    var t3 = h.slice(-3);
+    if (t3[0] === t3[1] && t3[1] === t3[2]){
+      B.movOverride = { t:'impugna', tipo:t3[0], v:0, nome:'Impugnação', desc:'Reconheceu o seu padrão: a próxima carta de ' + TIPOS[t3[0]] + ' valerá metade.' };
+      B.histTipos = [];
+      logAdverso('A parte adversa reconheceu o seu padrão de ' + TIPOS[t3[0]].toLowerCase() + ' — prepara uma impugnação direcionada.');
+    }
+  }
 
   // voga do plenário gira a cada 2 rodadas
   if (B.vogaIdx >= 0 && B.rodada % 2 === 0){
@@ -1232,6 +1588,9 @@ function turnoAdversario(){
     logJuiz('A voga do plenário gira: agora favorece ' + TIPOS[TIPO_ORDEM[B.vogaIdx]] + ' (×1,5).');
     som.voga();
   }
+
+  // preparo rende quando a rodada teve réplica pertinente
+  if (B.rodadaTevePert && B.prep < 5){ B.prep++; }
 
   agenda(function(){
     B.rodada++;
@@ -1252,46 +1611,90 @@ function checarFim(fimDeRodada){
   return false;
 }
 
+/* ---------- missão e pontuação do caso ---------- */
+function missaoCumprida(){
+  var st = B.stats;
+  switch (B.missao.id){
+    case 'semLaterais': return st.laterais === 0 && st.arg > 0;
+    case 'linha': return st.linhas >= 1;
+    case 'cred7': return B.cred >= 7;
+    case 'disc3': return Object.keys(st.disciplinas).length >= 3;
+  }
+  return false;
+}
+function pontuarCaso(motivo){
+  var st = B.stats;
+  var plena = motivo === 'plena', acordo = motivo === 'acordo';
+  var margem = Math.max(0, Math.round(B.p) - 50);
+  var comp = [];
+  comp.push(['Resultado', 100 + margem + (plena ? 50 : 0)]);
+  if (st.arg > 0) comp.push(['Pertinência das réplicas', Math.min(60, Math.round(60 * (st.certas + 0.5*st.diretas) / st.arg))]);
+  var credMedia = st.credN ? st.credSoma / st.credN : B.cred;
+  comp.push(['Coerência da defesa', Math.min(50, Math.round(50 * credMedia / 10))]);
+  if (st.favN > 0) comp.push(['Leitura do julgador', Math.min(40, Math.round(40 * st.fav / st.favN))]);
+  if (st.linhas > 0) comp.push(['Teses fechadas', Math.min(40, 20 * st.linhas)]);
+  var econ = Math.max(0, B.prazo - B.rodada);
+  if (econ > 0) comp.push(['Rodadas economizadas', Math.min(30, econ * 10)]);
+  var missaoOk = missaoCumprida();
+  if (missaoOk) comp.push(['Missão cumprida', 25]);
+  if (st.minP <= 30) comp.push(['Recuperação', 30]);
+  if (st.laterais > 0) comp.push(['Argumentos laterais', -Math.min(60, 5 * st.laterais)]);
+  var total = comp.reduce(function(s,c){ return s + c[1]; }, 0);
+  if (acordo) total = Math.round(total * 0.6);
+  total = Math.max(40, total);
+  return { comp: comp, total: total, plena: plena, acordo: acordo, missaoOk: missaoOk };
+}
+
+function relatorioHTML(venceu){
+  var st = B.stats;
+  var linhas = [];
+  if (st.melhor) linhas.push('Decisivo: <b>' + esc(st.melhor.nome) + '</b> (+' + st.melhor.dano + ' na balança).');
+  if (st.laterais > 0) linhas.push('Custou caro: ' + st.laterais + ' argumento' + (st.laterais>1?'s':'') + ' lateral' + (st.laterais>1?'is':'') + ' — releia o tema da tese antes de sustentar.');
+  else if (st.arg > 0) linhas.push('Defesa coesa: nenhum argumento lateral.');
+  var nd = Object.keys(st.disciplinas).length;
+  if (nd) linhas.push('Disciplinas na sustentação: ' + nd + ' · credibilidade final ' + B.cred + '/10.');
+  if (!venceu && st.arg > 0) linhas.push('Taxa de pertinência: ' + Math.round(100*st.certas/st.arg) + '% — é o número a subir.');
+  return '<div style="text-align:left;font-size:11.5px;line-height:1.55;color:var(--sand);border-top:1px solid rgba(191,186,164,.2);padding-top:10px;margin-top:4px">' + linhas.join('<br>') + '</div>';
+}
+
 function finalizarCaso(venceu, motivo){
   if (B.demo) return;                       // a demo nunca sentencia
   if (B.fim) return;
   B.fim = venceu ? 'vitoria' : 'derrota';
   B.travado = true;
+  fecharModal();
   pintarBatalha();
   if (venceu){
-    var plena = motivo === 'plena';
-    var margem = Math.max(0, B.p - 50);
-    var econ = Math.max(0, B.prazo - B.rodada);
-    var pts = 100 + margem + econ*10 + (plena ? 50 : 0);
-    S.pontos += pts;
-    S.detalhe.push({ caso:B.caso, titulo:B.dados.titulo, pts:pts, plena:plena, conv:B.p, rodadas:B.rodada });
-    som.vitoria(); fxVitoria(plena);
+    var placar = pontuarCaso(motivo);
+    S.pontos += placar.total;
+    S.detalhe.push({ caso:B.caso, titulo:B.dados.titulo, pts:placar.total, plena:placar.plena, acordo:placar.acordo, conv:Math.round(B.p), rodadas:B.rodada, missao:placar.missaoOk });
+    som.vitoria(); fxVitoria(placar.plena);
     var linhas = '<div class="tabela-pontos">'
-      + '<div class="li"><span>Base do caso</span><span>100</span></div>'
-      + '<div class="li"><span>Margem de convicção</span><span>+' + margem + '</span></div>'
-      + '<div class="li"><span>Rodadas economizadas</span><span>+' + (econ*10) + '</span></div>'
-      + (plena ? '<div class="li"><span>Convicção plena</span><span>+50</span></div>' : '')
-      + '<div class="total"><span>Total do caso</span><b>' + pts + '</b></div></div>';
+      + placar.comp.map(function(c){ return '<div class="li"><span>' + c[0] + '</span><span>' + (c[1]>=0?'+':'') + c[1] + '</span></div>'; }).join('')
+      + (placar.acordo ? '<div class="li"><span>Acordo (60% dos pontos)</span><span>×0,6</span></div>' : '')
+      + '<div class="total"><span>Total do caso</span><b>' + placar.total + '</b></div></div>';
     modal({ escuro:true, travado:true, cru:true, html:
       '<div class="sentenca">'
       + '<svg class="simbolo" style="width:34px;height:34px" viewBox="0 0 100 100"><path fill="#EE2A42" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>'
       + '<div class="rotulo" style="margin-top:12px">Sentença ' + (B.meta.boss ? 'no caso-chefe' : 'favorável') + '</div>'
-      + '<h3>' + (plena ? 'Convicção plena' : 'Procedente') + '</h3>'
-      + '<div class="txt">Convicção final ' + B.p + ' / 100 · rodada ' + Math.min(B.rodada,B.prazo) + ' de ' + B.prazo + '</div>'
+      + '<h3>' + (placar.plena ? 'Convicção plena' : placar.acordo ? 'Acordo homologado' : 'Procedente') + '</h3>'
+      + '<div class="txt">Convicção final ' + Math.round(B.p) + ' / 100 · ' + FASE_ROTULO[B.fase].toLowerCase() + ', rodada ' + Math.min(B.rodada,B.prazo) + ' de ' + B.prazo + '</div>'
       + linhas
+      + relatorioHTML(true)
       + '<div class="modal-botoes" id="modalBotoes"></div></div>',
       botoes: [{ t:'Seguir na jornada', fn: aposCaso }]
     });
   } else {
     som.derrota();
     var temEmbargos = S.embargos > 0;
-    var razao = motivo === 'zero' ? 'A convicção chegou a zero.' : 'O prazo de pauta terminou com a convicção em ' + B.p + '.';
+    var razao = motivo === 'zero' ? 'A convicção chegou a zero.' : 'O prazo de pauta terminou com a convicção em ' + Math.round(B.p) + '.';
     modal({ escuro:true, travado:true, cru:true, html:
       '<div class="sentenca">'
       + '<svg class="simbolo" style="width:34px;height:34px;opacity:.6" viewBox="0 0 100 100"><path fill="#BFBAA4" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>'
       + '<div class="rotulo" style="margin-top:12px">Sentença</div>'
       + '<h3>Causa perdida</h3>'
       + '<div class="txt">' + razao + (temEmbargos ? ' Você ainda pode opor <b style="color:var(--cream)">embargos</b>: o mesmo caso, o mesmo julgador — uma única vez na jornada.' : ' Sem embargos restantes, a jornada termina aqui.') + '</div>'
+      + relatorioHTML(false)
       + '<div class="modal-botoes" id="modalBotoes"></div></div>',
       botoes: temEmbargos
         ? [{ t:'Opor embargos', fn: oporEmbargos }, { t:'Aceitar a sentença', ghost:true, fn: encerrarJornadaDerrota }]
@@ -1480,6 +1883,8 @@ function telaOver(venceu){
   if (S.iaPts) h += '<div class="li"><span>Sustentações de IA</span><span>+' + S.iaPts + '</span></div>';
   if (venceu) h += '<div class="li"><span>Vitória final</span><span>+500</span></div>';
   h += '<div class="total"><span>Total da jornada</span><b>' + S.pontos + '</b></div>';
+  var mer = aplicarMerito(venceu);
+  h += '<div class="li" style="margin-top:8px;border-top:1px solid rgba(191,186,164,.25);padding-top:9px"><span>Ordem do Mérito</span><span>' + esc(textoMerito(mer.m)) + (mer.delta ? ' <b style="color:' + (mer.delta > 0 ? 'var(--red)' : 'var(--fg3)') + '">(' + (mer.delta>0?'+':'') + mer.delta + ')</b>' : '') + '</span></div>';
   $('overTabela').innerHTML = h;
   var sim = $('overSimbolo').querySelector('path');
   if (sim) sim.setAttribute('fill', venceu ? '#EE2A42' : '#BFBAA4');
@@ -1500,6 +1905,50 @@ function registrarPartida(venceu){
   store.set('ui_fmp_placar', placar.slice(0, 10));
   enviarPartida(partida);
 }
+
+/* ============================================================
+   Ordem do Mérito — a progressão competitiva.
+   A divisão é a trajetória acadêmica (neutra: nenhuma carreira
+   real é ranqueada acima de outra); os Pontos de Mérito (PM)
+   sobem com vitórias — escalados pela QUALIDADE da jornada — e
+   caem pouco quando se perde bem. Divisões de entrada não
+   rebaixam. Temporada = semestre letivo.
+   ============================================================ */
+var DIVISOES = ['Calouro','Bacharelando III','Bacharelando II','Bacharelando I','Bacharel',
+  'Especialista II','Especialista I','Mestre II','Mestre I','Doutor II','Doutor I','Livre-docente','Catedrático'];
+var DIV_PROTEGIDAS = 4;   // até Bacharelando I não se perde PM
+function meritoAtual(){
+  var m = store.get('ui_merito', null);
+  if (!m || m.temporada !== CONFIG.SEMESTRE){
+    // virada de temporada: desce um degrau inteiro, PM zera
+    var base = m ? Math.max(0, m.div - 1) : 0;
+    m = { temporada: CONFIG.SEMESTRE, div: base, pm: 0 };
+    store.set('ui_merito', m);
+  }
+  return m;
+}
+function aplicarMerito(venceu){
+  var m = meritoAtual();
+  var delta;
+  if (venceu){
+    delta = 15 + Math.min(15, Math.round(S.pontos / 220));   // vitória: +15 a +30, escala pela qualidade
+  } else {
+    delta = -(14 - Math.min(10, S.detalhe.length * 2));      // derrota: −4 a −14; perder bem perde menos
+    if (m.div < DIV_PROTEGIDAS) delta = 0;                   // divisões de entrada não punem
+  }
+  m.pm += delta;
+  while (m.pm >= 100 && m.div < DIVISOES.length - 1){ m.pm -= 100; m.div++; }
+  while (m.pm < 0){
+    if (m.div > DIV_PROTEGIDAS){ m.div--; m.pm += 100; }
+    else { m.pm = 0; }
+  }
+  store.set('ui_merito', m);
+  if (SERVIDOR.online && SERVIDOR.modo !== 'local'){
+    fetchJSON(CONFIG.API_BASE + '/rank', { method:'POST', body: JSON.stringify({ divisao: m.div, pm: m.pm }) }).catch(function(){});
+  }
+  return { m: m, delta: delta };
+}
+function textoMerito(m){ return DIVISOES[m.div] + ' · ' + m.pm + ' PM'; }
 
 /* ---------- pintura da batalha ---------- */
 function pintarBatalha(inicial){
@@ -1534,29 +1983,106 @@ function pintarBatalha(inicial){
     });
   }
 
+  // disposição do juiz (deriva da balança e da credibilidade)
+  var disp = (B.p >= 75 || B.cred >= 9) ? 'convencido' : (B.p >= 58 ? 'atento' : (B.p <= 35 || B.cred <= 3) ? 'cético' : 'neutro');
+  $('julDisp').textContent = disp;
+
+  // missão do caso
+  var mChip = $('missaoChip');
+  if (B.missao){
+    mChip.textContent = 'Missão: ' + B.missao.desc.toLowerCase();
+    mChip.classList.toggle('ok', missaoCumprida());
+  } else mChip.textContent = '';
+
+  // régua do rito
+  var rito = $('rito'); rito.innerHTML = '';
+  var etapas = [['Distribuição','feita'],['Instrução','instrucao'],['Sustentação','sustentacao'],['Deliberação','deliberacao'],['Sentença','']];
+  var ordemFase = { instrucao:1, sustentacao:2, deliberacao:3 };
+  var atual = ordemFase[B.fase] || 1;
+  etapas.forEach(function(e, i){
+    var cls = 'etapa';
+    if (i === 0) cls += ' feita';
+    else if (i === 4) cls += (B.fim ? ' agora' : '');
+    else cls += (ordemFase[e[1]] < atual ? ' feita' : (e[1] === B.fase ? ' agora' : ''));
+    rito.appendChild(el('span', cls, e[0]));
+    if (i < etapas.length-1) rito.appendChild(el('span','seta','›'));
+  });
+  var iniFase = B.fase === 'instrucao' ? 1 : B.fase === 'sustentacao' ? B.meta.instrucao + 1 : B.prazo - B.meta.delib + 1;
+  var totFase = B.fase === 'instrucao' ? B.meta.instrucao : B.fase === 'sustentacao' ? B.prazo - B.meta.instrucao - B.meta.delib : B.meta.delib;
+  rito.appendChild(el('span','sub', (Math.min(B.rodada,B.prazo) - iniFase + 1) + 'ª de ' + totFase + (B.fase==='sustentacao'?' na sustentação':'')));
+
   $('convNum').textContent = Math.round(B.p);
   $('convNum').classList.toggle('plena', B.p >= 100);
   $('convMarca').style.left = B.p + '%';
   setBalanca(B.p);
 
+  // a peça em pauta
   if (B.tese){
-    $('teseTexto').textContent = '“' + B.tese.texto + '”';
+    var txt = esc(B.tese.texto);
+    if (B.tese.chave){
+      var alvo = esc(B.tese.chave);
+      txt = txt.replace(alvo, '<u>' + alvo + '</u>');
+    }
+    $('teseTexto').innerHTML = '“' + txt + '”';
     $('teseTema').textContent = TEMA_ROTULO[B.tese.tema] || B.tese.tema;
+    var pt = $('painelTese');
+    if (pt.classList){ pt.classList.toggle('riscada', !!B.teseRiscada); }
   }
-  var mov = B.opon.moves[B.movIdx % B.opon.moves.length];
+  // gancho: a próxima pauta
+  var g = $('gancho');
+  if (B.rodada >= B.prazo){ g.textContent = 'Última rodada: depois desta, a sentença.'; }
+  else if (B.teseProxima){
+    g.textContent = B.espiada
+      ? 'Próxima pauta (espiada): “' + B.teseProxima.texto + '”'
+      : 'Próxima pauta: ' + (TEMA_ROTULO[B.teseProxima.tema] || B.teseProxima.tema).toLowerCase() + '.';
+  } else g.textContent = '';
+
+  var mov = movimentoAtual();
   $('oppMov').textContent = mov.nome;
-  $('oppDesc').textContent = B.negate ? 'Movimento anulado pelos seus embargos de declaração.' : mov.desc;
+  $('oppDesc').textContent = B.negate && mov.t !== 'prep' ? 'Movimento anulado pela sua objeção preparada.' : mov.desc;
   var pills = $('statusPills'); pills.innerHTML = '';
-  if (B.quest) pills.appendChild(el('span','pilula-status ps-quest','Tese questionada: próxima carta ÷2'));
+  if (B.quest) pills.appendChild(el('span','pilula-status ps-quest', B.questTipo ? 'Impugnação: próxima carta de ' + TIPOS[B.questTipo] + ' ÷2' : 'Tese questionada: próxima carta ÷2'));
   if (B.dobra) pills.appendChild(el('span','pilula-status ps-dobra','Repercussão geral: próxima carta ×2'));
+  if (B.viradaProva) pills.appendChild(el('span','pilula-status ps-quest','Testemunha vacilante: próxima prova ÷2 (Técnica reabilita)'));
+  if (B.acordoRecusado) pills.appendChild(el('span','pilula-status ps-dobra','Acordo recusado: sustentações adversas +30%'));
   if (B.bloqueio > 0) pills.appendChild(el('span','pilula-status ps-block','Sua contenção: ' + B.bloqueio));
   if (B.conten > 0) pills.appendChild(el('span','pilula-status ps-conten','Contenção adversa: ' + B.conten));
 
-  $('rodadaNum').textContent = Math.min(B.rodada, B.prazo);
-  $('rodadaMax').textContent = ' / ' + B.prazo;
+  // credibilidade
+  var cx = $('cxCred');
+  $('credNum').textContent = B.cred;
+  if (cx.classList){ cx.classList.toggle('alta', B.cred >= 8); cx.classList.toggle('baixa', B.cred <= 3); }
+  $('credEstado').textContent = B.cred >= 8 ? 'tribuna dominada' : B.cred <= 3 ? 'defesa advertida' : '';
+
   var fol = $('folego'); fol.innerHTML = '';
   var tot = Math.max(B.folegoMax, B.folego);
   for (var i=0;i<tot;i++) fol.appendChild(el('span', i < B.folego ? 'on' : 'off'));
+
+  // preparo
+  var pe = $('prepEstrelas'); pe.innerHTML = '';
+  for (var k=0;k<5;k++){
+    pe.appendChild(el('span','', '<svg viewBox="0 0 100 100"><path fill="'+(k < B.prep ? '#EE2A42' : 'none')+'" stroke="'+(k < B.prep ? '#EE2A42' : 'var(--line-2)')+'" stroke-width="7" d="M50 4 C54 30 70 46 96 50 C70 54 54 70 50 96 C46 70 30 54 4 50 C30 46 46 30 50 4 Z"/></svg>'));
+  }
+  var podeAgir = !B.fim && !B.travado;
+  $('prepEspiar').disabled = !podeAgir || B.prep < 1 || B.espiada || B.rodada >= B.prazo;
+  $('prepEnsaiar').disabled = !podeAgir || B.prep < 2 || !B.mao.length;
+  $('prepEnsaiar').classList.toggle('armado', !!uiEnsaio);
+  $('prepObjecao').disabled = !podeAgir || B.prep < 3 || B.negate || B.fase === 'instrucao';
+
+  // reconsideração
+  var br = $('btnReconsiderar');
+  br.classList.toggle('hidden', !(B.cred <= 3 && !B.reconsideracaoUsada && podeAgir));
+
+  // bandeja da linha argumentativa
+  var bd = $('bandeja'); bd.innerHTML = '';
+  [['f','Fundamento · norma'],['p','Prova · fato'],['a','Arremate · retórica']].forEach(function(s){
+    var slot = B.linha[s[0]];
+    var e = el('div','slot' + (slot ? ' cheio' : ''),
+      '<span class="rot">' + s[1] + '</span><span class="val">' + (slot ? esc(slot.nome) : '—') + '</span>');
+    bd.appendChild(e);
+  });
+  if (B.linha.f && B.linha.p || B.linha.f && B.linha.a || B.linha.p && B.linha.a){ if (bd.classList) bd.classList.add('fechando'); }
+  else if (bd.classList) bd.classList.remove('fechando');
 
   $('btnPilhas').textContent = 'compra ' + B.compra.length + ' · descarte ' + B.descarte.length;
   $('btnEncerrar').disabled = !!B.travado || !!B.fim;
@@ -1567,11 +2093,15 @@ function pintarBatalha(inicial){
     var custoReal = (!B.teseUsada && S && S.relics.indexOf('tese')>=0) ? 0 : carta.custo;
     var pode = custoReal <= B.folego && !B.fim && !B.travado;
     mao.appendChild(cartaEl(carta, {
-      podeJogar: pode, custoMostrado: custoReal, situacao: B,
-      aoClicar: function(){ jogarCarta(idx); }   // a mão repinta a cada jogada; o índice é válido
+      podeJogar: pode, custoMostrado: custoReal, situacao: B, ensaiada: !!B.ensaiadas[id],
+      aoClicar: function(){
+        if (uiEnsaio){ uiEnsaio = false; gastarPreparo('ensaiar', idx); return; }
+        jogarCarta(idx);
+      }
     }));
   });
 }
+var uiEnsaio = false;   // modo "escolher carta para ensaiar"
 
 function cartaEl(carta, opts){
   opts = opts || {};
@@ -1581,12 +2111,12 @@ function cartaEl(carta, opts){
   // calcula lendo a tese e o julgador — e confirma no log depois de jogar.
   var prev = '+' + carta.base;
   var podeCls = opts.podeJogar === false ? (opts.situacao ? ' nao' : '') : ' pode';
-  var wrap = el('div', 'carta' + (carta.rar === 'r' ? ' rara' : '') + podeCls);
+  var wrap = el('div', 'carta' + (carta.rar === 'r' ? ' rara' : '') + (opts.ensaiada ? ' ensaiada' : '') + podeCls);
   wrap.innerHTML =
     '<div class="cab-c">'
     + '<span class="tipo-pill" style="color:'+cor+';border-color:'+cor+'">'+TIPOS[carta.tipo]+'</span>'
     + '<span class="custo">'+custo+'</span></div>'
-    + (carta.rar==='r' ? '<span class="tag-rara">rara</span>' : '')
+    + (opts.ensaiada ? '<span class="tag-rara" style="background:#2A6F6B;color:#fff;top:31px">ensaiada</span>' : (carta.rar==='r' ? '<span class="tag-rara">rara</span>' : ''))
     + '<div class="corpo">'
     + '<div class="nome">'+esc(carta.nome)+'</div>'
     + tagTemaHTML(carta)
@@ -1664,6 +2194,32 @@ function logCarta(carta, dano, notas, pert){
 function logAdverso(txt){ logPush(el('div','log-item adverso', esc(txt))); }
 function logJuiz(txt){ logPush(el('div','log-item juiz', esc(txt))); }
 function logAviso(txt){ var e=el('div','log-item adverso', esc(txt)); logPush(e); }
+
+/* ---------- cena: reações do juiz, tese física, banner de fase ---------- */
+function reacaoJuiz(tipo){
+  var p = $('julPainel'); if (!p || !p.classList) return;
+  p.classList.remove('acena','franze','anota');
+  if (p.offsetWidth !== undefined) void p.offsetWidth;
+  p.classList.add(tipo);
+  setTimeout(function(){ if (p.classList) p.classList.remove(tipo); }, 700);
+}
+function marcarTese(pert){
+  var p = $('painelTese'); if (!p || !p.classList) return;
+  if (pert === true){ B.teseRiscada = true; p.classList.add('riscada'); som.rasgo(); }
+  else if (pert === false){
+    p.classList.remove('negada');
+    if (p.offsetWidth !== undefined) void p.offsetWidth;
+    p.classList.add('negada');
+    setTimeout(function(){ if (p.classList) p.classList.remove('negada'); }, 500);
+  }
+}
+function mostrarFaseBanner(titulo){
+  var b = $('faseBanner'), t = $('faseBannerTxt');
+  if (!b || !t) return;
+  t.textContent = titulo;
+  b.classList.remove('hidden');
+  setTimeout(function(){ b.classList.add('hidden'); }, 950);
+}
 
 /* ---------- balança SVG + FX (loop único de rAF) ---------- */
 var balAlvo = 0, balAng = 0;
@@ -1795,6 +2351,9 @@ var som = (function(){
     bloqueio:function(){ nota(300,.1,'square',.05); nota(260,.12,'square',.05,.06); },
     nega:    function(){ nota(220,.09,'square',.05); nota(196,.1,'square',.05,.07); },
     pondera: function(){ nota(494,.08,'sine',.05); nota(440,.08,'sine',.05,.1); },
+    carimbo: function(){ ruido(.05,.14,500); nota(140,.09,'square',.09); },
+    rasgo:   function(){ ruido(.16,.12,2400); ruido(.1,.08,900); },
+    martelo: function(){ nota(110,.12,'square',.11,0,80); ruido(.06,.1,300); nota(110,.1,'square',.09,.16,80); },
     voga:    function(){ nota(587,.09,'triangle',.07); nota(740,.1,'triangle',.07,.08); },
     boa:     function(){ nota(523,.09,'sine',.08); nota(659,.1,'sine',.08,.07); },
     vitoria: function(){ [523,659,784,1047].forEach(function(f,i){ nota(f,.24,'triangle',.09,i*.1); }); },
@@ -1814,11 +2373,18 @@ function verDemo(){
   B = {
     caso: 0, meta: JORNADA[0], dados: { titulo:'Construtora Aurora vs. Condomínio Beira-Rio', partes:'Ação de reparação de danos · defesa do condomínio', area:'Direito Civil', juiz:'valencia' },
     juiz: JUIZES.valencia, opon: OPONENTES.iniciante,
-    p: 50, rodada: 1, prazo: 10,
+    p: 50, rodada: 2, prazo: 5, fase:'sustentacao', faseVista:'sustentacao',
     compra: [], descarte: [], mao: ['pacta','pericia','peroracao','objecao','dignidade'], exauridas: [],
     folego: 3, folegoMax: 3, movIdx: 0, conten: 0, bloqueio: 0,
-    pressa:false, quest:false, dobra:false, negate:false, teseUsada:true, explicou:false,
-    tese: { tema:'contrato', texto:'O contrato foi livremente assinado e deve ser cumprido à risca, ainda que hoje se revele excessivamente oneroso a uma das partes.', porque:'À força cega do pacto opõem-se a função social do contrato e a boa-fé objetiva (arts. 421 e 478 do Código Civil).' },
+    quest:false, questTipo:null, dobra:false, negate:false, teseUsada:true, explicou:false,
+    cred: 6, credPiso: 2, reconsideracaoUsada: false, prep: 2, ensaiadas: {},
+    linha: { f:null, p:null, a:null, ordem: [] }, lateraisCaso: 0, histTipos: [],
+    viradaFeita: true, viradaProva: false, missao: MISSOES[1],
+    acordoPendente: false, acordoResolvido: true, acordoRecusado: false,
+    comebackUsado: true, rodadaTevePert: false, teseRiscada: false, espiada: false,
+    tese: { tema:'contrato', chave:'excessivamente oneroso', direta:['boafe'], texto:'O contrato foi livremente assinado e deve ser cumprido à risca, ainda que hoje se revele excessivamente oneroso a uma das partes.', porque:'À força cega do pacto opõem-se a função social do contrato e a boa-fé objetiva (arts. 421 e 478 do Código Civil).' },
+    teseProxima: TESES[4],
+    stats: { certas:0, diretas:0, laterais:0, arg:0, credSoma:0, credN:0, linhas:0, fav:0, favN:0, minP:50, disciplinas:{}, melhor:null },
     tiposRodada: [], jogadas: [], rng: rngB, vogaIdx: -1, fim: null, demo: true, travado: false
   };
   setTema(false);
@@ -1830,13 +2396,14 @@ function verDemo(){
   var passos = [
     { t:0,    foco:null,              txt:'Bem-vindo à tribuna. Esta é uma rodada de demonstração — nada aqui vale pontos.' },
     { t:3600, foco:'.painel-balanca', txt:'A balança da convicção começa em 50. Chegue a 100 — ou termine acima de 50 quando o prazo de pauta acabar.' },
-    { t:8200, foco:'#painelTese',     txt:'A cada rodada a parte adversa SUSTENTA uma tese. Vencer é jogar o argumento que a refuta — não o de maior número.' },
-    { t:13000,foco:'.julgador',       txt:'A julgadora é legalista: Normas valem ×1,4 e Retórica ×0,7. Ler o julgador é a outra metade da estratégia.' },
-    { t:17600,foco:'#mao',            txt:'A tese é sobre contratos. Pacta sunt servanda a refuta em cheio — é a réplica pertinente. Vamos sustentá-la.' },
-    { t:22200,foco:null,              acao:function(){ if (B && B.demo && B.mao.indexOf('pacta')>=0) jogarCarta(B.mao.indexOf('pacta')); },
-              txt:'Réplica certeira: valeu cheio, com bônus, e o log explicou por quê. Argumento fora do tema renderia menos da metade.' },
-    { t:28200,foco:'#cxFolego',       txt:'Cada carta custa fôlego, e você tem 3 por rodada — sem acumular. Encerre a rodada e a parte adversa executa o movimento anunciado.' },
-    { t:34200,foco:null,              txt:'A cada 3 rodadas o julgador pondera a convicção rumo ao centro. Vença 8 casos e chegue ao STF. Boa sustentação.' }
+    { t:8200, foco:'#painelTese',     txt:'A cada rodada a parte adversa protocola uma TESE — o sublinhado é a palavra-chave. Vencer é jogar o argumento que a refuta, não o de maior número.' },
+    { t:13400,foco:'.julgador',       txt:'A julgadora é legalista: Normas valem ×1,4 e Retórica ×0,7. Ler o julgador é a outra metade da estratégia.' },
+    { t:18200,foco:'#cxCred',         txt:'Argumento fora do tema custa CREDIBILIDADE. Com ela alta, tudo vale mais; zerada, o juiz indefere de plano.' },
+    { t:23200,foco:null,              acao:function(){ if (B && B.demo && B.mao.indexOf('pacta')>=0) jogarCarta(B.mao.indexOf('pacta')); },
+              txt:'Réplica certeira: a tese foi riscada, a balança pesou e o log explicou o porquê — é aqui que se aprende o Direito.' },
+    { t:29000,foco:'#bandeja',        txt:'Monte a linha na ordem — fundamento, prova, arremate — para fechar a tese (+8 e +1 de credibilidade).' },
+    { t:34000,foco:'#cxPrep',         txt:'Preparo compra vantagem: espiar a próxima pauta, ensaiar uma carta, anular o movimento adverso. Ganhe-o com réplicas pertinentes.' },
+    { t:39200,foco:'#rito',           txt:'O caso segue o rito: instrução, sustentação e deliberação — onde a contenção dobra e pode surgir acordo. Boa audiência.' }
   ];
   passos.forEach(function(p){
     demoTimers.push(setTimeout(function(){
@@ -1846,7 +2413,7 @@ function verDemo(){
       $('demoTxt').textContent = p.txt;
     }, p.t));
   });
-  demoTimers.push(setTimeout(pararDemo, 40500));
+  demoTimers.push(setTimeout(pararDemo, 45500));
   store.set('ui_demo_vista', true);
 }
 function pararDemo(){
@@ -2106,7 +2673,8 @@ function atualizarTitulo(){
     btn.classList.remove('hidden');
     btn.textContent = 'Continuar jornada — caso ' + (r.caso+1) + ' de 8';
   } else btn.classList.add('hidden');
-  $('verTxt').textContent = 'v' + CONFIG.VERSAO + ' · ' + CONFIG.SEMESTRE + (PERFIL.nome ? ' · ' + PERFIL.nome : '');
+  var _m = meritoAtual();
+  $('verTxt').textContent = 'v' + CONFIG.VERSAO + ' · ' + CONFIG.SEMESTRE + (PERFIL.nome ? ' · ' + PERFIL.nome : '') + ' · ' + textoMerito(_m);
 }
 
 function abrirConfig(){
@@ -2152,6 +2720,13 @@ function ligarEventos(){
 
   $('btnEncerrar').addEventListener('click', encerrarRodada);
   $('btnPilhas').addEventListener('click', verPilhas);
+  $('btnReconsiderar').addEventListener('click', reconsiderar);
+  $('prepEspiar').addEventListener('click', function(){ gastarPreparo('espiar'); });
+  $('prepEnsaiar').addEventListener('click', function(){
+    if (uiEnsaio){ uiEnsaio = false; pintarBatalha(); return; }
+    if (B && B.prep >= 2 && B.mao.length){ uiEnsaio = true; logJuiz('Escolha na mão a carta a ensaiar.'); pintarBatalha(); }
+  });
+  $('prepObjecao').addEventListener('click', function(){ gastarPreparo('objecao'); });
   $('btnMenuBatalha').addEventListener('click', function(){
     modal({ titulo:'Jornada', html:'Caso ' + (B.caso+1) + ' de 8 · ' + esc(B.meta.inst) + '<br>Pontos até aqui: <b>' + S.pontos + '</b> · embargos restantes: ' + S.embargos,
       botoes:[
@@ -2197,7 +2772,7 @@ function ligarEventos(){
   $('cfgDemo').addEventListener('click', verDemo);
   $('cfgApagar').addEventListener('click', function(){
     modal({ titulo:'Apagar os dados deste aparelho?', html:'Placar local, jornada salva, preferências e identificação serão removidos. Essa ação não desfaz.',
-      botoes:[ { t:'Apagar tudo', fn:function(){ ['ui_fmp_run','ui_fmp_placar','ui_perfil','ui_fila','ui_demo_vista','ui_mudo','ui_tema','ui_vibra'].forEach(store.del); PERFIL={nome:'',ra:'',sem:'',token:''}; TEMA='auto'; VIBRA=true; mudo=false; setTema(false); atualizarTitulo(); mostrar('scr-title'); } },
+      botoes:[ { t:'Apagar tudo', fn:function(){ ['ui_fmp_run','ui_fmp_placar','ui_perfil','ui_fila','ui_demo_vista','ui_mudo','ui_tema','ui_vibra','ui_merito'].forEach(store.del); PERFIL={nome:'',ra:'',sem:'',token:''}; TEMA='auto'; VIBRA=true; mudo=false; setTema(false); atualizarTitulo(); mostrar('scr-title'); } },
                { t:'Manter', ghost:true } ]});
   });
 
@@ -2240,7 +2815,9 @@ if (typeof window !== 'undefined'){
     encerrarJornadaDerrota:encerrarJornadaDerrota, escolherRecompensa:escolherRecompensa, pularRecompensa:pularRecompensa,
     escolherReliquia:escolherReliquia, eventoConviccao:eventoConviccao, proximoCaso:proximoCaso,
     ofertaCartas:ofertaCartas, ofertaReliquias:ofertaReliquias, cartaPertinente:cartaPertinente,
-    TESES:TESES, TEMA_ROTULO:TEMA_ROTULO, estado:function(){ return { S:S, B:B }; },
+    gastarPreparo:gastarPreparo, reconsiderar:reconsiderar, aceitarAcordo:aceitarAcordo, recusarAcordo:recusarAcordo,
+    movimentoAtual:movimentoAtual, faseDaRodada:faseDaRodada, missaoCumprida:missaoCumprida, pontuarCaso:pontuarCaso,
+    TESES:TESES, TEMA_ROTULO:TEMA_ROTULO, MISSOES:MISSOES, estado:function(){ return { S:S, B:B }; },
     setS:function(v){ S=v; }, setB:function(v){ B=v; }
   };
 }

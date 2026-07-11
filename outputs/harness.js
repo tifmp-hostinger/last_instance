@@ -1,23 +1,24 @@
 #!/usr/bin/env node
 /* ============================================================
    Última Instância — harness de simulação (sem navegador)
-   Uso: node outputs/harness.js [index.html] [nJornadas] [smart|naive|ambos]
-   Stub de DOM + timers síncronos + dois bots:
-   - ingênuo: joga cartas aleatórias que couberem no fôlego,
-     ignora julgador, combos e a jogada anunciada;
-   - tático: lê o julgador, ordena combos, guarda perfurantes
-     para a contenção e anula sustentações grandes.
-   Serve para regressão de lógica e calibragem de dificuldade
-   após qualquer mudança em CARTAS/OPONENTES.
+   Uso: node outputs/harness.js [public/index.html] [nJornadas] [naive|aprendiz|smart|todos]
+   Stub de DOM + timers síncronos + três bots:
+   - aleatório: joga qualquer carta que caiba, sem ler nada
+     (nem a tese, nem o julgador). Alvo: ≤15% de jornadas.
+   - aprendiz: lê SÓ a pertinência da tese e prefere réplicas;
+     ignora julgador, linha, credibilidade e preparo. Alvo: 45-55%.
+   - tático: lê tudo — tese, palavra-chave, julgador, linha na
+     ordem, credibilidade, preparo, acordo. Alvo: 85-90% (teto).
+   O degrau entre os três é a medida de expressão de habilidade.
    ============================================================ */
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const arquivo = process.argv[2] || path.join(__dirname, '..', 'index.html');
-const N = parseInt(process.argv[3] || '40', 10);
-const quem = (process.argv[4] || 'ambos').toLowerCase();
+const arquivo = process.argv[2] || path.join(__dirname, '..', 'public', 'index.html');
+const N = parseInt(process.argv[3] || '60', 10);
+const quem = (process.argv[4] || 'todos').toLowerCase();
 
 /* ---------- stub de DOM ---------- */
 function makeClassList(){
@@ -100,155 +101,168 @@ if (!m){ console.error('Não encontrei o <script> do jogo em ' + arquivo); proce
 const codigo = m[1];
 new vm.Script(codigo, { filename: 'jogo.js' });   // valida a sintaxe antes de rodar
 
-/* ---------- bots ---------- */
+/* ---------- utilidades dos bots ---------- */
 function valorMovimento(mov){
+  if (!mov) return 0;
   if (mov.t === 'dano') return mov.v;
   if (mov.t === 'conten') return mov.v * 0.7;
-  if (mov.t === 'quest') return 4;
-  if (mov.t === 'press') return 3;
+  if (mov.t === 'quest' || mov.t === 'impugna') return 5;
   return 0;
 }
+function jogaveisDe(api){
+  const { S, B } = api.estado();
+  return B.mao.map((id, i) => ({ id, i, carta: api.CARTAS[id] }))
+    .filter(c => {
+      const tese = !B.teseUsada && S.relics.indexOf('tese') >= 0;
+      return (tese ? 0 : c.carta.custo) <= B.folego;
+    });
+}
 
-function botJogaRodada(api, smart, rnd){
-  const { B } = api.estado();
+/* ---------- as três cabeças ---------- */
+function botJogaRodada(api, perfil, rnd){
+  let { B } = api.estado();
   if (!B || B.fim) return;
+  const rodadaInicial = B.rodada;
   const CARTAS = api.CARTAS;
   let guarda = 0;
   while (guarda++ < 30){
-    const { S, B } = api.estado();
-    if (!B || B.fim) return;
-    const mov = B.opon.moves[B.movIdx % B.opon.moves.length];
-    const jogaveis = B.mao
-      .map((id, i) => ({ id, i, carta: CARTAS[id] }))
-      .filter(c => {
-        const tese = !B.teseUsada && S.relics.indexOf('tese') >= 0;
-        return (tese ? 0 : c.carta.custo) <= B.folego;
-      });
+    const st = api.estado(); B = st.B;
+    if (!B || B.fim || B.rodada !== rodadaInicial) return;  // indeferimento pode ter virado a rodada
+    const mov = api.movimentoAtual();
+    const jogaveis = jogaveisDe(api);
     if (!jogaveis.length) break;
 
-    let escolha;
-    if (!smart){
-      // ingênuo: carta aleatória que caiba, sem ler nada
+    let escolha = null;
+    if (perfil === 'naive'){
+      // aleatório puro: não lê tese, julgador nem credibilidade
       escolha = jogaveis[Math.floor(rnd() * jogaveis.length)];
       const previa = api.computarDano(escolha.carta, B);
-      if (previa.dano <= 0 && !(escolha.carta.fx) && escolha.carta.custo > 0) {
-        // até o ingênuo não paga fôlego por zero
+      if (previa.dano <= 0 && !escolha.carta.fx && escolha.carta.custo > 0){
         const util = jogaveis.filter(c => api.computarDano(c.carta, B).dano > 0 || c.carta.fx);
         if (!util.length) break;
         escolha = util[Math.floor(rnd() * util.length)];
       }
+    } else if (perfil === 'aprendiz'){
+      // lê só a pertinência: joga réplicas quando as tem, senão qualquer coisa
+      const pertinentes = jogaveis.filter(c => api.cartaPertinente(c.carta, B.tese) === true);
+      const pool = pertinentes.length ? pertinentes : jogaveis;
+      escolha = pool[Math.floor(rnd() * pool.length)];
     } else {
-      // tático: pontua cada carta no contexto da rodada
+      // tático: pontua cada carta no contexto completo da rodada
+      // preparo primeiro: ensaia rascunhos na instrução, arma objeção contra golpes grandes
+      if (B.fase === 'instrucao' && B.prep >= 2){
+        const rasc = jogaveis.find(c => c.carta.rascunho && !B.ensaiadas[c.id]);
+        if (rasc){ api.gastarPreparo('ensaiar', rasc.i); continue; }
+      }
+      if (B.prep >= 3 && !B.negate && mov && mov.t === 'dano' && mov.v >= 20){
+        api.gastarPreparo('objecao'); continue;
+      }
+      if (B.cred <= 1 && !B.reconsideracaoUsada){ api.reconsiderar(); return; }
+
       let melhor = null, melhorNota = -1;
-      // um advogado atento lê a tese: prefere a réplica pertinente e evita o argumento lateral
       const temPertinente = jogaveis.some(c => api.cartaPertinente(c.carta, B.tese) === true);
+      const ult = B.histTipos.slice(-2);
       for (const c of jogaveis){
         const prev = api.computarDano(c.carta, B);
         let nota = prev.dano;
-        const pert = api.cartaPertinente(c.carta, B.tese); // true réplica · false lateral · null procedimental
+        const pert = api.cartaPertinente(c.carta, B.tese);
         if (pert === true) nota += 3;
-        else if (pert === false && temPertinente) nota -= 4; // não desperdiça argumento fora do tema havendo réplica
+        else if (pert === false){ nota -= temPertinente ? 6 : 3; if (B.cred <= 4) nota -= 6; }
+        // linha na ordem: fundamento → prova → arremate
+        const prox = !B.linha.f ? 'N' : !B.linha.p ? 'F' : !B.linha.a ? 'R' : null;
+        if (prox && c.carta.tipo === prox && pert !== false) nota += 3.5;
+        // evita o padrão que a parte adversa reconhece (3 do mesmo tipo)
+        if (ult.length === 2 && ult[0] === c.carta.tipo && ult[1] === c.carta.tipo) nota -= 5;
         const fx = c.carta.fx || {};
-        if (fx.block && mov.t === 'dano') nota += Math.min(fx.block, mov.v) * 0.9;
-        if (fx.negate) nota += valorMovimento(mov) > 6 ? valorMovimento(mov) : 0;
+        if (fx.block && mov && mov.t === 'dano') nota += Math.min(fx.block, mov.v) * 0.9;
+        if (fx.negate) nota += valorMovimento(mov) > 8 ? valorMovimento(mov) : 0;
         if (fx.draw) nota += fx.draw * 2.2;
         if (fx.energy) nota += 2.5;
-        if (fx.cleanse && B.quest) nota += 3;
+        if (fx.cleanse && B.quest) nota += 4;
         if (fx.dobra){
-          // vale se ainda há carta forte para dobrar depois
-          const forte = jogaveis.some(o => o.id !== c.id && api.computarDano(o.carta, B).dano >= 8);
-          nota += forte ? 9 : -2;
+          const forte = jogaveis.some(o => o.id !== c.id && api.computarDano(o.carta, B).dano >= 12);
+          nota += forte ? 10 : -2;
         }
-        // habilitar combos: se outra carta na mão pede o tipo desta, adianta jogá-la
-        const habilita = B.mao.some(oid => {
-          const o = CARTAS[oid];
-          return o && o.combo && o.combo.req === c.carta.tipo && oid !== c.id;
-        });
-        if (habilita) nota += 2.5;
-        // custo-eficiência leve
+        if (c.carta.rascunho && !B.ensaiadas[c.id]) nota -= 4;  // guarda o rascunho para depois do ensaio
         nota -= c.carta.custo * 0.4;
         if (nota > melhorNota){ melhorNota = nota; melhor = c; }
       }
       if (!melhor || melhorNota <= 0) break;
       escolha = melhor;
     }
+
     const antes = B.mao.length;
     api.jogarCarta(escolha.i);
     const depois = api.estado().B;
-    if (!depois || depois.fim) return;
+    if (!depois || depois.fim || depois.rodada !== rodadaInicial) return;
     if (depois.mao.length === antes && depois.folego === B.folego) break; // jogada recusada
   }
   const fim = api.estado().B;
-  if (fim && !fim.fim) api.encerrarRodada();
+  if (fim && !fim.fim && !fim.travado && fim.rodada === rodadaInicial) api.encerrarRodada();
 }
 
 const RANK_CARTAS_SMART = ['confissao','dna','sumula','sustentacao','pericia','habeas','repercussao','narrativa','consequencias','gravacao','cdc','pacta','tutela','cautelar','embargosdec','documento','reconstituicao','analogia','peroracao','indubio','registro','doutrina','amicus','juntada','questao','preliminar','dignidade','ethos','testemunha','boafe','exordio','pausa','dilacao','objecao','legalidade'];
 const RANK_RELIQUIAS_SMART = ['cafe','rede','vade','dossie','anel','tese','tribuna','praxe'];
 
-function botRecompensa(api, smart, rnd){
+function botRecompensa(api, perfil, rnd){
   const oferta = api.ofertaCartas();
   const { S } = api.estado();
-  if (!smart){
-    api.escolherRecompensa(oferta[Math.floor(rnd() * oferta.length)]);
-    return;
-  }
-  if (S.deck.length >= 16){ api.pularRecompensa(); return; }  // tático evita inchar o baralho
+  if (perfil !== 'smart'){ api.escolherRecompensa(oferta[Math.floor(rnd() * oferta.length)]); return; }
+  if (S.deck.length >= 16){ api.pularRecompensa(); return; }
   let melhor = oferta[0];
-  for (const id of oferta){
-    if (RANK_CARTAS_SMART.indexOf(id) < RANK_CARTAS_SMART.indexOf(melhor)) melhor = id;
-  }
+  for (const id of oferta){ if (RANK_CARTAS_SMART.indexOf(id) < RANK_CARTAS_SMART.indexOf(melhor)) melhor = id; }
   api.escolherRecompensa(melhor);
 }
-
-function botReliquia(api, smart, rnd){
+function botReliquia(api, perfil, rnd){
   const oferta = api.ofertaReliquias();
-  if (!smart){ api.escolherReliquia(oferta[Math.floor(rnd() * oferta.length)]); return; }
+  if (perfil !== 'smart'){ api.escolherReliquia(oferta[Math.floor(rnd() * oferta.length)]); return; }
   let melhor = oferta[0];
-  for (const id of oferta){
-    if (RANK_RELIQUIAS_SMART.indexOf(id) < RANK_RELIQUIAS_SMART.indexOf(melhor)) melhor = id;
-  }
+  for (const id of oferta){ if (RANK_RELIQUIAS_SMART.indexOf(id) < RANK_RELIQUIAS_SMART.indexOf(melhor)) melhor = id; }
   api.escolherReliquia(melhor);
 }
-
-function botEvento(api, smart, rnd){
+function botEvento(api, perfil, rnd){
   const { S } = api.estado();
-  if (!smart){
+  if (perfil !== 'smart'){
     const sorte = rnd();
     if (sorte < 0.34 && S.deck.length > 8){ S.deck.splice(Math.floor(rnd()*S.deck.length), 1); api.proximoCaso(); }
     else if (sorte < 0.67){ const raras = Object.keys(api.CARTAS).filter(id => api.CARTAS[id].rar==='r'); S.deck.push(raras[Math.floor(rnd()*raras.length)]); api.proximoCaso(); }
     else api.eventoConviccao();
     return;
   }
-  // tático: tira a carta mais fraca se o baralho engordou; senão +4 de convicção
   if (S.deck.length > 13){
     let piorIdx = 0, piorPos = -1;
-    S.deck.forEach((id, i) => {
-      const pos = RANK_CARTAS_SMART.indexOf(id);
-      if (pos > piorPos){ piorPos = pos; piorIdx = i; }
-    });
+    S.deck.forEach((id, i) => { const pos = RANK_CARTAS_SMART.indexOf(id); if (pos > piorPos){ piorPos = pos; piorIdx = i; } });
     S.deck.splice(piorIdx, 1);
     api.proximoCaso();
   } else api.eventoConviccao();
 }
+function botAcordo(api, perfil, rnd){
+  const { B } = api.estado();
+  if (perfil === 'naive'){ (rnd() < 0.5 ? api.aceitarAcordo : api.recusarAcordo)(); return; }
+  if (perfil === 'aprendiz'){ (B.p < 65 ? api.aceitarAcordo : api.recusarAcordo)(); return; }
+  (B.p < 62 ? api.aceitarAcordo : api.recusarAcordo)();
+}
 
 /* ---------- uma jornada ---------- */
-function jogarJornada(seed, smart){
+function jogarJornada(seed, perfil){
   const ctx = criarSandbox();
   vm.runInContext(codigo, ctx, { filename: 'jogo.js' });
   const api = ctx.window.UI_API;
   if (!api) throw new Error('UI_API não exposta pelo jogo');
-  const rnd = (function(s){ let a = s>>>0; return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; })(seed*2654435761 + (smart?7:0));
+  const salt = perfil === 'smart' ? 7 : perfil === 'aprendiz' ? 3 : 0;
+  const rnd = (function(s){ let a = s>>>0; return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; })(seed*2654435761 + salt);
 
   api.novaJornada('livre', 'harness-' + seed);
   const perdeuEm = [];
   let guarda = 0;
-  while (guarda++ < 4000){
+  while (guarda++ < 6000){
     const { S, B } = api.estado();
     if (!S || S.vivo === false) break;
-    if (S.fase === 'recompensa' && (!B || B.fim)){ botRecompensa(api, smart, rnd); continue; }
-    if (S.fase === 'reliquia' && (!B || B.fim)){ botReliquia(api, smart, rnd); continue; }
-    if (S.fase === 'evento' && (!B || B.fim)){ botEvento(api, smart, rnd); continue; }
-    if (B && !B.fim){ botJogaRodada(api, smart, rnd); continue; }
+    if (B && B.acordoPendente && !B.fim){ botAcordo(api, perfil, rnd); continue; }
+    if (S.fase === 'recompensa' && (!B || B.fim)){ botRecompensa(api, perfil, rnd); continue; }
+    if (S.fase === 'reliquia' && (!B || B.fim)){ botReliquia(api, perfil, rnd); continue; }
+    if (S.fase === 'evento' && (!B || B.fim)){ botEvento(api, perfil, rnd); continue; }
+    if (B && !B.fim){ botJogaRodada(api, perfil, rnd); continue; }
     if (B && B.fim === 'vitoria'){ api.aposCaso(); continue; }
     if (B && B.fim === 'derrota'){
       perdeuEm.push(B.caso + 1);
@@ -259,44 +273,47 @@ function jogarJornada(seed, smart){
     break;
   }
   const { S } = api.estado();
-  if (guarda >= 4000) throw new Error('guarda de loop estourou (seed ' + seed + ')');
+  if (guarda >= 6000) throw new Error('guarda de loop estourou (seed ' + seed + ', ' + perfil + ')');
   return {
-    venceu: S.detalhe.length === JORNADA_LEN,
+    venceu: S.detalhe.length === 8,
     casos: S.detalhe.length,
     pontos: S.pontos,
     plenas: S.detalhe.filter(d => d.plena).length,
+    acordos: S.detalhe.filter(d => d.acordo).length,
     perdeuEm,
   };
 }
-const JORNADA_LEN = 8;
 
 /* ---------- relatório ---------- */
-function rodarLote(smart){
-  const r = { vitorias: 0, casos: 0, pontos: 0, plenas: 0, quedas: {}, embargosUsados: 0 };
+function rodarLote(perfil){
+  const r = { vitorias: 0, casos: 0, casosTot: 0, pontos: 0, plenas: 0, acordos: 0, quedas: {}, embargosUsados: 0, derrotasCaso: 0, disputasCaso: 0 };
   for (let i = 1; i <= N; i++){
-    const j = jogarJornada(i, smart);
+    const j = jogarJornada(i, perfil);
     if (j.venceu) r.vitorias++;
     r.casos += j.casos;
     r.pontos += j.pontos;
     r.plenas += j.plenas;
+    r.acordos += j.acordos;
     r.embargosUsados += j.perdeuEm.length ? 1 : 0;
+    r.derrotasCaso += j.perdeuEm.length;
+    r.disputasCaso += j.casos + j.perdeuEm.length;
     const queda = j.venceu ? null : j.perdeuEm[j.perdeuEm.length - 1];
     if (queda) r.quedas[queda] = (r.quedas[queda] || 0) + 1;
   }
   return r;
 }
-function imprime(nome, r){
+function imprime(nome, alvo, r){
   const pct = (100 * r.vitorias / N).toFixed(0);
-  console.log('— ' + nome + ' —');
-  console.log('  jornadas vencidas: ' + r.vitorias + '/' + N + ' (' + pct + '%)');
-  console.log('  casos vencidos por jornada: ' + (r.casos / N).toFixed(1) + ' de 8');
-  console.log('  pontos médios: ' + Math.round(r.pontos / N));
-  console.log('  convicções plenas por jornada: ' + (r.plenas / N).toFixed(1));
-  console.log('  jornadas que precisaram de embargos: ' + r.embargosUsados + '/' + N);
+  const pctCaso = r.disputasCaso ? (100 * (r.disputasCaso - r.derrotasCaso) / r.disputasCaso).toFixed(0) : '—';
+  console.log('— ' + nome + ' (alvo ' + alvo + ') —');
+  console.log('  jornadas vencidas: ' + r.vitorias + '/' + N + ' (' + pct + '%) · casos individuais: ' + pctCaso + '%');
+  console.log('  casos por jornada: ' + (r.casos / N).toFixed(1) + ' de 8 · pontos médios: ' + Math.round(r.pontos / N));
+  console.log('  plenas/jornada: ' + (r.plenas / N).toFixed(1) + ' · acordos/jornada: ' + (r.acordos / N).toFixed(1) + ' · jornadas com embargos: ' + r.embargosUsados + '/' + N);
   const quedas = Object.keys(r.quedas).sort((a,b)=>a-b).map(c => 'caso ' + c + ': ' + r.quedas[c]).join(' · ');
   console.log('  onde caiu: ' + (quedas || '—'));
 }
 
-console.log('Última Instância · harness — ' + N + ' jornadas por bot — ' + path.basename(arquivo));
-if (quem === 'naive' || quem === 'ambos') imprime('bot ingênuo (alvo 60–65%)', rodarLote(false));
-if (quem === 'smart' || quem === 'ambos') imprime('bot tático (alvo 85–90%)', rodarLote(true));
+console.log('Última Instância · harness v4 — ' + N + ' jornadas por bot — ' + path.basename(arquivo));
+if (quem === 'naive' || quem === 'todos') imprime('bot aleatório', '≤15%', rodarLote('naive'));
+if (quem === 'aprendiz' || quem === 'todos') imprime('bot aprendiz', '45-55%', rodarLote('aprendiz'));
+if (quem === 'smart' || quem === 'todos') imprime('bot tático', '85-90%', rodarLote('smart'));
