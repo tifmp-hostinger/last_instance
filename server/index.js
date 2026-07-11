@@ -5,7 +5,8 @@
      POST /api/login      { cpf, nascimento }  → cria a sessão
      POST /api/logout                          → encerra a sessão
      GET  /api/session                         → perfil atual / config
-     GET  /api/disciplinas                     → juízes reais (auth)
+     GET  /api/disciplinas                     → juízes reais, filtrados pelo semestre do aluno (auth)
+     GET  /api/disciplinas/semana              → juízes reais, pool global (sem filtro de semestre) — caso da semana (auth)
      GET  /api/placar?aba=&sem=                → ranking por pontos
                         aba=merito             → ranking da Ordem do Mérito (temporada)
                         aba=merito_hall        → hall histórico da Ordem do Mérito
@@ -99,6 +100,13 @@ app.post('/api/logout', function (req, res) { auth.encerrar(res); res.json({ ok:
 app.get('/api/disciplinas', auth.exigir, async function (req, res) {
   var sem = req.query.sem || req.usuario.semestre || SEMESTRE;
   var lista = await db.listarDisciplinas(sem);
+  res.json({ disciplinas: lista });
+});
+// pool GLOBAL, sem filtro de semestre: o caso da semana precisa do MESMO julgador para
+// todo aluno da FMP, então não pode depender de em quais disciplinas cada um está
+// matriculado (ao contrário de /api/disciplinas, usado na jornada do semestre).
+app.get('/api/disciplinas/semana', auth.exigir, async function (req, res) {
+  var lista = await db.listarDisciplinas();
   res.json({ disciplinas: lista });
 });
 

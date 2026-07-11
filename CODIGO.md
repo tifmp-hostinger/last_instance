@@ -81,7 +81,7 @@ Decisão de produto: a aba **"Semestre"** soma **jornada do semestre + todas as 
 ## Demais conteúdos (onde editar)
 
 - **Cartas**: `CARTAS` — nome, tipo (`N/F/R/T`), custo, base, raridade, `texto`, `fala`, `disc`, `combo`, `fx`. A carta na mesa mostra a **força-base**; o valor real o aluno calcula.
-- **Julgadores fictícios**: `JUIZES` (fallback). Perfis e multiplicadores em `MULT_PERFIL`. Julgador real = disciplina do banco → `carregarDisciplinas()` monta um julgador por disciplina (professor no nome, perfil→multiplicadores, foto no avatar) e substitui `JUIZES_COMUNS`.
+- **Julgadores fictícios**: `JUIZES` (fallback). Perfis e multiplicadores em `MULT_PERFIL`. Julgador real = disciplina do banco → `carregarDisciplinas()` monta um julgador por disciplina (professor no nome, perfil→multiplicadores, foto no avatar) e substitui `JUIZES_COMUNS` (usado na jornada do semestre, **filtrado pelo semestre do próprio aluno**). O caso da semana usa um pool **diferente e global**: `carregarDisciplinasSemana()` → `GET /api/disciplinas/semana` → `db.listarDisciplinas()` **sem argumento de semestre** (nenhum filtro) → `JUIZES_SEMANA`, consumido via `poolJuizesSemana()` (cai em `JUIZES_FALLBACK` se vazio/offline). É de propósito: a pauta semanal precisa do mesmo julgador pra toda a FMP, e isso só é garantido com um pool idêntico pra todo mundo, independente de em quais disciplinas cada aluno está matriculado.
 - **Oponentes**: `OPONENTES` — lista `moves` cíclica; **os números aqui são o principal botão de dificuldade**.
 - **Jornada**: `JORNADA` (8 entradas, flags `boss/dark/plenario`). **Casos**: `SOBRENOMES`, `EMPRESAS`, `ACOES`, `TEMAS_STF`. **Relíquias**: `RELIQUIAS`.
 

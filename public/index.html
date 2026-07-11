@@ -1234,6 +1234,11 @@ var JUIZES = {
 Object.keys(JUIZES).forEach(function(id){ JUIZES[id].id = id; });
 var JUIZES_COMUNS = ['valencia','feijo','amparo','metodio'];
 var JUIZES_FALLBACK = JUIZES_COMUNS.slice();   // os fictícios, quando não há disciplinas no banco
+/* pool GLOBAL de julgadores reais pro caso da semana — ignora de propósito o semestre do
+   aluno (ao contrário de JUIZES_COMUNS): a pauta semanal é a mesma prova pra toda a FMP,
+   então o julgador sorteado não pode depender de em quais disciplinas cada aluno está
+   matriculado. null até carregar; cai em JUIZES_FALLBACK se vier vazio/falhar. */
+var JUIZES_SEMANA = null;
 
 /* perfil de julgador → multiplicadores por tipo de carta */
 var MULT_PERFIL = {
@@ -1482,8 +1487,9 @@ function sortearCasoCom(seedBase, i, poolIds){
   return { titulo: titulo, partes: partes, area: acao.a, juiz: juizId };
 }
 function sortearCaso(i){
-  // a pauta da semana usa os julgadores fictícios: a MESMA mesa para todos os alunos
-  var pool = (S.modo === 'semana') ? JUIZES_FALLBACK : JUIZES_COMUNS;
+  // a pauta da semana usa um pool GLOBAL (poolJuizesSemana, ignora o semestre do aluno):
+  // a MESMA mesa para todos os alunos, mas com professores reais quando o banco os tem
+  var pool = (S.modo === 'semana') ? poolJuizesSemana() : JUIZES_COMUNS;
   return sortearCasoCom(S.seed, i, pool);
 }
 
@@ -3027,7 +3033,7 @@ function iniciarSessao(){
     if (d.versao) CONFIG.VERSAO = d.versao;
     if (d.autenticado && d.usuario){
       aplicarPerfilServidor(d.usuario);
-      return carregarDisciplinas().then(function(){ entrarNoJogo(); });
+      return Promise.all([carregarDisciplinas(), carregarDisciplinasSemana()]).then(function(){ entrarNoJogo(); });
     }
     mostrarLogin();
   }, function(){
@@ -3121,7 +3127,7 @@ function fazerLogin(ev){
       btn.disabled = false; btn.textContent = 'Entrar';
       aplicarPerfilServidor(d.usuario);
       som.boa();
-      carregarDisciplinas().then(entrarNoJogo);
+      Promise.all([carregarDisciplinas(), carregarDisciplinasSemana()]).then(entrarNoJogo);
     })
     .catch(function(e){
       btn.disabled = false; btn.textContent = 'Entrar';
@@ -3136,7 +3142,7 @@ function mostrarErroLogin(msg){
   erro.textContent = msg; erro.classList.remove('hidden'); som.nega();
 }
 function fazerLogout(){
-  var fim = function(){ PERFIL = { nome:'', ra:'', sem:'', cpf:'', token:'' }; SERVIDOR.autenticado = false; JUIZES_COMUNS = JUIZES_FALLBACK.slice(); S=null; B=null; setTema(false); mostrarLogin(); };
+  var fim = function(){ PERFIL = { nome:'', ra:'', sem:'', cpf:'', token:'' }; SERVIDOR.autenticado = false; JUIZES_COMUNS = JUIZES_FALLBACK.slice(); JUIZES_SEMANA = null; S=null; B=null; setTema(false); mostrarLogin(); };
   if (!SERVIDOR.online){ mostrar('scr-title'); return; }
   fetchJSON(CONFIG.API_BASE + '/logout', { method:'POST' }, 4000).then(fim, fim);
 }
@@ -3161,6 +3167,31 @@ function carregarDisciplinas(){
     JUIZES_COMUNS = ids;
   }, function(){ JUIZES_COMUNS = JUIZES_FALLBACK.slice(); });
 }
+
+/* pool global de julgadores reais pro caso da semana (ver JUIZES_SEMANA acima) —
+   /api/disciplinas/semana não filtra por semestre de propósito */
+function carregarDisciplinasSemana(){
+  if (!SERVIDOR.online) return Promise.resolve();
+  return fetchJSON(CONFIG.API_BASE + '/disciplinas/semana', {}, 5000).then(function(d){
+    var lista = (d && d.disciplinas) || [];
+    if (!lista.length){ JUIZES_SEMANA = null; return; }
+    var ids = [];
+    lista.slice(0, 40).forEach(function(disc, i){
+      var perfil = MULT_PERFIL[disc.perfil] ? disc.perfil : perfilPorNome(disc.professor || disc.nome);
+      var id = 'sem' + i;
+      JUIZES[id] = {
+        id: id, nome: disc.professor || disc.nome || 'Julgador', perfil: PERFIL_ROTULO[perfil],
+        perfilId: perfil, mult: MULT_PERFIL[perfil], foto: disc.foto || '', area: disc.area || '',
+        disciplina: disc.nome || ''
+      };
+      ids.push(id);
+    });
+    JUIZES_SEMANA = ids;
+  }, function(){ JUIZES_SEMANA = null; });
+}
+/* pool efetivamente usado no caso da semana: professores reais quando disponíveis,
+   senão os fictícios — nunca some o julgador da tela */
+function poolJuizesSemana(){ return (JUIZES_SEMANA && JUIZES_SEMANA.length) ? JUIZES_SEMANA : JUIZES_FALLBACK; }
 
 function enviarPartida(partida){
   if (!SERVIDOR.online){ enfileirar(partida); return; }
@@ -3364,7 +3395,7 @@ function mostrarSemana(){
   var r = runSalvo();
   var emCurso = !reg && r && r.modo === 'semana' && r.vivo !== false;
   var meta = JORNADA[info.idx];
-  var dados = sortearCasoCom(info.seed, info.idx, JUIZES_FALLBACK);
+  var dados = sortearCasoCom(info.seed, info.idx, poolJuizesSemana());
   var juiz = JUIZES[dados.juiz];
   var opon = OPONENTES[meta.opon];
   var missao = missaoSemana(info);
