@@ -136,8 +136,9 @@ async function listarDisciplinas(semestre) {
     var params = [];
     var sql = 'SELECT nome, professor, area_do_direito, perfil_julgador, foto_professor_url, semestre FROM ' + ident(T_DISCIPLINAS);
     var cond = [];
-    // só filtra por semestre se a coluna existir e um valor foi pedido — tolerante a schema mínimo
-    if (semestre) { params.push(semestre); cond.push('(semestre IS NULL OR semestre = $' + params.length + ')'); }
+    // só filtra por semestre se um valor foi pedido; comparação tolerante a espaço/maiúscula
+    // (um typo aqui não pode fazer a lista inteira sumir e cair nos juízes fictícios)
+    if (semestre) { params.push(String(semestre).trim().toLowerCase()); cond.push('(semestre IS NULL OR lower(trim(semestre)) = $' + params.length + ')'); }
     cond.push('(ativo IS NULL OR ativo = true)');
     if (cond.length) sql += ' WHERE ' + cond.join(' AND ');
     sql += ' ORDER BY nome';
@@ -182,37 +183,79 @@ async function salvarPartida(p) {
   }
 }
 
+/* ============================================================
+   Placar — um ranking por ALUNO, não por partida.
+   'semestre': soma jornada do semestre + todas as pautas semanais
+   sustentadas na temporada corrente (um único ranking combinado —
+   a Ordem do Mérito já cobre a progressão por divisão separada).
+   'hall': a mesma soma, para sempre, todas as temporadas.
+   ============================================================ */
 async function listarPlacar(aba, semestre) {
-  // aba 'semestre' → melhores do semestre corrente; 'hall' → melhores de sempre (campeões)
   var sem = semestre || process.env.SEMESTRE || '';
   if (!hasDB) {
     var lista = placarMemoria.slice();
     if (aba === 'semestre' && sem) lista = lista.filter(function (p) { return p.semestre === sem; });
-    lista.sort(function (a, b) { return b.pontos - a.pontos; });
-    return lista.slice(0, 50).map(mapPublicoPlacar);
+    var ag = agregarPorAluno(lista);
+    ag.sort(function (a, b) { return b.pontos - a.pontos; });
+    return ag.slice(0, 50).map(mapPublicoAgregado);
   }
   try {
     var params = [];
-    var sql = 'SELECT nome, semestre, pontos, casos, venceu, modo FROM ' + ident(T_PARTIDAS);
-    if (aba === 'semestre' && sem) { params.push(sem); sql += ' WHERE semestre = $1'; }
-    sql += ' ORDER BY pontos DESC, criado_em ASC LIMIT 50';
+    var where = '';
+    if (aba === 'semestre' && sem) { params.push(sem); where = ' WHERE semestre = $1'; }
+    var sql = 'SELECT cpf, MAX(nome) AS nome, SUM(pontos) AS pontos, '
+      + "BOOL_OR(modo = 'semestre' AND venceu) AS jornada_venceu, "
+      + "COUNT(*) FILTER (WHERE modo = 'semestre') AS jornada_registrada, "
+      + "COALESCE(MAX(casos) FILTER (WHERE modo = 'semestre'), 0) AS jornada_casos, "
+      + "COUNT(*) FILTER (WHERE modo = 'semana' AND venceu) AS semanas_venceu, "
+      + "COUNT(*) FILTER (WHERE modo = 'semana') AS semanas_jogadas, "
+      + 'COUNT(DISTINCT semestre) AS semestres '
+      + 'FROM ' + ident(T_PARTIDAS) + where
+      + ' GROUP BY cpf ORDER BY pontos DESC LIMIT 50';
     var r = await pool.query(sql, params);
-    return r.rows.map(mapPublicoPlacar);
+    return r.rows.map(mapPublicoAgregado);
   } catch (e) {
     console.error('[db] listarPlacar falhou:', e.message);
     return [];
   }
 }
-function mapPublicoPlacar(p) {
-  if (p.modo === 'semana') {
-    return { nome: p.nome || 'Estudante', pontos: p.pontos || 0, detalhe: (p.venceu ? 'pauta vencida' : 'pauta perdida') + ' · caso da semana' };
+/* agrega o modo mock (memória) na mesma forma das colunas que vêm do SQL acima */
+function agregarPorAluno(lista) {
+  var porCpf = new Map();
+  lista.forEach(function (p) {
+    var g = porCpf.get(p.cpf);
+    if (!g) {
+      g = { cpf: p.cpf, nome: p.nome, pontos: 0, jornada_venceu: false, jornada_registrada: 0, jornada_casos: 0,
+        semanas_venceu: 0, semanas_jogadas: 0, semestresSet: new Set() };
+      porCpf.set(p.cpf, g);
+    }
+    g.nome = p.nome || g.nome;
+    g.pontos += p.pontos || 0;
+    if (p.semestre) g.semestresSet.add(p.semestre);
+    if (p.modo === 'semestre') { g.jornada_registrada++; g.jornada_casos = p.casos || 0; if (p.venceu) g.jornada_venceu = true; }
+    else if (p.modo === 'semana') { g.semanas_jogadas++; if (p.venceu) g.semanas_venceu++; }
+  });
+  return Array.from(porCpf.values()).map(function (g) {
+    return { cpf: g.cpf, nome: g.nome, pontos: g.pontos, jornada_venceu: g.jornada_venceu,
+      jornada_registrada: g.jornada_registrada, jornada_casos: g.jornada_casos,
+      semanas_venceu: g.semanas_venceu, semanas_jogadas: g.semanas_jogadas, semestres: g.semestresSet.size };
+  });
+}
+function mapPublicoAgregado(p) {
+  var partes = [];
+  var jornadaReg = parseInt(p.jornada_registrada, 10) || 0;
+  var semanasJog = parseInt(p.semanas_jogadas, 10) || 0;
+  var semanasVenc = parseInt(p.semanas_venceu, 10) || 0;
+  var semestres = parseInt(p.semestres, 10) || 0;
+  var pontos = parseInt(p.pontos, 10) || 0;
+  if (jornadaReg > 0) partes.push(p.jornada_venceu ? 'jornada vencida' : ((parseInt(p.jornada_casos, 10) || 0) + ' de 8 casos'));
+  if (semanasJog > 0) {
+    partes.push(semanasVenc === semanasJog
+      ? (semanasVenc + (semanasVenc === 1 ? ' semana vencida' : ' semanas vencidas'))
+      : (semanasVenc + ' de ' + semanasJog + ' semanas vencidas'));
   }
-  var m = p.modo === 'diario' ? 'caso do dia' : p.modo === 'livre' ? 'jornada livre' : 'jornada do semestre';
-  return {
-    nome: p.nome || 'Estudante',
-    pontos: p.pontos || 0,
-    detalhe: (p.venceu ? 'jornada vencida' : ((p.casos || 0) + ' de 8 casos')) + ' · ' + m
-  };
+  if (semestres > 1) partes.push(semestres + ' semestres');
+  return { nome: p.nome || 'Estudante', pontos: pontos, detalhe: partes.length ? partes.join(' · ') : (pontos + ' pontos') };
 }
 
 /* ============================================================

@@ -146,12 +146,16 @@ main{display:flex;justify-content:center;min-height:100vh}
 .cab .linha1{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
 .cab h1{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(19px,3.4vw,26px);line-height:1.08;margin:0 0 3px}
 .pont{color:var(--sand)}
-.julgador{flex:0 0 auto;background:var(--ink);color:var(--cream);border-radius:14px;padding:12px 15px;min-width:216px;
+.julgador{flex:0 0 auto;background:var(--ink);color:var(--cream);border-radius:14px;padding:12px 15px;min-width:216px;max-width:330px;
   display:flex;gap:12px;align-items:flex-start}
 body.dark .julgador{background:#211f1f;border:1px solid rgba(191,186,164,.2)}
 .julgador .foto{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(191,186,164,.4);flex:0 0 auto}
 .julgador .rotulo{color:var(--sand)}
-.julgador .nome{font-family:var(--serif);font-style:italic;font-size:17px;margin:2px 0 8px}
+.julgador > div{min-width:0}
+.julgador .nome{font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.22;margin:2px 0 8px;
+  overflow-wrap:break-word;word-break:break-word}
+.julgador .nome.nome-longo{font-size:14px}
+.julgador .nome .disc-sub{overflow-wrap:break-word;word-break:break-word}
 .mults{display:flex;gap:5px;flex-wrap:wrap}
 .mult{font-size:10px;font-weight:600;padding:3px 7px;border-radius:var(--r-pill);border:1px solid rgba(191,186,164,.5);color:var(--sand)}
 .mult.fav{border-color:var(--red);color:var(--red)}
@@ -556,6 +560,21 @@ body.dark .mer-atual{background:#1c1a1a;border:1px solid rgba(191,186,164,.2)}
 body.dark .e-media{color:var(--sand)}
 body.dark .e-alta{color:#f06f80}
 
+/* ---- boas-vindas: o elo do aluno, ao entrar ---- */
+#boasVindas{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top));transform:translateX(-50%) translateY(-140%);
+  z-index:68;display:flex;align-items:center;gap:12px;padding:11px 20px 11px 13px;border-radius:var(--r-pill);
+  max-width:min(420px,92vw);transition:transform .5s var(--spring),opacity .4s;opacity:0;pointer-events:none}
+#boasVindas.on{transform:translateX(-50%) translateY(0);opacity:1;animation:bvGlow 2.2s ease-in-out .3s 1}
+@keyframes bvGlow{0%,100%{box-shadow:var(--sombra)}45%{box-shadow:var(--sombra),0 0 0 5px rgba(238,42,66,.16)}}
+.bv-emb{flex:0 0 auto;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--ink);color:var(--cream);border:1.5px solid rgba(191,186,164,.4);animation:pop .5s var(--spring) .15s both}
+.bv-emb svg{width:24px;height:24px}
+.bv-txt{min-width:0;overflow:hidden}
+.bv-nome{font-family:var(--serif);font-style:italic;font-weight:600;font-size:14.5px;line-height:1.25;
+  overflow-wrap:break-word;word-break:break-word;white-space:normal}
+.bv-nome.nome-longo{font-size:12.5px}
+.bv-div{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--red);margin-top:1px}
+
 /* ---- responsivo ---- */
 @media (max-width:899px){
   #mao{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;margin-left:-16px;margin-right:-16px;
@@ -563,7 +582,7 @@ body.dark .e-alta{color:#f06f80}
   #mao::-webkit-scrollbar{display:none}
   #mao .carta{flex:0 0 132px;scroll-snap-align:start;min-height:172px}
   .cab{flex-direction:column}
-  .julgador{width:100%;min-width:0}
+  .julgador{width:100%;min-width:0;max-width:none}
   .acoes{width:100%;flex-direction:row}
   .acoes .btn{flex:1}
   .mao-cab{flex-wrap:wrap}
@@ -771,6 +790,15 @@ body.dark .e-alta{color:#f06f80}
 
 <div id="faseBanner" class="hidden" aria-hidden="true"><span class="serif" id="faseBannerTxt"></span></div>
 
+<!-- boas-vindas: o elo do aluno em cena, ao entrar -->
+<div id="boasVindas" class="glass hidden" aria-hidden="true">
+  <span class="bv-emb" id="bvEmb"></span>
+  <div class="bv-txt">
+    <div class="bv-nome" id="bvNome">—</div>
+    <div class="bv-div" id="bvDiv">—</div>
+  </div>
+</div>
+
 <!-- HUD compacto (mobile): balança, credibilidade e fase sempre à vista -->
 <div id="hudMini" class="glass" aria-hidden="true">
   <div class="hm-bloco"><span class="hm-rot">Balança</span><span class="hm-num" id="hmConv">50</span></div>
@@ -877,6 +905,7 @@ body.dark .e-alta{color:#f06f80}
     <button class="aba" data-aba="semestre">Semestre</button>
     <button class="aba" data-aba="hall">Hall de campeões</button>
   </div>
+  <p class="meta-txt" id="placarLegenda" style="margin:-4px 0 14px;line-height:1.5"></p>
   <div id="placarLista" class="lista-placar"></div>
 </section>
 
@@ -947,7 +976,7 @@ body.dark .e-alta{color:#f06f80}
 
 /* ---------- CONFIG (único ponto que a TI edita) ---------- */
 var CONFIG = {
-  VERSAO: '4.1.0',
+  VERSAO: '4.2.0',
   SEMESTRE: '2026-2',
   API_BASE: '/api',    // o backend Node serve o jogo e a API na mesma origem
   AI_WEBHOOK: '',      // ex.: '/api/sustentacao' — vazio: sustentação de IA oculta
@@ -2291,8 +2320,10 @@ function pintarBatalha(inicial){
   });
 
   var juiz = B.juiz;
-  $('julNome').innerHTML = esc(juiz.nome) + ' · ' + esc(juiz.perfil)
-    + (juiz.disciplina ? '<div style="font-size:11px;color:var(--sand);font-style:normal;margin-top:2px">' + esc(juiz.disciplina) + '</div>' : '');
+  var julNomeEl = $('julNome');
+  julNomeEl.innerHTML = esc(juiz.nome) + ' · ' + esc(juiz.perfil)
+    + (juiz.disciplina ? '<div class="disc-sub" style="font-size:11px;color:var(--sand);font-style:normal;margin-top:2px">' + esc(juiz.disciplina) + '</div>' : '');
+  julNomeEl.classList.toggle('nome-longo', (juiz.nome || '').length > 26);
   var foto = $('julFoto');
   if (juiz.foto){ foto.src = juiz.foto; foto.classList.remove('hidden'); } else foto.classList.add('hidden');
   var mults = $('julMults'); mults.innerHTML = '';
@@ -2844,6 +2875,28 @@ function entrarNoJogo(){
   processarFila();
   sincronizarProgresso();
   mostrar('scr-title');
+  mostrarBoasVindas();
+}
+
+/* o elo do aluno em cena, ao entrar: o emblema da divisão junto ao nome */
+var boasVindasTimer = null;
+function mostrarBoasVindas(){
+  if (!PERFIL.nome) return;
+  var b = $('boasVindas'); if (!b) return;
+  var m = meritoAtual();
+  $('bvEmb').className = 'bv-emb ' + emblemaClasse(m.div);
+  $('bvEmb').innerHTML = emblemaSVG(m.div);
+  var nomeEl = $('bvNome');
+  nomeEl.textContent = PERFIL.nome;
+  nomeEl.classList.toggle('nome-longo', PERFIL.nome.length > 26);
+  $('bvDiv').textContent = DIVISOES[m.div] + ' · ' + m.pm + ' PM';
+  if (boasVindasTimer){ clearTimeout(boasVindasTimer); boasVindasTimer = null; }
+  b.classList.remove('hidden');
+  requestAnimationFrame(function(){ b.classList.add('on'); });
+  boasVindasTimer = setTimeout(function(){
+    b.classList.remove('on');
+    setTimeout(function(){ b.classList.add('hidden'); }, 550);
+  }, 4200);
 }
 
 /* o servidor é a memória entre aparelhos: jornada feita, semana jogada e rank */
@@ -2966,6 +3019,12 @@ function verPlacar(aba){
   Array.prototype.forEach.call(document.querySelectorAll('.aba'), function(b){
     b.classList.toggle('ativa', b.getAttribute('data-aba') === aba);
   });
+  var legenda = $('placarLegenda');
+  legenda.textContent = aba === 'semestre'
+    ? 'A jornada do semestre e todas as pautas semanais sustentadas, somadas por aluno — um único ranking da temporada.'
+    : aba === 'hall'
+    ? 'Todas as jornadas e pautas semanais de todos os semestres, somadas por aluno — o placar de sempre.'
+    : 'O histórico salvo neste aparelho.';
   var lista = $('placarLista');
   if (aba === 'aparelho'){
     var placar = store.get('ui_fmp_placar', []);

@@ -88,6 +88,11 @@ A divisão é a **trajetória acadêmica** (neutra — nenhuma carreira real aci
 - **Divisões de entrada** (até Bacharelando I) não perdem PM.
 - **Temporada = semestre letivo**: na virada, desce 1 divisão e o PM zera.
 - Persistida no Postgres (`rank_alunos`) quando há sessão; local sem servidor. No login, o jogo adota o maior progresso entre aparelho e servidor.
+- **O elo em cena**: ao entrar no jogo, um chip animado (emblema + nome + divisão) desliza do topo e some sozinho — o aluno vê a sua posição atual junto ao próprio nome, sem precisar abrir a tela do Mérito.
+
+## Placar — um ranking por aluno
+
+Duas abas contam pontos, não posição na Ordem do Mérito: **Semestre** soma a jornada do semestre + todas as pautas semanais sustentadas na temporada corrente, um único número por aluno — não dois rankings separados, porque a Ordem do Mérito já cobre a progressão por divisão à parte. **Hall de campeões** faz a mesma soma, para sempre, todas as temporadas. A aba "Neste aparelho" continua sendo o histórico local, por partida.
 
 ## Apresentação no celular — o resultado sem subir a tela
 

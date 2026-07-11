@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS partidas (
 );
 CREATE INDEX IF NOT EXISTS idx_partidas_semestre_pontos ON partidas (semestre, pontos DESC);
 CREATE INDEX IF NOT EXISTS idx_partidas_pontos ON partidas (pontos DESC);
+-- o placar agrega por aluno (SUM(pontos) GROUP BY cpf): este índice acelera essa agregação
+CREATE INDEX IF NOT EXISTS idx_partidas_cpf ON partidas (cpf);
 
 -- ---- ORDEM DO MÉRITO (divisão competitiva por temporada) ----
 -- Divisões (0-12): Calouro, Bacharelando III-I, Bacharel, Especialista II-I,

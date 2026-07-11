@@ -55,8 +55,10 @@ Copie `.env.example` para `.env` (ou configure no EasyPanel). Principais:
 
 - **`usuarios`** — `cpf`, `data_nascimento`, `nome` (+ `ra`, `curso`, `semestre`, `ativo`). Login.
 - **`disciplinas`** — `nome`, `professor` (+ `area_do_direito`, `perfil_julgador`, `foto_professor_url`, `semestre`). Cada disciplina vira um **julgador real**, com o professor no lugar do juiz e a foto no avatar, casado com a área do caso.
-- **`partidas`** — o placar persistido (as três abas) e também a **memória de progresso**: `modo` distingue `semestre` (a jornada única) de `semana` (a pauta semanal, com `seed` `semana-AAAA-SNN`) — é dela que `GET /api/progresso` deduz o que o aluno já jogou, em qualquer aparelho.
+- **`partidas`** — o placar persistido e também a **memória de progresso**: `modo` distingue `semestre` (a jornada única) de `semana` (a pauta semanal, com `seed` `semana-AAAA-SNN`) — é dela que `GET /api/progresso` deduz o que o aluno já jogou, em qualquer aparelho. As abas **Semestre** e **Hall de campeões** do placar somam `pontos` por aluno (`GROUP BY cpf`), não por partida — jornada + todas as pautas semanais juntas.
 - **`rank_alunos`** — a Ordem do Mérito (divisão competitiva + pontos de mérito, por temporada/semestre).
+
+> **Professores não aparecem no jogo (caem nos juízes fictícios)?** É quase sempre o filtro de semestre: `disciplinas.semestre`, se preenchido, precisa bater com o `semestre` do aluno em `usuarios` (ou ficar `NULL`, que vale para qualquer aluno). Confira com `SELECT nome, semestre, ativo FROM disciplinas;` — o mais simples é deixar `semestre` em branco na `disciplinas` enquanto não houver disciplinas de mais de um período cadastradas ao mesmo tempo.
 
 ## Deploy (Docker / EasyPanel)
 
