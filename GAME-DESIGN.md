@@ -1,10 +1,23 @@
-# Última Instância — game design (v4 "Audiência viva")
+# Última Instância — game design (v4.1 "Audiência viva")
 
 > A proposta completa de redesign, com o diagnóstico e o racional de cada sistema, está em `REDESIGN.md`. Este documento descreve **o jogo como ele é hoje**.
 
 ## Conceito
 
-O aluno é a defesa em uma jornada de 8 casos fictícios, subindo três instâncias: Foro Central de Porto Alegre (casos 1-3), TJRS (4-6) e STF (7-8, em tema escuro "prestígio"). Não existe barra de vida: existe a **balança da convicção** (0 a 100, começa em 50). É um roguelike de deck-building com o Direito como matéria-prima — e, na v4, um jogo em que **cada rodada é um embate com começo, tensão e conclusão**: clicar sem pensar perde; ler a mesa vence.
+O aluno é a defesa em casos fictícios, com a **balança da convicção** (0 a 100, começa em 50) no lugar da barra de vida. É um roguelike de deck-building com o Direito como matéria-prima — e, na v4, um jogo em que **cada rodada é um embate com começo, tensão e conclusão**: clicar sem pensar perde; ler a mesa vence.
+
+## Os dois modos — ritmos, apostas e telas diferentes
+
+| | **Jornada do semestre** | **Caso da semana** |
+|---|---|---|
+| O que é | a campanha: 8 casos, três instâncias — Foro Central (1-3), TJRS (4-6), STF (7-8, tema escuro) | um único caso, o mesmo para toda a FMP |
+| Frequência | **uma por aluno por semestre** — a sentença final transita em julgado | **uma sustentação por semana** (segunda a domingo), sem embargos |
+| Antessala | **os autos**: capa escura carimbada (aguarda distribuição / em andamento / trânsito em julgado ou arquivada) e a trajetória vertical dos 8 casos | **o edital**: papel pautado com instância, processo, julgador, parte adversa, rito, material de apoio, missão e o prazo — encerra domingo |
+| Seed | aleatória; progresso salvo entre casos; embargos 1×; abandonar **arquiva como derrota** | da semana ISO — mesmo caso, mesmo julgador (fictício, para ser igual para todos) e mesmo material; ciclo de 6 pautas (o plenário do STF é exclusivo da jornada) |
+| Baralho | cresce por recompensas, relíquias e eventos | inicial + 2-4 cartas de apoio da semana (seeded; pautas difíceis levam mais) |
+| PM | o grande evento: vitória +60 a +80; derrota rende +3 por caso vencido | o motor semanal: vitória +14 a +22; derrota −6 |
+
+O servidor é a memória entre aparelhos (`GET /api/progresso`): jornada já sentenciada e semana já sustentada não se repetem trocando de celular.
 
 ## O coração didático: a tese e a réplica
 
@@ -65,19 +78,24 @@ Cada caso traz **uma missão opcional** (+25): vencer sem lateral, fechar uma li
 
 Resultado (100 + margem + 50 plena) · Pertinência (≤60) · Coerência/credibilidade (≤50) · Leitura do julgador (≤40) · Teses fechadas (≤40) · Rodadas economizadas (≤30) · Missão (+25) · Recuperação após ≤30 (+30) · **Laterais (−5 cada, ≤−60)**. Acordo multiplica o total por 0,6. Jornada: soma + 500 na vitória final + até 50 da sustentação com IA. Componentes crescem com **taxa de acerto**, nunca com volume.
 
-## Ordem do Mérito — progressão competitiva
+## Ordem do Mérito — progressão competitiva, com a escada à vista
 
 A divisão é a **trajetória acadêmica** (neutra — nenhuma carreira real acima de outra):
 **Calouro → Bacharelando III/II/I → Bacharel → Especialista II/I → Mestre II/I → Doutor II/I → Livre-docente → Catedrático.**
 
-- **Pontos de Mérito**: vitória +15 a +30 (escala pela pontuação); derrota −4 a −14 (amortecida pelos casos vencidos). 100 PM = sobe.
+- **Tela própria**: emblema atual grande + barra de PM, e a **escada completa das 13 divisões**, cada uma com o seu **emblema SVG** (livro, divisas, diploma, pena, balança, capelo, tribuna, estrela laureada) — o aluno vê onde está e até onde dá para chegar. O botão do título mostra a divisão corrente.
+- **Pontos de Mérito**: caso da semana vitória **+14 a +22** / derrota **−6** (o motor semanal); jornada do semestre vitória **+60 a +80** / derrota **+3 por caso vencido** (o evento único não pune). 100 PM = sobe.
 - **Divisões de entrada** (até Bacharelando I) não perdem PM.
 - **Temporada = semestre letivo**: na virada, desce 1 divisão e o PM zera.
-- Persistida no Postgres (`rank_alunos`) quando há sessão; local sem servidor.
+- Persistida no Postgres (`rank_alunos`) quando há sessão; local sem servidor. No login, o jogo adota o maior progresso entre aparelho e servidor.
 
-## Meta-jogo (mantido)
+## Apresentação no celular — o resultado sem subir a tela
 
-Carta 1-de-3 após caso comum (4 com Rede de contatos, raras ~30%) · relíquia 1-de-2 após chefe · Intervalo na FMP entre instâncias · **embargos** (1 repetição do mesmo caso/julgador por jornada) · jornada livre e caso do dia (semente da data) · placar em três abas.
+Um **HUD compacto fixo** (balança, credibilidade, fase e rodada) aparece no topo assim que a balança principal sai do viewport — quem joga cartas lá embaixo nunca perde o placar de vista. Cada mudança na balança dispara um **número flutuante** (+12 / −8, serifado, na cor do resultado) ancorado no HUD ou no marcador da balança. Só no mobile (<900 px); tudo some no desktop.
+
+## Meta-jogo
+
+Carta 1-de-3 após caso comum (4 com Rede de contatos, raras ~30%) · relíquia 1-de-2 após chefe · Intervalo na FMP entre instâncias · **embargos** (1 repetição do mesmo caso/julgador, só na jornada) · placar em três abas.
 
 ## Balanceamento (estado atual — harness com 3 bots, n=150)
 

@@ -58,9 +58,10 @@ CREATE TABLE IF NOT EXISTS partidas (
   semestre    TEXT,
   pontos      INTEGER NOT NULL DEFAULT 0,
   casos       INTEGER NOT NULL DEFAULT 0,     -- casos vencidos (0..8)
-  venceu      BOOLEAN NOT NULL DEFAULT FALSE, -- jornada inteira vencida
-  modo        TEXT NOT NULL DEFAULT 'livre',  -- 'livre' | 'diario'
-  seed        TEXT,
+  venceu      BOOLEAN NOT NULL DEFAULT FALSE, -- jornada inteira vencida (ou pauta da semana vencida)
+  modo        TEXT NOT NULL DEFAULT 'livre',  -- 'semestre' (jornada única) | 'semana' (pauta semanal) | 'livre' | 'diario' (legados)
+  seed        TEXT,                           -- na pauta semanal: 'semana-AAAA-SNN' (uma por semana, por aluno)
+
   criado_em   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_partidas_semestre_pontos ON partidas (semestre, pontos DESC);

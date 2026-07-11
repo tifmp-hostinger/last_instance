@@ -429,6 +429,133 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 .passos i.agora{background:var(--red);box-shadow:0 0 0 3px rgba(238,42,66,.25);animation:pulsa 2s infinite}
 .passos i.chefe{border-radius:2px;transform:rotate(45deg)}
 
+/* ---- título: botões de modo com estado ---- */
+.btn-modo{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;cursor:pointer;
+  background:var(--red);color:#fff;font-family:var(--sans);border-radius:14px;padding:14px 22px 12px;min-height:64px;
+  transition:transform .15s var(--spring),background .15s,box-shadow .2s;box-shadow:0 6px 18px rgba(238,42,66,.28)}
+.btn-modo:hover{background:var(--red-600)}
+.btn-modo:active{transform:scale(.98)}
+.btn-modo .bm-t{font-weight:600;font-size:16.5px;letter-spacing:.01em}
+.btn-modo .bm-sub{font-size:10.5px;font-weight:500;opacity:.88;letter-spacing:.05em}
+.btn-modo.escuro{background:var(--ink);box-shadow:0 6px 18px rgba(25,24,24,.3)}
+.btn-modo.escuro:hover{background:#2c2a2a}
+body.dark .btn-modo.escuro{background:#242222;border:1px solid rgba(191,186,164,.25)}
+.btn-modo.feito{background:var(--card);color:var(--fg2);border:1px solid var(--line-2);box-shadow:none}
+.btn-modo.feito:hover{background:var(--card);border-color:var(--fg3)}
+.btn-modo.feito .bm-sub{color:var(--red);opacity:1}
+
+/* ---- HUD compacto (mobile): a balança nunca sai de vista ---- */
+#hudMini{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-160%);
+  z-index:55;display:flex;align-items:center;gap:13px;padding:8px 15px;border-radius:var(--r-pill);
+  transition:transform .32s var(--spring),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
+#hudMini.on{transform:translate(-50%,0);opacity:1}
+#hudMini .hm-bloco{display:flex;align-items:baseline;gap:5px}
+#hudMini .hm-rot{font-size:8px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)}
+#hudMini .hm-num{font-family:var(--serif);font-style:italic;font-weight:600;font-size:19px;line-height:1;transition:color .3s}
+#hudMini .hm-trilha{position:relative;width:60px;height:5px;border-radius:var(--r-pill);align-self:center;
+  background:linear-gradient(90deg,#8a8574,var(--red))}
+#hudMini .hm-marca{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;
+  background:var(--card);border:2px solid var(--red);transition:left .4s var(--spring)}
+@media (min-width:900px){#hudMini{display:none}}
+
+/* números flutuantes: o resultado de cada jogada, onde o olho está */
+.delta-chip{position:fixed;z-index:66;pointer-events:none;font-family:var(--serif);font-style:italic;font-weight:700;
+  transform:translate(-50%,0);text-shadow:0 2px 12px rgba(0,0,0,.2);animation:deltaSobe 1.15s ease-out both}
+@keyframes deltaSobe{0%{opacity:0;transform:translate(-50%,8px) scale(.7)}16%{opacity:1;transform:translate(-50%,-4px) scale(1.1)}
+  68%{opacity:1;transform:translate(-50%,-22px) scale(1)}100%{opacity:0;transform:translate(-50%,-40px) scale(.96)}}
+
+/* ---- a jornada do semestre: os autos ---- */
+.autos-capa{position:relative;background:var(--ink);color:var(--cream);border-radius:18px;padding:20px 22px 18px;margin-bottom:20px;overflow:hidden}
+body.dark .autos-capa{background:#1c1a1a;border:1px solid rgba(191,186,164,.2)}
+.autos-capa .rotulo{color:var(--sand)}
+.autos-capa h3{font-family:var(--serif);font-style:italic;font-weight:600;font-size:24px;margin:4px 0 7px;padding-right:120px}
+.autos-capa .meta{font-size:12px;color:var(--sand);line-height:1.55}
+.autos-carimbo{position:absolute;top:16px;right:16px;font-weight:700;font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  border:2px solid;border-radius:6px;padding:4px 10px;transform:rotate(5deg);animation:carimba .45s var(--spring) both .2s}
+.autos-carimbo.espera{color:var(--sand);border-color:var(--sand);opacity:.8}
+.autos-carimbo.andamento{color:#F2C9B8;border-color:#F2C9B8}
+.autos-carimbo.fim{color:var(--red);border-color:var(--red)}
+.trajeto{margin:0 0 6px}
+.trajeto .instancia-rot{display:flex;align-items:center;gap:9px;margin:14px 0 12px;font-weight:600;font-size:10px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--fg3)}
+.trajeto .instancia-rot::after{content:'';flex:1;height:1px;background:var(--line-2)}
+.no-caso{display:flex;gap:14px;align-items:flex-start;position:relative;padding:0 0 20px 4px}
+.no-caso::before{content:'';position:absolute;left:19px;top:34px;bottom:-2px;width:2px;background:var(--line-2)}
+.no-caso.ult::before{display:none}
+.no-caso .ponto{width:32px;height:32px;flex:0 0 auto;border-radius:50%;border:2px solid var(--line-2);background:var(--card);
+  display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-weight:600;
+  font-size:13.5px;color:var(--fg3);position:relative;z-index:1;transition:all .2s}
+.no-caso.chefe .ponto{border-radius:9px;transform:rotate(45deg)}
+.no-caso.chefe .ponto span{transform:rotate(-45deg)}
+.no-caso.vencido .ponto{background:var(--red);border-color:var(--red);color:#fff}
+.no-caso.perdido .ponto{background:var(--ink);border-color:var(--ink);color:var(--sand)}
+body.dark .no-caso.perdido .ponto{background:#2a2828;border-color:#2a2828}
+.no-caso.atual .ponto{border-color:var(--red);color:var(--red);box-shadow:0 0 0 4px rgba(238,42,66,.16);animation:pulsa 2.4s ease-in-out infinite}
+.no-caso .info{flex:1;min-width:0;padding-top:2px}
+.no-caso .info .t{font-family:var(--serif);font-style:italic;font-weight:600;font-size:14.5px;line-height:1.25}
+.no-caso.futuro .info .t{color:var(--fg3);font-weight:400}
+.no-caso .info .d{font-size:11px;color:var(--fg3);margin-top:2px}
+.no-caso .pts-caso{flex:0 0 auto;font-family:var(--serif);font-style:italic;font-weight:600;font-size:15px;color:var(--red);padding-top:5px}
+.selo-caso{display:inline-block;font-size:8.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  border:1.5px solid;border-radius:4px;padding:1px 6px;margin-left:7px;vertical-align:2px}
+.selo-caso.v{color:var(--red);border-color:var(--red)}
+.selo-caso.p{color:var(--fg3);border-color:var(--fg3)}
+
+/* ---- pauta da semana: o edital ---- */
+.edital{background:var(--paper);border:1px solid var(--card-line);border-radius:6px;box-shadow:var(--sombra);
+  overflow:hidden;margin-bottom:18px;position:relative;
+  background-image:repeating-linear-gradient(0deg,transparent 0,transparent 30px,rgba(191,186,164,.1) 30px,rgba(191,186,164,.1) 31px)}
+.edital .ed-cab{border-bottom:2.5px solid var(--fg);padding:18px 22px 12px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.edital .ed-cab .dj{font-family:var(--serif);font-weight:700;font-size:16px;letter-spacing:.08em;text-transform:uppercase}
+.edital .ed-cab .dj em{color:var(--red);font-style:normal}
+.edital .ed-cab .num{font-size:10px;color:var(--fg3);letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.edital .ed-corpo{padding:14px 22px 18px}
+.ed-linha{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px dashed var(--line);line-height:1.45}
+.ed-linha:last-child{border-bottom:none}
+.ed-linha .r{flex:0 0 108px;font-weight:600;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);padding-top:2.5px}
+.ed-linha .v{flex:1;min-width:0}
+.ed-linha .v b{font-family:var(--serif);font-style:italic;font-weight:600}
+.ed-selo{position:absolute;top:64px;right:18px;font-weight:700;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  border:2px solid;border-radius:6px;padding:5px 11px;transform:rotate(-7deg);animation:carimba .45s var(--spring) both .25s}
+.ed-selo.aberta{color:#2A6F6B;border-color:#2A6F6B}
+.ed-selo.vit{color:var(--red);border-color:var(--red)}
+.ed-selo.der{color:var(--fg3);border-color:var(--fg3)}
+.ed-prazo{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.04em;
+  border:1px solid var(--line-2);border-radius:var(--r-pill);padding:5px 13px;color:var(--fg2)}
+.ed-prazo::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulsa 2.2s infinite}
+.ed-prazo.fim::before{background:var(--sand);animation:none}
+
+/* ---- Ordem do Mérito: escada de divisões ---- */
+.mer-atual{display:flex;gap:18px;align-items:center;background:var(--ink);color:var(--cream);border-radius:18px;padding:20px 22px;margin-bottom:18px}
+body.dark .mer-atual{background:#1c1a1a;border:1px solid rgba(191,186,164,.2)}
+.mer-atual .emb-grande{flex:0 0 auto;width:78px;height:78px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;border:2px solid rgba(191,186,164,.35);background:rgba(239,238,234,.05);color:var(--cream)}
+.mer-atual .emb-grande svg{width:52px;height:52px}
+.mer-atual .rotulo{color:var(--sand)}
+.mer-atual h3{font-family:var(--serif);font-style:italic;font-weight:600;font-size:25px;margin:3px 0 2px}
+.mer-atual .tempo{font-size:11px;color:var(--sand);margin-bottom:8px}
+.mer-barra{position:relative;height:8px;border-radius:var(--r-pill);background:rgba(239,238,234,.14);overflow:hidden}
+.mer-barra i{position:absolute;left:0;top:0;bottom:0;border-radius:var(--r-pill);background:var(--red);transition:width .6s var(--spring)}
+.mer-barra-txt{font-size:10.5px;color:var(--sand);margin-top:5px}
+.escada{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.degrau{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:9px 15px}
+.degrau .emb{width:30px;height:30px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+.degrau .emb svg{width:26px;height:26px}
+.degrau .nm{flex:1;font-weight:500;font-size:13.5px}
+.degrau .grupo{font-size:8.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg3)}
+.degrau.futuro{opacity:.55}
+.degrau.passado{opacity:.85}
+.degrau.aqui{border-color:var(--red);box-shadow:0 0 0 1.5px var(--red),var(--sombra)}
+.degrau.aqui .nm{font-weight:600}
+.voce-chip{font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:var(--red);color:#fff;
+  border-radius:var(--r-pill);padding:3px 10px;flex:0 0 auto}
+.e-entrada{color:#8f8b7f}
+.e-media{color:var(--fg2)}
+.e-alta{color:var(--red-700)}
+.e-topo{color:var(--red)}
+body.dark .e-media{color:var(--sand)}
+body.dark .e-alta{color:#f06f80}
+
 /* ---- responsivo ---- */
 @media (max-width:899px){
   #mao{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;margin-left:-16px;margin-right:-16px;
@@ -446,6 +573,11 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
   .bandeja{overflow-x:auto}
   .bandeja .slot{min-width:104px}
   #faseBanner span{font-size:19px;padding:11px 24px}
+  .ed-linha{flex-direction:column;gap:2px}
+  .ed-linha .r{flex-basis:auto}
+  .ed-selo{top:70px;right:12px}
+  .mer-atual{flex-direction:column;text-align:center;gap:12px}
+  .autos-capa h3{padding-right:0;margin-top:26px}
 }
 @media (max-height:719px){
   .scr{padding-top:12px}
@@ -497,11 +629,17 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
   <h1>Última <em>Instância</em></h1>
   <p class="sub">Do Foro Central de Porto Alegre ao Supremo: monte seus argumentos, leia o julgador e incline a balança da convicção.</p>
   <div class="menu-title">
-    <button class="btn btn-lg" id="btnLivre">Jornada livre</button>
-    <button class="btn btn-lg" id="btnDiario" style="background:var(--ink);box-shadow:0 6px 18px rgba(25,24,24,.3)">Caso do dia</button>
-    <button class="btn-ghost hidden" id="btnContinuar">Continuar jornada</button>
+    <button class="btn-modo" id="btnJornada">
+      <span class="bm-t">Jornada do semestre</span>
+      <span class="bm-sub" id="btnJornadaSub">única · oito casos · três instâncias</span>
+    </button>
+    <button class="btn-modo escuro" id="btnSemana">
+      <span class="bm-t">Caso da semana</span>
+      <span class="bm-sub" id="btnSemanaSub">a mesma pauta para toda a FMP</span>
+    </button>
   </div>
   <div class="menu-linha">
+    <button class="btn-ghost" id="btnMerito">Ordem do Mérito</button>
     <button class="btn-ghost" id="btnPlacar">Placar</button>
     <button class="btn-ghost" id="btnDemo">Como jogar</button>
     <button class="btn-ghost" id="btnConfig">Configurações</button>
@@ -633,6 +771,14 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 
 <div id="faseBanner" class="hidden" aria-hidden="true"><span class="serif" id="faseBannerTxt"></span></div>
 
+<!-- HUD compacto (mobile): balança, credibilidade e fase sempre à vista -->
+<div id="hudMini" class="glass" aria-hidden="true">
+  <div class="hm-bloco"><span class="hm-rot">Balança</span><span class="hm-num" id="hmConv">50</span></div>
+  <div class="hm-trilha"><span class="hm-marca" id="hmMarca"></span></div>
+  <div class="hm-bloco"><span class="hm-rot">Cred</span><span class="hm-num" id="hmCred">6</span></div>
+  <div class="hm-bloco"><span class="hm-rot" id="hmFase" style="color:var(--fg);font-size:9px">—</span></div>
+</div>
+
 <!-- ============ RECOMPENSA ============ -->
 <section id="scr-reward" class="scr hidden">
   <div class="topo"><div>
@@ -663,10 +809,57 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
     <p class="meta-txt" id="overSub" style="margin-bottom:22px">—</p>
     <div class="bloco-cfg" style="text-align:left"><div class="tabela-pontos" id="overTabela"></div></div>
     <div class="menu-title" style="margin:18px auto 0">
-      <button class="btn btn-lg" id="overNova">Nova jornada</button>
+      <button class="btn btn-lg" id="overNova">Ver a Ordem do Mérito</button>
       <button class="btn-ghost" id="overPlacar">Ver placar</button>
       <button class="btn-ghost" id="overTitle">Voltar ao início</button>
     </div>
+  </div>
+</section>
+
+<!-- ============ JORNADA DO SEMESTRE (antessala: os autos) ============ -->
+<section id="scr-jornada" class="scr hidden">
+  <div class="topo">
+    <div>
+      <div class="eyebrow">Uma por semestre · <span id="jorSem">—</span></div>
+      <h2>Jornada do semestre</h2>
+    </div>
+    <button class="volta" id="jornadaVolta">Voltar</button>
+  </div>
+  <div class="autos-capa" id="jorCapa"></div>
+  <div class="trajeto" id="jorTrajeto"></div>
+  <div class="centro-acoes" id="jorAcoes" style="margin-top:10px"></div>
+  <p class="meta-txt" id="jorNota" style="margin-top:14px;text-align:center;line-height:1.55"></p>
+</section>
+
+<!-- ============ CASO DA SEMANA (antessala: o edital) ============ -->
+<section id="scr-semana" class="scr hidden">
+  <div class="topo">
+    <div>
+      <div class="eyebrow">A mesma pauta para toda a FMP</div>
+      <h2>Caso da semana</h2>
+    </div>
+    <button class="volta" id="semanaVolta">Voltar</button>
+  </div>
+  <div class="edital" id="edital"></div>
+  <div class="centro-acoes" id="semAcoes"></div>
+  <p class="meta-txt" id="semNota" style="margin-top:14px;text-align:center;line-height:1.55"></p>
+</section>
+
+<!-- ============ ORDEM DO MÉRITO ============ -->
+<section id="scr-merito" class="scr hidden">
+  <div class="topo">
+    <div>
+      <div class="eyebrow">Progressão competitiva · temporada <span id="merSem">—</span></div>
+      <h2>Ordem do Mérito</h2>
+    </div>
+    <button class="volta" id="meritoVolta">Voltar</button>
+  </div>
+  <div class="mer-atual" id="merAtual"></div>
+  <div class="rotulo" style="margin:0 0 9px">A escada — do Calouro à Cátedra</div>
+  <div class="escada" id="merEscada"></div>
+  <div class="bloco-cfg">
+    <h4>Como se sobe</h4>
+    <div id="merRegras" style="font-size:12.5px;line-height:1.65;color:var(--fg2)"></div>
   </div>
 </section>
 
@@ -754,7 +947,7 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 
 /* ---------- CONFIG (único ponto que a TI edita) ---------- */
 var CONFIG = {
-  VERSAO: '4.0.0',
+  VERSAO: '4.1.0',
   SEMESTRE: '2026-2',
   API_BASE: '/api',    // o backend Node serve o jogo e a API na mesma origem
   AI_WEBHOOK: '',      // ex.: '/api/sustentacao' — vazio: sustentação de IA oculta
@@ -789,6 +982,19 @@ function embaralhar(arr, rng){
   return a;
 }
 function amostra(arr, rng){ return arr[Math.floor(rng()*arr.length)]; }
+
+/* semana ISO (segunda a domingo): a chave da pauta semanal */
+function semanaISO(d){
+  d = d || new Date();
+  var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  var dia = t.getUTCDay() || 7;                    // 1=segunda … 7=domingo
+  t.setUTCDate(t.getUTCDate() + 4 - dia);          // quinta-feira da mesma semana
+  var ano = t.getUTCFullYear();
+  var sem = Math.ceil(((t - Date.UTC(ano, 0, 1)) / 86400000 + 1) / 7);
+  return { ano: ano, sem: sem };
+}
+function chaveSemana(){ var w = semanaISO(); return w.ano + '-S' + (w.sem < 10 ? '0' : '') + w.sem; }
+function diasAteDomingo(){ var d = new Date().getDay(); return d === 0 ? 0 : 7 - d; }
 
 var store = {
   get: function(k,fb){ try{ var v = localStorage.getItem(k); return v==null?fb:JSON.parse(v); }catch(e){ return fb; } },
@@ -1050,10 +1256,11 @@ var mudo  = store.get('ui_mudo', false);
 function salvarRun(){ if (S) store.set('ui_fmp_run', S); else store.del('ui_fmp_run'); }
 
 /* ---------- fluxo de telas ---------- */
-var TELAS = ['scr-login','scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-placar','scr-config'];
+var TELAS = ['scr-login','scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-jornada','scr-semana','scr-merito','scr-placar','scr-config'];
 function mostrar(id){
   TELAS.forEach(function(t){ var e=$(t); if(e) e.classList.toggle('hidden', t!==id); });
   var e = $(id); if (e){ e.style.animation='none'; void e.offsetWidth; e.style.animation=''; }
+  if (id !== 'scr-battle'){ var h=$('hudMini'); if (h && h.classList) h.classList.remove('on'); }
   if (typeof window!=='undefined' && window.scrollTo) window.scrollTo(0,0);
 }
 
@@ -1089,9 +1296,63 @@ function rngDe(){ // sub-gerador determinístico por propósito (resiste a salva
   return mulberry32(hashStr(S.seed + ':' + partes));
 }
 
+/* ---- registros: a jornada é única por semestre; a pauta, uma por semana ---- */
+function chaveAluno(){ return PERFIL.cpf || PERFIL.ra || PERFIL.nome || 'local'; }
+function jornadaRegistro(){
+  var j = store.get('ui_jornada', null);
+  return (j && j.temporada === CONFIG.SEMESTRE && j.aluno === chaveAluno()) ? j : null;
+}
+function marcarJornadaFim(venceu){
+  store.set('ui_jornada', {
+    temporada: CONFIG.SEMESTRE, aluno: chaveAluno(), fim: true, venceu: !!venceu,
+    pontos: S.pontos, casos: S.detalhe.length,
+    detalhe: S.detalhe.map(function(d){ return { caso: d.caso, titulo: d.titulo, pts: d.pts }; }),
+    quando: new Date().toISOString()
+  });
+}
+function semanaRegistro(){
+  var s = store.get('ui_semana', null);
+  return (s && s.chave === chaveSemana() && s.aluno === chaveAluno()) ? s : null;
+}
+function marcarSemana(venceu, pontos){
+  store.set('ui_semana', { chave: chaveSemana(), aluno: chaveAluno(), venceu: !!venceu, pontos: pontos || 0, quando: new Date().toISOString() });
+}
+/* o save de jornada, ignorando pautas de semanas passadas */
+function runSalvo(){
+  var r = store.get('ui_fmp_run', null);
+  if (!r) return null;
+  if (r.modo === 'semana' && r.seed !== 'semana-' + chaveSemana()){ store.del('ui_fmp_run'); return null; }
+  return r;
+}
+
+/* ---- a pauta da semana: mesmo caso, mesmo julgador, para toda a FMP ---- */
+var SEMANA_CICLO = [0, 1, 2, 3, 4, 5];   // o plenário do STF é exclusivo da jornada
+function infoSemana(){
+  var w = semanaISO(), chave = chaveSemana();
+  var idx = SEMANA_CICLO[(w.ano * 53 + w.sem) % SEMANA_CICLO.length];
+  return { chave: chave, ano: w.ano, sem: w.sem, idx: idx, seed: 'semana-' + chave };
+}
+function reforcosSemana(info){
+  // material de apoio da semana: cartas extras seeded — semanas difíceis levam mais
+  var rng = mulberry32(hashStr(info.seed + ':reforco'));
+  var n = info.idx <= 1 ? 2 : (info.idx <= 3 ? 3 : 4);
+  var out = [], raras = poolCartas('r'), comuns = poolCartas('c');
+  while (out.length < n){
+    var pool = rng() < .25 ? raras : comuns;
+    var id = amostra(pool, rng);
+    if (out.indexOf(id) < 0) out.push(id);
+  }
+  return out;
+}
+function missaoSemana(info){ return amostra(MISSOES, mulberry32(hashStr(info.seed + ':missao:' + info.idx))); }
+
 function novaJornada(modo, seedForcada){
-  var seed;
-  if (modo === 'diario'){
+  var seed, deck = DECK_INICIAL.slice(), casoIni = 0, embargos = 1;
+  if (modo === 'semana'){
+    var info = infoSemana();
+    seed = info.seed; casoIni = info.idx; embargos = 0;      // uma sustentação, sem embargos
+    deck = deck.concat(reforcosSemana(info));
+  } else if (modo === 'diario'){
     var d = new Date();
     var dia = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     seed = 'diario-' + dia;
@@ -1100,8 +1361,8 @@ function novaJornada(modo, seedForcada){
   }
   S = {
     v: CONFIG.VERSAO, modo: modo, seed: seed,
-    caso: 0, deck: DECK_INICIAL.slice(), relics: [],
-    pontos: 0, detalhe: [], embargos: 1, bonusIni: 0,
+    caso: casoIni, deck: deck, relics: [],
+    pontos: 0, detalhe: [], embargos: embargos, bonusIni: 0,
     fase: 'caso', vivo: true
   };
   salvarRun();
@@ -1109,7 +1370,7 @@ function novaJornada(modo, seedForcada){
 }
 
 function continuarJornada(){
-  var r = store.get('ui_fmp_run', null);
+  var r = runSalvo();
   if (!r){ atualizarTitulo(); return; }
   S = r;
   if (S.fase === 'recompensa') recompensaCartas();
@@ -1118,8 +1379,8 @@ function continuarJornada(){
   else iniciarCaso(false);
 }
 
-function sortearCaso(i){
-  var rng = rngDe('caso', i);
+function sortearCasoCom(seedBase, i, poolIds){
+  var rng = mulberry32(hashStr(seedBase + ':caso:' + i));
   var meta = JORNADA[i];
   var acao = amostra(ACOES, rng);
   var titulo, partes;
@@ -1140,10 +1401,15 @@ function sortearCaso(i){
   if (meta.plenario){ juizId = 'plenario'; }
   else {
     // prefere um julgador cuja disciplina case com a área do caso (juízes reais do banco)
-    var casam = JUIZES_COMUNS.filter(function(id){ var j = JUIZES[id]; return j && j.area && j.area === acao.a; });
-    juizId = amostra(casam.length ? casam : JUIZES_COMUNS, rng);
+    var casam = poolIds.filter(function(id){ var j = JUIZES[id]; return j && j.area && j.area === acao.a; });
+    juizId = amostra(casam.length ? casam : poolIds, rng);
   }
   return { titulo: titulo, partes: partes, area: acao.a, juiz: juizId };
+}
+function sortearCaso(i){
+  // a pauta da semana usa os julgadores fictícios: a MESMA mesa para todos os alunos
+  var pool = (S.modo === 'semana') ? JUIZES_FALLBACK : JUIZES_COMUNS;
+  return sortearCasoCom(S.seed, i, pool);
 }
 
 /* ---------- batalha ---------- */
@@ -1660,6 +1926,7 @@ function relatorioHTML(venceu){
 function finalizarCaso(venceu, motivo){
   if (B.demo) return;                       // a demo nunca sentencia
   if (B.fim) return;
+  if (S.modo === 'semana'){ finalizarSemana(venceu, motivo); return; }
   B.fim = venceu ? 'vitoria' : 'derrota';
   B.travado = true;
   fecharModal();
@@ -1701,6 +1968,57 @@ function finalizarCaso(venceu, motivo){
         : [{ t:'Encerrar a jornada', fn: encerrarJornadaDerrota }]
     });
   }
+}
+
+/* a pauta da semana é um caso só: a sentença encerra e registra a semana */
+function finalizarSemana(venceu, motivo){
+  B.fim = venceu ? 'vitoria' : 'derrota';
+  B.travado = true;
+  fecharModal();
+  pintarBatalha();
+  var placar = venceu ? pontuarCaso(motivo) : null;
+  var pontos = placar ? placar.total : 0;
+  var mer = aplicarMerito('semana', venceu, pontos, venceu ? 1 : 0);
+  marcarSemana(venceu, pontos);
+  var partida = {
+    nome: PERFIL.nome || 'Estudante', ra: PERFIL.ra || '', sem: PERFIL.sem || CONFIG.SEMESTRE,
+    pontos: pontos, casos: venceu ? 1 : 0, venceu: !!venceu,
+    modo: 'semana', seed: S.seed, quando: new Date().toISOString(), v: CONFIG.VERSAO
+  };
+  var top = store.get('ui_fmp_placar', []);
+  top.push(partida); top.sort(function(a,b){ return b.pontos - a.pontos; });
+  store.set('ui_fmp_placar', top.slice(0, 10));
+  enviarPartida(partida);
+  store.del('ui_fmp_run');
+  var meritoLinha = '<div class="li" style="margin-top:8px;border-top:1px solid rgba(191,186,164,.25);padding-top:9px"><span>Ordem do Mérito</span><span>'
+    + esc(textoMerito(mer.m)) + (mer.delta ? ' <b style="color:' + (mer.delta > 0 ? 'var(--red)' : 'var(--fg3)') + '">(' + (mer.delta>0?'+':'') + mer.delta + ')</b>' : '') + '</span></div>';
+  var corpo;
+  if (venceu){
+    som.vitoria(); fxVitoria(placar.plena);
+    corpo = '<div class="tabela-pontos">'
+      + placar.comp.map(function(c){ return '<div class="li"><span>' + c[0] + '</span><span>' + (c[1]>=0?'+':'') + c[1] + '</span></div>'; }).join('')
+      + (placar.acordo ? '<div class="li"><span>Acordo (60% dos pontos)</span><span>×0,6</span></div>' : '')
+      + '<div class="total"><span>Total da semana</span><b>' + placar.total + '</b></div>'
+      + meritoLinha + '</div>';
+  } else {
+    som.derrota();
+    var razao = motivo === 'zero' ? 'A convicção chegou a zero.'
+      : motivo === 'desistencia' ? 'A defesa desistiu da pauta.'
+      : 'O prazo de pauta terminou com a convicção em ' + Math.round(B.p) + '.';
+    corpo = '<div class="txt">' + razao + ' A pauta da semana não admite embargos — a próxima abre na segunda-feira.</div>'
+      + '<div class="tabela-pontos">' + meritoLinha + '</div>';
+  }
+  modal({ escuro:true, travado:true, cru:true, html:
+    '<div class="sentenca">'
+    + '<svg class="simbolo" style="width:34px;height:34px' + (venceu ? '' : ';opacity:.6') + '" viewBox="0 0 100 100"><path fill="' + (venceu ? '#EE2A42' : '#BFBAA4') + '" d="M50 0 C54 28 72 46 100 50 C72 54 54 72 50 100 C46 72 28 54 0 50 C28 46 46 28 50 0 Z"/></svg>'
+    + '<div class="rotulo" style="margin-top:12px">Caso da semana · sentença</div>'
+    + '<h3>' + (venceu ? (placar.plena ? 'Convicção plena' : placar.acordo ? 'Acordo homologado' : 'Procedente') : 'Causa perdida') + '</h3>'
+    + (venceu ? '<div class="txt">Convicção final ' + Math.round(B.p) + ' / 100 · a mesma pauta valeu para toda a FMP.</div>' : '')
+    + corpo
+    + relatorioHTML(venceu)
+    + '<div class="modal-botoes" id="modalBotoes"></div></div>',
+    botoes: [{ t:'Ver a pauta da semana', fn:function(){ S = null; B = null; setTema(false); atualizarTitulo(); mostrarSemana(); } }]
+  });
 }
 
 function oporEmbargos(){
@@ -1861,11 +2179,13 @@ function proximoCaso(){
 function encerrarJornadaVitoria(){
   S.pontos += 500;
   S.vivo = false;
+  marcarJornadaFim(true);          // a jornada do semestre é única: o resultado transita em julgado
   registrarPartida(true);
   telaOver(true);
 }
 function encerrarJornadaDerrota(){
   S.vivo = false;
+  marcarJornadaFim(false);
   registrarPartida(false);
   telaOver(false);
 }
@@ -1873,9 +2193,10 @@ function telaOver(venceu){
   setTema(venceu ? !!JORNADA[JORNADA.length-1].dark : false);
   $('overRotulo').textContent = venceu ? 'Trânsito em julgado' : 'Fim da jornada';
   $('overTitulo').textContent = venceu ? 'Jornada vencida' : 'A jornada termina aqui';
-  $('overSub').textContent = venceu
+  $('overSub').textContent = (venceu
     ? 'Oito casos, três instâncias. A defesa prevaleceu na última instância.'
-    : 'Você venceu ' + S.detalhe.length + ' de 8 casos. O placar guarda o que ficou.';
+    : 'Você venceu ' + S.detalhe.length + ' de 8 casos. O resultado fica registrado.')
+    + ' A próxima jornada abre no próximo semestre — até lá, a pauta é semanal.';
   var h = '';
   S.detalhe.forEach(function(d){
     h += '<div class="li"><span>Caso ' + (d.caso+1) + ' · ' + esc(d.titulo).slice(0,42) + (d.titulo.length>42?'…':'') + '</span><span>+' + d.pts + '</span></div>';
@@ -1883,7 +2204,7 @@ function telaOver(venceu){
   if (S.iaPts) h += '<div class="li"><span>Sustentações de IA</span><span>+' + S.iaPts + '</span></div>';
   if (venceu) h += '<div class="li"><span>Vitória final</span><span>+500</span></div>';
   h += '<div class="total"><span>Total da jornada</span><b>' + S.pontos + '</b></div>';
-  var mer = aplicarMerito(venceu);
+  var mer = aplicarMerito('jornada', venceu, S.pontos, S.detalhe.length);
   h += '<div class="li" style="margin-top:8px;border-top:1px solid rgba(191,186,164,.25);padding-top:9px"><span>Ordem do Mérito</span><span>' + esc(textoMerito(mer.m)) + (mer.delta ? ' <b style="color:' + (mer.delta > 0 ? 'var(--red)' : 'var(--fg3)') + '">(' + (mer.delta>0?'+':'') + mer.delta + ')</b>' : '') + '</span></div>';
   $('overTabela').innerHTML = h;
   var sim = $('overSimbolo').querySelector('path');
@@ -1927,14 +2248,17 @@ function meritoAtual(){
   }
   return m;
 }
-function aplicarMerito(venceu){
+function aplicarMerito(tipo, venceu, pontos, casos){
   var m = meritoAtual();
   var delta;
-  if (venceu){
-    delta = 15 + Math.min(15, Math.round(S.pontos / 220));   // vitória: +15 a +30, escala pela qualidade
+  if (tipo === 'semana'){
+    // o motor semanal de PM: vitória +14 a +22 (escala pela pontuação do caso); derrota −6
+    if (venceu) delta = 14 + Math.min(8, Math.round((pontos || 0) / 60));
+    else delta = (m.div < DIV_PROTEGIDAS) ? 0 : -6;          // divisões de entrada não punem
   } else {
-    delta = -(14 - Math.min(10, S.detalhe.length * 2));      // derrota: −4 a −14; perder bem perde menos
-    if (m.div < DIV_PROTEGIDAS) delta = 0;                   // divisões de entrada não punem
+    // a jornada do semestre é o evento: vitória +60 a +80; derrota rende +3 por caso vencido
+    if (venceu) delta = Math.min(80, 60 + Math.round((pontos || 0) / 120));
+    else delta = Math.min(24, (casos || 0) * 3);
   }
   m.pm += delta;
   while (m.pm >= 100 && m.div < DIVISOES.length - 1){ m.pm -= 100; m.div++; }
@@ -1954,12 +2278,14 @@ function textoMerito(m){ return DIVISOES[m.div] + ' · ' + m.pm + ' PM'; }
 function pintarBatalha(inicial){
   if (!B) return;
   var d = B.dados, meta = B.meta;
+  var semana = S && S.modo === 'semana';
   $('cabInstancia').textContent = meta.inst;
-  $('cabCaso').textContent = 'Caso ' + (B.caso+1) + ' de 8';
+  $('cabCaso').textContent = semana ? 'Pauta da semana ' + semanaISO().sem : 'Caso ' + (B.caso+1) + ' de 8';
   $('cabTitulo').textContent = d.titulo;
   $('cabPartes').textContent = d.partes + ' · ' + d.area;
+  $('btnMenuBatalha').textContent = semana ? 'Pauta' : 'Jornada';
   var passos = $('cabPassos'); passos.innerHTML = '';
-  JORNADA.forEach(function(j, i){
+  if (!semana) JORNADA.forEach(function(j, i){
     var p = el('i', (i < B.caso ? 'feito' : (i === B.caso ? 'agora' : '')) + (j.boss ? ' chefe' : ''));
     passos.appendChild(p);
   });
@@ -2015,6 +2341,7 @@ function pintarBatalha(inicial){
   $('convNum').classList.toggle('plena', B.p >= 100);
   $('convMarca').style.left = B.p + '%';
   setBalanca(B.p);
+  pintarHUD(inicial);
 
   // a peça em pauta
   if (B.tese){
@@ -2219,6 +2546,51 @@ function mostrarFaseBanner(titulo){
   t.textContent = titulo;
   b.classList.remove('hidden');
   setTimeout(function(){ b.classList.add('hidden'); }, 950);
+}
+
+/* ---------- HUD compacto + deltas: o resultado de cada jogada sem subir a tela ---------- */
+var hudBalancaFora = false;   // a balança principal saiu do viewport (mobile)
+var uiUltimoP = null;         // última convicção pintada → gera o delta flutuante
+function pintarHUD(inicial){
+  if (!B) return;
+  var pAtual = Math.round(B.p);
+  $('hmConv').textContent = pAtual;
+  var num = $('hmConv');
+  if (num.classList){ num.classList.toggle('sobe', false); }
+  num.style.color = pAtual > 50 ? 'var(--red)' : '';
+  $('hmMarca').style.left = clamp(B.p, 2, 98) + '%';
+  $('hmCred').textContent = B.cred;
+  $('hmCred').style.color = B.cred >= 8 ? 'var(--red)' : (B.cred <= 3 ? '#B4763A' : '');
+  $('hmFase').textContent = (FASE_ROTULO[B.fase] || '—') + ' · ' + Math.min(B.rodada, B.prazo) + '/' + B.prazo;
+  var hud = $('hudMini');
+  if (hud.classList) hud.classList.toggle('on', hudBalancaFora && !B.demo);
+  if (!inicial && uiUltimoP != null && pAtual !== uiUltimoP) mostrarDelta(pAtual - uiUltimoP);
+  uiUltimoP = pAtual;
+}
+function mostrarDelta(delta){
+  if (!delta || typeof document === 'undefined' || !document.body || !document.body.appendChild) return;
+  var chip = el('span', 'delta-chip', (delta > 0 ? '+' : '−') + Math.abs(delta));
+  chip.style.color = delta > 0 ? 'var(--red)' : '#B4763A';
+  var hud = $('hudMini');
+  if (hud && hud.classList && hud.classList.contains('on')){
+    chip.style.left = '50%'; chip.style.top = '62px'; chip.style.fontSize = '25px';
+  } else {
+    var p = pontoBalanca();
+    chip.style.left = p.x + 'px'; chip.style.top = (p.y - 16) + 'px'; chip.style.fontSize = '26px';
+  }
+  document.body.appendChild(chip);
+  setTimeout(function(){ if (chip.parentNode) chip.parentNode.removeChild(chip); }, 1250);
+}
+function hudPreparar(){
+  if (typeof IntersectionObserver !== 'function' || typeof document === 'undefined') return;
+  var alvo = document.querySelector('.painel-balanca');
+  if (!alvo) return;
+  new IntersectionObserver(function(entradas){
+    hudBalancaFora = !entradas[0].isIntersecting;
+    var hud = $('hudMini');
+    var emBatalha = B && !B.demo && $('scr-battle') && !$('scr-battle').classList.contains('hidden');
+    if (hud && hud.classList) hud.classList.toggle('on', hudBalancaFora && !!emBatalha);
+  }, { threshold: 0.1 }).observe(alvo);
 }
 
 /* ---------- balança SVG + FX (loop único de rAF) ---------- */
@@ -2470,7 +2842,35 @@ function aplicarPerfilServidor(u){
 function entrarNoJogo(){
   atualizarTitulo();
   processarFila();
+  sincronizarProgresso();
   mostrar('scr-title');
+}
+
+/* o servidor é a memória entre aparelhos: jornada feita, semana jogada e rank */
+function sincronizarProgresso(){
+  if (!SERVIDOR.online || SERVIDOR.modo === 'local' || !SERVIDOR.autenticado) return;
+  fetchJSON(CONFIG.API_BASE + '/progresso?semana=' + encodeURIComponent(chaveSemana()), {}, 5000).then(function(d){
+    if (d && d.jornada && d.jornada.feita && !jornadaRegistro()){
+      store.set('ui_jornada', { temporada: CONFIG.SEMESTRE, aluno: chaveAluno(), fim: true,
+        venceu: !!d.jornada.venceu, pontos: d.jornada.pontos || 0, casos: d.jornada.casos || 0,
+        detalhe: null, quando: d.jornada.quando || '' });
+    }
+    if (d && d.semana && d.semana.feita && !semanaRegistro()){
+      store.set('ui_semana', { chave: chaveSemana(), aluno: chaveAluno(),
+        venceu: !!d.semana.venceu, pontos: d.semana.pontos || 0, quando: d.semana.quando || '' });
+    }
+    atualizarTitulo();
+  }).catch(function(){});
+  fetchJSON(CONFIG.API_BASE + '/rank', {}, 5000).then(function(d){
+    var r = d && d.rank;
+    if (!r) return;
+    var m = meritoAtual();
+    // adota o maior progresso entre o aparelho e o servidor
+    if (r.divisao > m.div || (r.divisao === m.div && r.pm > m.pm)){
+      store.set('ui_merito', { temporada: CONFIG.SEMESTRE, div: r.divisao, pm: r.pm });
+      atualizarTitulo();
+    }
+  }).catch(function(){});
 }
 function mostrarLogin(){
   var mock = $('loginMock');
@@ -2596,8 +2996,254 @@ function liPlacar(pos, nome, detalhe, pts){
   return li;
 }
 function textoPartida(p){
-  var m = p.modo === 'diario' ? 'caso do dia' : 'jornada livre';
+  if (p.modo === 'semana') return (p.venceu ? 'pauta vencida' : 'pauta perdida') + ' · caso da semana';
+  var m = p.modo === 'diario' ? 'caso do dia' : p.modo === 'livre' ? 'jornada livre' : 'jornada do semestre';
   return (p.venceu ? 'jornada vencida' : (p.casos + ' de 8 casos')) + ' · ' + m;
+}
+
+/* ============================================================
+   A antessala da jornada: os autos do semestre.
+   Uma jornada por aluno por semestre — a trajetória inteira à
+   vista, caso a caso, com o que já transitou em julgado.
+   ============================================================ */
+function mostrarJornada(){
+  setTema(false);
+  $('jorSem').textContent = CONFIG.SEMESTRE;
+  var reg = jornadaRegistro();
+  var r = runSalvo();
+  var emCurso = !reg && r && r.vivo !== false && r.modo !== 'semana';
+
+  // capa dos autos
+  var capa = $('jorCapa');
+  var carimbo, capaTit, capaMeta;
+  if (reg){
+    carimbo = '<span class="autos-carimbo fim">' + (reg.venceu ? 'trânsito em julgado' : 'arquivada') + '</span>';
+    capaTit = reg.venceu ? 'Jornada vencida' : 'Jornada encerrada';
+    capaMeta = (reg.venceu ? 'A defesa prevaleceu nas três instâncias. ' : 'A defesa venceu ' + reg.casos + ' de 8 casos. ')
+      + '<b style="color:var(--cream)">' + reg.pontos + ' pontos</b> registrados no placar e na Ordem do Mérito.';
+  } else if (emCurso){
+    carimbo = '<span class="autos-carimbo andamento">em andamento</span>';
+    capaTit = 'Autos nº ' + CONFIG.SEMESTRE.replace('-', '.') + '.' + (r.caso + 1);
+    capaMeta = 'Caso <b style="color:var(--cream)">' + (r.caso + 1) + ' de 8</b> · ' + r.pontos + ' pontos até aqui · embargos restantes: ' + r.embargos + '.';
+  } else {
+    carimbo = '<span class="autos-carimbo espera">aguarda distribuição</span>';
+    capaTit = 'Os autos do semestre';
+    capaMeta = 'Oito casos, três instâncias, <b style="color:var(--cream)">uma única jornada</b> em ' + esc(CONFIG.SEMESTRE) + '. Vitória ou derrota, o resultado transita em julgado.';
+  }
+  capa.innerHTML = carimbo
+    + '<div class="rotulo">' + esc(PERFIL.nome || 'Estudante') + ' · defesa</div>'
+    + '<h3>' + capaTit + '</h3>'
+    + '<div class="meta">' + capaMeta + '</div>';
+
+  // trajetória: as três instâncias, caso a caso
+  var traj = $('jorTrajeto'); traj.innerHTML = '';
+  var decididos = {};   // caso → pts (do run em curso ou do registro final)
+  ((emCurso && r.detalhe) || (reg && reg.detalhe) || []).forEach(function(d){ decididos[d.caso] = d; });
+  // numa jornada linear, perde-se exatamente o caso seguinte ao último vencido
+  var perdidoIdx = (reg && !reg.venceu) ? reg.casos : -1;
+  var instAnt = null;
+  JORNADA.forEach(function(meta, i){
+    if (meta.inst !== instAnt){
+      instAnt = meta.inst;
+      traj.appendChild(el('div', 'instancia-rot', esc(meta.inst)));
+    }
+    var venc = decididos[i];
+    if (!venc && reg && !reg.detalhe && i < reg.casos) venc = { titulo: 'Sentença favorável', pts: null };  // registro do servidor, sem detalhe
+    var atual = emCurso && i === r.caso;
+    var perdido = !venc && ((emCurso && i < r.caso) || i === perdidoIdx);
+    var cls = 'no-caso' + (meta.boss || meta.plenario ? ' chefe' : '')
+      + (venc ? ' vencido' : atual ? ' atual' : (perdido ? ' perdido' : ' futuro'))
+      + (i === JORNADA.length - 1 ? ' ult' : '');
+    var titulo, dica;
+    var formato = meta.plenario ? 'Plenário do STF · 8 rodadas' : meta.boss ? 'Caso-chefe · 7 rodadas' : 'Caso comum · 5 rodadas';
+    if (venc){ titulo = venc.titulo; dica = 'sentença favorável'; }
+    else if (atual){ titulo = (r.casoDados && r.casoDados.titulo) || 'Caso em pauta'; dica = 'em pauta agora'; }
+    else if (perdido){ titulo = 'Causa perdida'; dica = 'a jornada terminou aqui'; }
+    else if (reg){ titulo = 'Não chegou à pauta'; dica = formato; }
+    else { titulo = 'Aguarda distribuição'; dica = formato; }
+    var selo = venc ? '<span class="selo-caso v">vencido</span>' : (perdido ? '<span class="selo-caso p">perdido</span>' : '');
+    var no = el('div', cls,
+      '<span class="ponto"><span>' + (i + 1) + '</span></span>'
+      + '<div class="info"><div class="t">' + esc(titulo) + selo + '</div><div class="d">' + esc(dica) + '</div></div>'
+      + (venc && venc.pts != null ? '<span class="pts-caso">+' + venc.pts + '</span>' : ''));
+    traj.appendChild(no);
+  });
+
+  // ações e nota
+  var ac = $('jorAcoes'); ac.innerHTML = '';
+  var nota = $('jorNota');
+  if (reg){
+    var btnM = el('button', 'btn', 'Ver a Ordem do Mérito');
+    btnM.addEventListener('click', mostrarMerito);
+    ac.appendChild(btnM);
+    nota.textContent = 'A jornada de ' + CONFIG.SEMESTRE + ' está encerrada. A próxima abre na virada do semestre — enquanto isso, o caso da semana mantém a sua Ordem do Mérito viva.';
+  } else if (emCurso){
+    var btnC = el('button', 'btn btn-lg', 'Retomar — caso ' + (r.caso + 1) + ' de 8');
+    btnC.addEventListener('click', continuarJornada);
+    ac.appendChild(btnC);
+    nota.textContent = 'A jornada é única no semestre. Abandonar arquiva o processo com o resultado atual — jogue cada caso como se fosse o último.';
+  } else {
+    var btnI = el('button', 'btn btn-lg', 'Abrir os autos');
+    btnI.addEventListener('click', confirmarJornada);
+    ac.appendChild(btnI);
+    nota.textContent = 'Você tem uma única jornada em ' + CONFIG.SEMESTRE + '. Ela pode ser jogada aos poucos — o progresso fica salvo entre um caso e outro.';
+  }
+  mostrar('scr-jornada');
+}
+function confirmarJornada(){
+  modal({ titulo: 'Abrir os autos do semestre?',
+    html: 'Esta é a sua <b>única jornada</b> em ' + esc(CONFIG.SEMESTRE) + ': oito casos, do Foro Central ao STF. '
+      + 'O progresso fica salvo entre os casos, mas a sentença final — vitória ou derrota — <b>transita em julgado</b> e vale para a Ordem do Mérito e o placar.',
+    botoes: [
+      { t: 'Abrir os autos', fn: function(){ novaJornada('semestre'); } },
+      { t: 'Ainda não', ghost: true }
+    ]});
+}
+
+/* ============================================================
+   A antessala da semana: o edital da pauta.
+   Um caso por semana, com a mesma seed para toda a FMP — mesmo
+   caso, mesmo julgador fictício, mesmo material de apoio.
+   ============================================================ */
+function mostrarSemana(){
+  setTema(false);
+  var info = infoSemana();
+  var reg = semanaRegistro();
+  var r = runSalvo();
+  var emCurso = !reg && r && r.modo === 'semana' && r.vivo !== false;
+  var meta = JORNADA[info.idx];
+  var dados = sortearCasoCom(info.seed, info.idx, JUIZES_FALLBACK);
+  var juiz = JUIZES[dados.juiz];
+  var opon = OPONENTES[meta.opon];
+  var missao = missaoSemana(info);
+  var apoio = reforcosSemana(info).map(function(id){ return CARTAS[id].nome; });
+  var dias = diasAteDomingo();
+  var prazoTxt = reg ? 'nova pauta na segunda-feira'
+    : dias === 0 ? 'encerra hoje, domingo' : 'encerra domingo · ' + (dias === 1 ? 'falta 1 dia' : 'faltam ' + dias + ' dias');
+
+  var selo = reg
+    ? (reg.venceu ? '<span class="ed-selo vit">sustentada · vitória</span>' : '<span class="ed-selo der">sustentada · derrota</span>')
+    : '<span class="ed-selo aberta">pauta aberta</span>';
+
+  var linhas = [
+    ['Instância', esc(meta.inst) + (meta.boss ? ' · <b>caso-chefe</b>' : '')],
+    ['Processo', '<b>' + esc(dados.titulo) + '</b><br><span style="font-size:11.5px;color:var(--fg3)">' + esc(dados.partes) + '</span>'],
+    ['Matéria', esc(dados.area)],
+    ['Julgador', '<b>' + esc(juiz.nome) + '</b> · ' + esc(juiz.perfil)],
+    ['Parte adversa', esc(opon.nome)],
+    ['Rito', (meta.prazo) + ' rodadas · ' + meta.instrucao + ' de instrução, ' + meta.delib + ' de deliberação'],
+    ['Material de apoio', apoio.map(function(n){ return esc(n); }).join(' · ') + '<br><span style="font-size:11px;color:var(--fg3)">cartas extras desta semana, já no baralho</span>'],
+    ['Missão', esc(missao.desc) + ' (+25)']
+  ];
+  if (reg) linhas.push(['Resultado', (reg.venceu ? '<b style="color:var(--red)">Sentença favorável</b> · ' + reg.pontos + ' pontos' : 'Causa perdida') + ' — registrado na Ordem do Mérito']);
+
+  $('edital').innerHTML = selo
+    + '<div class="ed-cab"><span class="dj serif">Pauta <em>da semana</em></span><span class="num">Semana ' + info.sem + ' · ' + info.ano + ' · FMP</span></div>'
+    + '<div class="ed-corpo">'
+    + linhas.map(function(l){ return '<div class="ed-linha"><span class="r">' + l[0] + '</span><span class="v">' + l[1] + '</span></div>'; }).join('')
+    + '<div style="margin-top:13px"><span class="ed-prazo' + (reg ? ' fim' : '') + '">' + prazoTxt + '</span></div>'
+    + '</div>';
+
+  var ac = $('semAcoes'); ac.innerHTML = '';
+  var nota = $('semNota');
+  if (reg){
+    var btnP = el('button', 'btn-ghost', 'Ver o placar');
+    btnP.addEventListener('click', function(){ verPlacar('aparelho'); });
+    ac.appendChild(btnP);
+    nota.textContent = 'Uma sustentação por semana — a sua já está nos autos. Toda a FMP enfrenta esta mesma pauta até domingo.';
+  } else if (emCurso){
+    var btnR = el('button', 'btn btn-lg', 'Retomar a sustentação');
+    btnR.addEventListener('click', continuarJornada);
+    ac.appendChild(btnR);
+    nota.textContent = 'A sua sustentação desta semana está em andamento.';
+  } else {
+    var btnS = el('button', 'btn btn-lg', 'Sustentar o caso da semana');
+    btnS.addEventListener('click', confirmarSemana);
+    ac.appendChild(btnS);
+    nota.textContent = 'Um caso, uma tentativa, sem embargos. A mesma pauta vale para toda a FMP — o que muda é a leitura de cada defesa.';
+  }
+  mostrar('scr-semana');
+}
+function confirmarSemana(){
+  modal({ titulo: 'Sustentar a pauta da semana?',
+    html: 'É <b>uma sustentação por semana</b>, sem embargos: a sentença — vitória ou derrota — vale para a Ordem do Mérito. Leia o edital antes de subir à tribuna.',
+    botoes: [
+      { t: 'Subir à tribuna', fn: function(){ novaJornada('semana'); } },
+      { t: 'Reler o edital', ghost: true }
+    ]});
+}
+
+/* ============================================================
+   Ordem do Mérito — a escada inteira à vista: onde o aluno está
+   e até onde dá para chegar, do Calouro à Cátedra.
+   ============================================================ */
+var DIV_GRUPOS = [
+  { ate: 0, rot: 'Ingresso' }, { ate: 3, rot: 'Graduação' }, { ate: 4, rot: 'Grau' },
+  { ate: 6, rot: 'Especialização' }, { ate: 8, rot: 'Mestrado' }, { ate: 10, rot: 'Doutorado' },
+  { ate: 11, rot: 'Docência' }, { ate: 12, rot: 'Cátedra' }
+];
+function grupoDe(div){ for (var i = 0; i < DIV_GRUPOS.length; i++){ if (div <= DIV_GRUPOS[i].ate) return DIV_GRUPOS[i].rot; } return ''; }
+function emblemaClasse(div){ return div <= 3 ? 'e-entrada' : div <= 6 ? 'e-media' : div <= 10 ? 'e-alta' : 'e-topo'; }
+function emblemaSVG(div){
+  // um glifo por grupo acadêmico; II/I ganham marcas de grau (pips)
+  var g = '', pips = 0;
+  if (div === 0){          // Calouro: o livro aberto
+    g = '<path d="M8 14 Q17 10 24 14 Q31 10 40 14 V34 Q31 30 24 34 Q17 30 8 34 Z"/><line x1="24" y1="14" x2="24" y2="34"/>';
+  } else if (div <= 3){    // Bacharelando III/II/I: divisas
+    var n = div, base = 31;
+    for (var k = 0; k < n; k++){ var y = base - k * 8; g += '<path d="M14 ' + y + ' L24 ' + (y - 7) + ' L34 ' + y + '"/>'; }
+  } else if (div === 4){   // Bacharel: o diploma selado
+    g = '<rect x="10" y="12" width="26" height="20" rx="2"/><line x1="15" y1="19" x2="31" y2="19"/><line x1="15" y1="24" x2="27" y2="24"/><circle cx="31" cy="32" r="4.5"/><path d="M29 36 L27 43 M33 36 L35 43"/>';
+  } else if (div <= 6){    // Especialista II/I: a pena
+    g = '<path d="M34 8 Q19 13 15 30 Q26 28 32 15 Q34 11 34 8 Z"/><line x1="15" y1="30" x2="11" y2="39"/><line x1="20" y1="24" x2="27" y2="17"/>';
+    pips = div - 4;
+  } else if (div <= 8){    // Mestre II/I: a balança
+    g = '<line x1="24" y1="8" x2="24" y2="34"/><line x1="11" y1="13" x2="37" y2="13"/><path d="M6.5 23 a4.5 3.4 0 0 0 9 0 Z M11 13 L6.5 23 M11 13 L15.5 23"/><path d="M32.5 23 a4.5 3.4 0 0 0 9 0 Z M37 13 L32.5 23 M37 13 L41.5 23"/><line x1="17" y1="38" x2="31" y2="38"/>';
+    pips = div - 6;
+  } else if (div <= 10){   // Doutor II/I: o capelo
+    g = '<path d="M6 19 L24 11 L42 19 L24 27 Z"/><path d="M14 23 v7 q10 5.5 20 0 v-7"/><line x1="38" y1="20" x2="38" y2="30"/><circle cx="38" cy="32" r="1.6"/>';
+    pips = div - 8;
+  } else if (div === 11){  // Livre-docente: a tribuna
+    g = '<line x1="12" y1="39" x2="36" y2="39"/><line x1="15" y1="35" x2="33" y2="35"/><rect x="15" y="9" width="18" height="5" rx="1.5"/><line x1="18" y1="17" x2="18" y2="32" /><line x1="24" y1="17" x2="24" y2="32"/><line x1="30" y1="17" x2="30" y2="32"/>';
+  } else {                 // Catedrático: a estrela da FMP laureada
+    g = '<path fill="currentColor" stroke="none" d="M24 5 C26 18 31 23 43 25 C31 27 26 32 24 45 C22 32 17 27 5 25 C17 23 22 18 24 5 Z"/><path d="M9 36 Q4 27 9 15 M39 36 Q44 27 39 15"/>';
+  }
+  var pipsSVG = '';
+  for (var p = 0; p < pips; p++){
+    pipsSVG += '<circle cx="' + (24 - (pips - 1) * 4 + p * 8) + '" cy="44" r="2" fill="currentColor" stroke="none"/>';
+  }
+  return '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' + g + '</g>' + pipsSVG + '</svg>';
+}
+function mostrarMerito(){
+  setTema(false);
+  var m = meritoAtual();
+  $('merSem').textContent = CONFIG.SEMESTRE;
+  var topo = m.div >= DIVISOES.length - 1;
+  $('merAtual').innerHTML =
+    '<div class="emb-grande ' + emblemaClasse(m.div) + '">' + emblemaSVG(m.div) + '</div>'
+    + '<div style="flex:1;min-width:0">'
+    + '<div class="rotulo">' + esc(PERFIL.nome || 'Estudante') + ' · sua divisão</div>'
+    + '<h3>' + DIVISOES[m.div] + '</h3>'
+    + '<div class="tempo">' + grupoDe(m.div) + ' · temporada ' + esc(CONFIG.SEMESTRE) + '</div>'
+    + '<div class="mer-barra"><i style="width:' + clamp(m.pm, 0, 100) + '%"></i></div>'
+    + '<div class="mer-barra-txt">' + (topo ? m.pm + ' PM — o topo da Ordem' : m.pm + ' / 100 PM para ' + DIVISOES[m.div + 1]) + '</div>'
+    + '</div>';
+  var esa = $('merEscada'); esa.innerHTML = '';
+  for (var d = DIVISOES.length - 1; d >= 0; d--){
+    var cls = 'degrau ' + (d === m.div ? 'aqui' : d > m.div ? 'futuro' : 'passado');
+    var row = el('div', cls,
+      '<span class="emb ' + emblemaClasse(d) + '">' + emblemaSVG(d) + '</span>'
+      + '<span class="nm">' + DIVISOES[d] + '</span>'
+      + (d === m.div ? '<span class="voce-chip">você</span>' : '')
+      + '<span class="grupo">' + grupoDe(d) + '</span>');
+    esa.appendChild(row);
+  }
+  $('merRegras').innerHTML =
+    '<b>Caso da semana</b> — vitória +14 a +22 PM (escala pela pontuação); derrota −6. É o motor semanal da Ordem.<br>'
+    + '<b>Jornada do semestre</b> — o grande evento, único: vitória +60 a +80 PM; derrota rende +3 por caso vencido.<br>'
+    + '<b>100 PM</b> sobem uma divisão. Até <b>Bacharelando I</b> não se perde PM (divisões de entrada).<br>'
+    + '<b>Virada de semestre</b> — nova temporada: desce-se uma divisão e o PM zera. A cátedra se conquista de novo.';
+  mostrar('scr-merito');
 }
 
 /* ---------- sustentação com juiz de IA (casos-chefe) ---------- */
@@ -2667,14 +3313,27 @@ function setTema(darkDoContexto){
 
 /* ---------- telas auxiliares ---------- */
 function atualizarTitulo(){
-  var r = store.get('ui_fmp_run', null);
-  var btn = $('btnContinuar');
-  if (r && r.vivo !== false){
-    btn.classList.remove('hidden');
-    btn.textContent = 'Continuar jornada — caso ' + (r.caso+1) + ' de 8';
-  } else btn.classList.add('hidden');
-  var _m = meritoAtual();
-  $('verTxt').textContent = 'v' + CONFIG.VERSAO + ' · ' + CONFIG.SEMESTRE + (PERFIL.nome ? ' · ' + PERFIL.nome : '') + ' · ' + textoMerito(_m);
+  var m = meritoAtual();
+  // jornada do semestre: o botão conta o estado
+  var reg = jornadaRegistro();
+  var r = runSalvo();
+  var emCurso = !reg && r && r.vivo !== false && r.modo !== 'semana';
+  var bj = $('btnJornadaSub');
+  if (reg) bj.textContent = reg.venceu ? 'concluída — jornada vencida' : 'concluída — ' + reg.casos + ' de 8 casos';
+  else if (emCurso) bj.textContent = 'em andamento — caso ' + (r.caso + 1) + ' de 8';
+  else bj.textContent = 'única · oito casos · três instâncias';
+  var btnJ = $('btnJornada'); if (btnJ.classList) btnJ.classList.toggle('feito', !!reg);
+  // caso da semana
+  var sr = semanaRegistro();
+  var w = semanaISO();
+  var bs = $('btnSemanaSub');
+  var dias = diasAteDomingo();
+  bs.textContent = sr
+    ? 'semana ' + w.sem + ' sustentada — ' + (sr.venceu ? 'vitória' : 'derrota')
+    : 'semana ' + w.sem + ' · ' + (dias === 0 ? 'encerra hoje' : 'encerra domingo');
+  var btnS = $('btnSemana'); if (btnS.classList) btnS.classList.toggle('feito', !!sr);
+  $('btnMerito').textContent = 'Ordem do Mérito — ' + DIVISOES[m.div];
+  $('verTxt').textContent = 'v' + CONFIG.VERSAO + ' · ' + CONFIG.SEMESTRE + (PERFIL.nome ? ' · ' + PERFIL.nome : '') + ' · ' + textoMerito(m);
 }
 
 function abrirConfig(){
@@ -2697,23 +3356,14 @@ function abrirConfig(){
   mostrar('scr-config');
 }
 
-function confirmarNova(modo){
-  var r = store.get('ui_fmp_run', null);
-  if (r && r.vivo !== false){
-    modal({ titulo:'Abandonar a jornada salva?',
-      html:'Há uma jornada em andamento no caso ' + (r.caso+1) + ' de 8. Começar outra apaga esse progresso.',
-      botoes:[
-        { t:'Começar mesmo assim', fn:function(){ novaJornada(modo); } },
-        { t:'Voltar', ghost:true }
-      ]});
-  } else novaJornada(modo);
-}
-
 /* ---------- boot ---------- */
 function ligarEventos(){
-  $('btnLivre').addEventListener('click', function(){ confirmarNova('livre'); });
-  $('btnDiario').addEventListener('click', function(){ confirmarNova('diario'); });
-  $('btnContinuar').addEventListener('click', continuarJornada);
+  $('btnJornada').addEventListener('click', mostrarJornada);
+  $('btnSemana').addEventListener('click', mostrarSemana);
+  $('btnMerito').addEventListener('click', mostrarMerito);
+  $('jornadaVolta').addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
+  $('semanaVolta').addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
+  $('meritoVolta').addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
   $('btnPlacar').addEventListener('click', function(){ verPlacar('aparelho'); });
   $('btnDemo').addEventListener('click', verDemo);
   $('btnConfig').addEventListener('click', abrirConfig);
@@ -2728,13 +3378,23 @@ function ligarEventos(){
   });
   $('prepObjecao').addEventListener('click', function(){ gastarPreparo('objecao'); });
   $('btnMenuBatalha').addEventListener('click', function(){
-    modal({ titulo:'Jornada', html:'Caso ' + (B.caso+1) + ' de 8 · ' + esc(B.meta.inst) + '<br>Pontos até aqui: <b>' + S.pontos + '</b> · embargos restantes: ' + S.embargos,
+    var semana = S && S.modo === 'semana';
+    modal({ titulo: semana ? 'Caso da semana' : 'Jornada do semestre',
+      html: (semana
+        ? 'Pauta da semana ' + semanaISO().sem + ' · ' + esc(B.meta.inst) + '<br>Uma sustentação, sem embargos.'
+        : 'Caso ' + (B.caso+1) + ' de 8 · ' + esc(B.meta.inst) + '<br>Pontos até aqui: <b>' + S.pontos + '</b> · embargos restantes: ' + S.embargos),
       botoes:[
         { t:'Voltar ao caso', ghost:true },
         { t:'Ver baralho e relíquias', ghost:true, fn: verPilhas },
-        { t:'Abandonar a jornada', fn:function(){
-            modal({ titulo:'Abandonar a jornada?', html:'O progresso desta jornada será apagado. O placar guarda apenas jornadas encerradas.',
-              botoes:[ { t:'Abandonar', fn:function(){ S=null; B=null; store.del('ui_fmp_run'); setTema(false); atualizarTitulo(); mostrar('scr-title'); } },
+        { t: semana ? 'Desistir da pauta' : 'Arquivar a jornada', fn:function(){
+            modal({ titulo: semana ? 'Desistir da pauta da semana?' : 'Arquivar a jornada do semestre?',
+              html: semana
+                ? 'A sustentação é <b>uma por semana</b>: desistir registra a derrota desta pauta na Ordem do Mérito. A próxima abre na segunda-feira.'
+                : 'A jornada é <b>única no semestre</b>: arquivar registra o resultado atual (' + S.detalhe.length + ' de 8 casos) <b>em definitivo</b>, no placar e na Ordem do Mérito.',
+              botoes:[ { t: semana ? 'Desistir mesmo assim' : 'Arquivar em definitivo', fn:function(){
+                          if (semana) finalizarSemana(false, 'desistencia');
+                          else encerrarJornadaDerrota();
+                        } },
                        { t:'Continuar jogando', ghost:true } ] });
           } }
       ]});
@@ -2747,7 +3407,7 @@ function ligarEventos(){
     b.addEventListener('click', function(){ verPlacar(b.getAttribute('data-aba')); });
   });
 
-  $('overNova').addEventListener('click', function(){ setTema(false); novaJornada(S && S.modo === 'diario' ? 'diario' : 'livre'); });
+  $('overNova').addEventListener('click', function(){ S=null; B=null; setTema(false); mostrarMerito(); });
   $('overPlacar').addEventListener('click', function(){ verPlacar('aparelho'); });
   $('overTitle').addEventListener('click', function(){ S=null; B=null; setTema(false); atualizarTitulo(); mostrar('scr-title'); });
 
@@ -2772,7 +3432,7 @@ function ligarEventos(){
   $('cfgDemo').addEventListener('click', verDemo);
   $('cfgApagar').addEventListener('click', function(){
     modal({ titulo:'Apagar os dados deste aparelho?', html:'Placar local, jornada salva, preferências e identificação serão removidos. Essa ação não desfaz.',
-      botoes:[ { t:'Apagar tudo', fn:function(){ ['ui_fmp_run','ui_fmp_placar','ui_perfil','ui_fila','ui_demo_vista','ui_mudo','ui_tema','ui_vibra','ui_merito'].forEach(store.del); PERFIL={nome:'',ra:'',sem:'',token:''}; TEMA='auto'; VIBRA=true; mudo=false; setTema(false); atualizarTitulo(); mostrar('scr-title'); } },
+      botoes:[ { t:'Apagar tudo', fn:function(){ ['ui_fmp_run','ui_fmp_placar','ui_perfil','ui_fila','ui_demo_vista','ui_mudo','ui_tema','ui_vibra','ui_merito','ui_jornada','ui_semana'].forEach(store.del); PERFIL={nome:'',ra:'',sem:'',token:''}; TEMA='auto'; VIBRA=true; mudo=false; setTema(false); atualizarTitulo(); mostrar('scr-title'); } },
                { t:'Manter', ghost:true } ]});
   });
 
@@ -2797,6 +3457,7 @@ function mascaraCPF(v){
 function boot(){
   ligarEventos();
   fxPreparar();
+  hudPreparar();
   setTema(false);
   if (typeof requestAnimationFrame === 'function') requestAnimationFrame(loopFX);
   iniciarSessao();
@@ -2818,6 +3479,8 @@ if (typeof window !== 'undefined'){
     gastarPreparo:gastarPreparo, reconsiderar:reconsiderar, aceitarAcordo:aceitarAcordo, recusarAcordo:recusarAcordo,
     movimentoAtual:movimentoAtual, faseDaRodada:faseDaRodada, missaoCumprida:missaoCumprida, pontuarCaso:pontuarCaso,
     TESES:TESES, TEMA_ROTULO:TEMA_ROTULO, MISSOES:MISSOES, estado:function(){ return { S:S, B:B }; },
+    infoSemana:infoSemana, semanaISO:semanaISO, aplicarMerito:aplicarMerito, DIVISOES:DIVISOES,
+    mostrarJornada:mostrarJornada, mostrarSemana:mostrarSemana, mostrarMerito:mostrarMerito, emblemaSVG:emblemaSVG,
     setS:function(v){ S=v; }, setB:function(v){ B=v; }
   };
 }

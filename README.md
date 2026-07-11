@@ -2,7 +2,9 @@
 
 O jogo de cartas da FMP — Fundação Escola Superior do Ministério Público. O aluno é a defesa em uma jornada de 8 casos fictícios, do Foro Central de Porto Alegre ao STF, empurrando a **balança da convicção** com argumentos jurídicos reais.
 
-A cada rodada a parte adversa **protocola uma tese** (com a palavra-chave sublinhada) e o aluno joga o **argumento que a refuta** — não a carta de maior número. Errar o tema custa **credibilidade**; com ela zerada, o juiz indefere de plano. O caso segue o rito (instrução → sustentação → deliberação), com linha argumentativa, preparo, viradas, missões e acordo. É um roguelike de deck-building com o Direito como matéria-prima — rápido de entender, difícil de dominar (calibrado por simulação: bot aleatório vence 20% das jornadas; tático, 83%). A progressão competitiva é a **Ordem do Mérito** (de Calouro a Catedrático), por semestre letivo. O design completo está em `GAME-DESIGN.md` e o racional do redesign em `REDESIGN.md`.
+A cada rodada a parte adversa **protocola uma tese** (com a palavra-chave sublinhada) e o aluno joga o **argumento que a refuta** — não a carta de maior número. Errar o tema custa **credibilidade**; com ela zerada, o juiz indefere de plano. O caso segue o rito (instrução → sustentação → deliberação), com linha argumentativa, preparo, viradas, missões e acordo. É um roguelike de deck-building com o Direito como matéria-prima — rápido de entender, difícil de dominar (calibrado por simulação: bot aleatório vence 20% das jornadas; tático, 83%).
+
+Dois modos, cada um com a sua tela: a **Jornada do semestre** (única por aluno — 8 casos cuja sentença final transita em julgado, antessala em forma de autos com a trajetória caso a caso) e o **Caso da semana** (uma sustentação por semana, a mesma pauta seeded para toda a FMP, antessala em forma de edital com prazo até domingo). A progressão competitiva é a **Ordem do Mérito** (de Calouro a Catedrático, com a escada e os emblemas das 13 divisões em tela própria), por semestre letivo. O design completo está em `GAME-DESIGN.md` e o racional do redesign em `REDESIGN.md`.
 
 ## Arquitetura
 
@@ -49,11 +51,11 @@ Copie `.env.example` para `.env` (ou configure no EasyPanel). Principais:
 
 ## Banco de dados
 
-`db/schema.sql` cria três tabelas:
+`db/schema.sql` cria quatro tabelas:
 
 - **`usuarios`** — `cpf`, `data_nascimento`, `nome` (+ `ra`, `curso`, `semestre`, `ativo`). Login.
 - **`disciplinas`** — `nome`, `professor` (+ `area_do_direito`, `perfil_julgador`, `foto_professor_url`, `semestre`). Cada disciplina vira um **julgador real**, com o professor no lugar do juiz e a foto no avatar, casado com a área do caso.
-- **`partidas`** — o placar persistido (as três abas: aparelho, semestre e hall de campeões).
+- **`partidas`** — o placar persistido (as três abas) e também a **memória de progresso**: `modo` distingue `semestre` (a jornada única) de `semana` (a pauta semanal, com `seed` `semana-AAAA-SNN`) — é dela que `GET /api/progresso` deduz o que o aluno já jogou, em qualquer aparelho.
 - **`rank_alunos`** — a Ordem do Mérito (divisão competitiva + pontos de mérito, por temporada/semestre).
 
 ## Deploy (Docker / EasyPanel)

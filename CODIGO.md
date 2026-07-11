@@ -17,7 +17,7 @@ A partir da v3 o projeto tem **duas metades**: o jogo (frontend estático, um s�
 
 ## Backend (`server/`)
 
-- **Rotas** (`index.js`): `POST /api/login` `{cpf, nascimento}`, `POST /api/logout`, `GET /api/session` (perfil + modo banco/mock), `GET /api/disciplinas` (auth), `GET /api/placar?aba=&sem=` (auth), `POST /api/partidas` (auth; a identidade vem da sessão, nunca do corpo), `GET|POST /api/rank` (Ordem do Mérito), `GET /api/saude`. Há um limitador simples de tentativas de login por IP.
+- **Rotas** (`index.js`): `POST /api/login` `{cpf, nascimento}`, `POST /api/logout`, `GET /api/session` (perfil + modo banco/mock), `GET /api/disciplinas` (auth), `GET /api/placar?aba=&sem=` (auth), `POST /api/partidas` (auth; a identidade vem da sessão, nunca do corpo; `modo` ∈ semestre/semana/livre/diario), `GET /api/progresso?semana=` (auth; jornada do semestre feita + pauta da semana sustentada — a memória entre aparelhos, lida da própria tabela de partidas), `GET|POST /api/rank` (Ordem do Mérito), `GET /api/saude`. Há um limitador simples de tentativas de login por IP.
 - **Dados** (`db.js`): a conexão sai de `DATABASE_URL` ou `PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE`. Sem nada disso, `hasDB=false` e todas as funções caem no mock. `autenticar()` compara CPF (só números) e `data_nascimento`. **É o único ponto de verificação de senha** — para trocar por hash no futuro, mexe-se só aqui. Nomes de tabela vêm de env (`TABELA_*`) e passam por um validador de identificador (anti-injeção).
 - **Sessão** (`auth.js`): JWT assinado por `SESSION_SECRET`/`JWT_SECRET` (ou efêmero em dev), cookie httpOnly `ui_sessao`, `secure` quando `NODE_ENV=production`.
 
@@ -27,12 +27,19 @@ A partir da v3 o projeto tem **duas metades**: o jogo (frontend estático, um s�
 |---|---|
 | `CONFIG` | versão, semestre, `API_BASE` (`/api`), `PORTAL_URL`. |
 | `SERVIDOR` | `{online, modo, autenticado}` — preenchido por `GET /api/session` no boot. `online:false` = modo local (arquivo estático). |
-| `S` | a jornada (run): deck, relíquias, caso atual (0-7), pontos, embargos, modo diário, bônus inicial, fase. |
+| `S` | a run: deck, relíquias, caso atual (0-7), pontos, embargos, bônus inicial, fase e **`modo`** — `semestre` (a jornada única do semestre), `semana` (um caso só, seed da semana ISO, sem embargos, julgadores fictícios para todos) ou `livre`/`diario` (legados; o harness usa `livre`). |
 | `B` | a batalha: convicção `p`, **`fase`** (instrução/sustentação/deliberação), **`cred`** (credibilidade 0-10), **`prep`** (preparo 0-5), **`linha`** (bandeja fundamento/prova/arremate), **`tese`/`teseProxima`** (com `chave` e `direta`), `ensaiadas`, `missao`, `stats` (para a pontuação), statuses (`quest/questTipo`, `dobra`, `negate`, `viradaProva`, `acordo*`), julgador, oponente, `vogaIdx`, flag `demo`. |
 | `PERFIL` | identidade do aluno: `{nome, ra, sem, cpf}` — vem da sessão (banco) ou do formulário (local). |
 | `JUIZES_COMUNS` | ids dos julgadores em rotação. Recebe os **juízes reais** (disciplinas do banco) quando há sessão; senão, os fictícios de `JUIZES_FALLBACK`. |
 
-Chaves de `localStorage`: `ui_fmp_run` (save), `ui_fmp_placar` (top 10 local), `ui_perfil`, `ui_fila` (partidas aguardando API), `ui_demo_vista`, `ui_mudo`, `ui_tema`, `ui_vibra`.
+Chaves de `localStorage`: `ui_fmp_run` (save), `ui_fmp_placar` (top 10 local), `ui_perfil`, `ui_fila` (partidas aguardando API), `ui_merito` (divisão + PM), **`ui_jornada`** (a jornada única do semestre: fim/venceu/detalhe, por aluno+temporada), **`ui_semana`** (a pauta sustentada: por aluno+chave `AAAA-SNN`), `ui_demo_vista`, `ui_mudo`, `ui_tema`, `ui_vibra`. No login, `sincronizarProgresso()` funde o estado local com `GET /api/progresso` e `GET /api/rank` (anti troca de aparelho).
+
+## Modos e telas novas (v4.1)
+
+- **Jornada do semestre** (`novaJornada('semestre')`): única por aluno/temporada — o gate fica na antessala `#scr-jornada` (`mostrarJornada`), que desenha a capa dos autos + trajetória dos 8 casos e só oferece “Abrir os autos” quando não há registro em `ui_jornada`. `encerrarJornadaVitoria/Derrota` chamam `marcarJornadaFim`; “Arquivar a jornada” no menu de batalha = derrota definitiva.
+- **Caso da semana** (`novaJornada('semana')`): `infoSemana()` deriva da semana ISO a chave, o índice no `SEMANA_CICLO` (0-5) e a seed; `reforcosSemana()` soma 2-4 cartas seeded ao deck inicial; `sortearCaso` usa `JUIZES_FALLBACK` (a mesma mesa para todos). `finalizarCaso` desvia para `finalizarSemana` (sentença própria, `aplicarMerito('semana',…)`, `marcarSemana`, partida `modo:'semana'` com `seed:'semana-AAAA-SNN'`). Antessala `#scr-semana` (`mostrarSemana`) — o edital com prazo até domingo. Um save de `semana` de outra chave é descartado por `runSalvo()`.
+- **Ordem do Mérito** (`#scr-merito`, `mostrarMerito`): emblema atual + barra de PM + escada das 13 divisões (`emblemaSVG(div)` desenha os glifos; `DIV_GRUPOS`/`grupoDe` rotulam os grupos). Economia em `aplicarMerito(tipo, venceu, pontos, casos)`.
+- **HUD mobile** (`#hudMini` + `pintarHUD`/`mostrarDelta`/`hudPreparar`): IntersectionObserver na `.painel-balanca`; quando ela sai do viewport em batalha, o HUD fixa no topo e cada variação da balança vira um `.delta-chip` flutuante. Só aparece <900 px.
 
 ## Núcleo didático: tese e réplica (onde editar)
 

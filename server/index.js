@@ -96,6 +96,15 @@ app.get('/api/placar', auth.exigir, async function (req, res) {
   res.json({ itens: itens });
 });
 
+app.get('/api/progresso', auth.exigir, async function (req, res) {
+  // a jornada do semestre é única e a pauta da semana é uma só — este endpoint
+  // é a memória entre aparelhos (o front funde com o estado local)
+  var sem = req.usuario.semestre || SEMESTRE;
+  var chave = String(req.query.semana || '').slice(0, 12);
+  var r = await db.progressoAluno(req.usuario.cpf, sem, chave);
+  res.json(r);
+});
+
 app.post('/api/rank', auth.exigir, async function (req, res) {
   var b = req.body || {};
   var r = await db.salvarRank(req.usuario.cpf, req.usuario.nome, b.divisao, b.pm, SEMESTRE);

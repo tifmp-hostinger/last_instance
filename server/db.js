@@ -162,11 +162,12 @@ async function listarDisciplinas(semestre) {
 /* ============================================================
    Partidas / placar.
    ============================================================ */
+const MODOS = ['semestre', 'semana', 'livre', 'diario'];
 async function salvarPartida(p) {
   var reg = {
     cpf: soNumeros(p.cpf), nome: p.nome || 'Estudante', semestre: p.semestre || (process.env.SEMESTRE || ''),
     pontos: parseInt(p.pontos, 10) || 0, casos: parseInt(p.casos, 10) || 0,
-    venceu: !!p.venceu, modo: p.modo === 'diario' ? 'diario' : 'livre', seed: String(p.seed || '')
+    venceu: !!p.venceu, modo: MODOS.indexOf(p.modo) >= 0 ? p.modo : 'livre', seed: String(p.seed || '')
   };
   if (!hasDB) { placarMemoria.push(Object.assign({ criado_em: new Date().toISOString() }, reg)); return { ok: true, mock: true }; }
   try {
@@ -203,12 +204,53 @@ async function listarPlacar(aba, semestre) {
   }
 }
 function mapPublicoPlacar(p) {
-  var m = p.modo === 'diario' ? 'caso do dia' : 'jornada livre';
+  if (p.modo === 'semana') {
+    return { nome: p.nome || 'Estudante', pontos: p.pontos || 0, detalhe: (p.venceu ? 'pauta vencida' : 'pauta perdida') + ' · caso da semana' };
+  }
+  var m = p.modo === 'diario' ? 'caso do dia' : p.modo === 'livre' ? 'jornada livre' : 'jornada do semestre';
   return {
     nome: p.nome || 'Estudante',
     pontos: p.pontos || 0,
     detalhe: (p.venceu ? 'jornada vencida' : ((p.casos || 0) + ' de 8 casos')) + ' · ' + m
   };
+}
+
+/* ============================================================
+   Progresso do aluno — a memória entre aparelhos:
+   a jornada do semestre é única e a pauta da semana é uma só.
+   Ambas saem da própria tabela de partidas (sem tabela nova).
+   ============================================================ */
+async function progressoAluno(cpf, semestre, chaveSemana) {
+  var c = soNumeros(cpf);
+  var seedSemana = 'semana-' + String(chaveSemana || '');
+  function resumo(p) {
+    return p ? { feita: true, venceu: !!p.venceu, pontos: p.pontos || 0, casos: p.casos || 0, quando: p.criado_em || '' } : null;
+  }
+  if (!hasDB) {
+    var js = null, ss = null;
+    placarMemoria.forEach(function (p) {
+      if (p.cpf !== c) return;
+      if (p.modo === 'semestre' && p.semestre === semestre && !js) js = p;
+      if (p.modo === 'semana' && p.seed === seedSemana && !ss) ss = p;
+    });
+    return { jornada: resumo(js), semana: resumo(ss) };
+  }
+  try {
+    var rj = await pool.query(
+      'SELECT venceu, pontos, casos, criado_em FROM ' + ident(T_PARTIDAS) +
+      ' WHERE cpf=$1 AND semestre=$2 AND modo=$3 ORDER BY criado_em ASC LIMIT 1',
+      [c, semestre || '', 'semestre']
+    );
+    var rs = await pool.query(
+      'SELECT venceu, pontos, casos, criado_em FROM ' + ident(T_PARTIDAS) +
+      ' WHERE cpf=$1 AND modo=$2 AND seed=$3 ORDER BY criado_em ASC LIMIT 1',
+      [c, 'semana', seedSemana]
+    );
+    return { jornada: resumo(rj.rows[0]), semana: resumo(rs.rows[0]) };
+  } catch (e) {
+    console.error('[db] progressoAluno falhou:', e.message);
+    return { jornada: null, semana: null };
+  }
 }
 
 /* ============================================================
@@ -256,6 +298,7 @@ module.exports = {
   listarDisciplinas: listarDisciplinas,
   salvarPartida: salvarPartida,
   listarPlacar: listarPlacar,
+  progressoAluno: progressoAluno,
   salvarRank: salvarRank,
   lerRank: lerRank,
   ping: ping,
