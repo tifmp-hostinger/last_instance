@@ -2,7 +2,7 @@
 
 O jogo de cartas da FMP — Fundação Escola Superior do Ministério Público. O aluno é a defesa em uma jornada de 8 casos fictícios, do Foro Central de Porto Alegre ao STF, empurrando a **balança da convicção** com argumentos jurídicos reais.
 
-A cada rodada a parte adversa **protocola uma tese** (com a palavra-chave sublinhada) e o aluno joga o **argumento que a refuta** — não a carta de maior número. Errar o tema custa **credibilidade**; com ela zerada, o juiz indefere de plano. O caso segue o rito (instrução → sustentação → deliberação), com linha argumentativa, preparo, viradas, missões e acordo. É um roguelike de deck-building com o Direito como matéria-prima — rápido de entender, difícil de dominar (calibrado por simulação: bot aleatório vence 20% das jornadas; tático, 83%).
+A cada rodada a parte adversa **protocola uma tese** (com a palavra-chave sublinhada) e o aluno joga o **argumento que a refuta** — não a carta de maior número; a carta que também responde à palavra-chave ganha uma marca própria, visível antes de jogar. Errar o tema custa **credibilidade**; com ela zerada, o juiz indefere de plano — com banner e som, como qualquer outra virada de mesa. O caso segue o rito (instrução → sustentação → deliberação), com linha argumentativa, preparo, viradas e acordo dramatizados como a sentença que são, e sete missões possíveis por caso. É um roguelike de deck-building com o Direito como matéria-prima — rápido de entender, difícil de dominar (calibrado por simulação com quatro arquétipos de leitura, do cego ao atento, mais um diagnóstico anti-exploit: nenhuma estratégia de "quebrar o sistema" supera a leitura honesta).
 
 Dois modos, cada um com a sua tela: a **Jornada do semestre** (única por aluno — 8 casos cuja sentença final transita em julgado, antessala em forma de autos com a trajetória caso a caso) e o **Caso da semana** (uma sustentação por semana, a mesma pauta seeded para toda a FMP, antessala em forma de edital com prazo até domingo). A progressão competitiva é a **Ordem do Mérito** (de Calouro a Catedrático, com a escada e os emblemas das 13 divisões em tela própria), por semestre letivo. O design completo está em `GAME-DESIGN.md` e o racional do redesign em `REDESIGN.md`.
 
@@ -72,10 +72,10 @@ docker run -d -p 3000:3000 --env-file .env ultima-instancia
 ## Balanceamento
 
 ```bash
-node outputs/harness.js public/index.html 150 todos
+npm run harness   # = node outputs/harness.js public/index.html 150 todos
 ```
 
-Três bots jogam jornadas completas: o **aleatório** (não lê nada) vence ~20%; o **aprendiz** (lê só a pertinência da tese) ~53%; o **tático** (lê tudo) ~83%. O degrau entre eles é a prova de que habilidade decide. Qualquer mudança em `CARTAS`, `TESES` ou `OPONENTES` pede nova rodada do harness.
+Quatro arquétipos jogam jornadas completas: o **cego** (não lê nada) vence ~23%; o **confuso** (lê a pertinência só às vezes, o resto confunde "número grande" com "carta certa") ~40%; o **aprendiz** (lê só a pertinência) ~55%; o **atento** (lê tudo) ~82%. Mais um diagnóstico anti-exploit — três estratégias que tentam quebrar o sistema (lateral-spam, acordo-farm, ensaio-bank) — nenhuma supera o atento. O degrau entre os arquétipos é a prova de que habilidade decide. Qualquer mudança em `CARTAS`, `TESES` ou `OPONENTES` pede nova rodada do harness; `todos` roda cada perfil em um processo separado (o volume de simulação em lote é grande demais para caber num só processo Node sem estourar a memória).
 
 ## Documentação
 

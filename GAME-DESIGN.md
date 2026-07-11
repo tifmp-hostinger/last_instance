@@ -1,4 +1,4 @@
-# Última Instância — game design (v4.1 "Audiência viva")
+# Última Instância — game design (v4.3 "Audiência viva")
 
 > A proposta completa de redesign, com o diagnóstico e o racional de cada sistema, está em `REDESIGN.md`. Este documento descreve **o jogo como ele é hoje**.
 
@@ -28,11 +28,13 @@ A cada rodada a parte adversa **protocola uma tese jurídica** (peça carimbada 
 - **Argumento lateral** (fora do tema): ×0,40 — e ×0,25 do terceiro em diante no caso. E custa credibilidade.
 - **Técnica** é procedimental: sempre pertinente, nunca penalizada.
 
-A carta mostra só a **força-base**; o valor real (pertinência, julgador, credibilidade, combo) o aluno calcula lendo a mesa e confirma no log.
+A carta mostra a **força-base** e a **tag de tema** ("Refuta: Contratos") sempre; quando a carta também responde à palavra-chave sublinhada da pauta, ganha a marca vermelha **"responde à palavra-chave"** — a camada mais valiosa da leitura fica visível *antes* de jogar, não só no log depois. O valor final (julgador, credibilidade, combo) o aluno ainda calcula lendo a mesa e confirma no log.
+
+**40 teses** (4 por tema, em 10 temas) reduzem a repetição dentro de uma mesma jornada — ler continua valendo mais que decorar. Posse e família, antes cobertos por só uma ou duas cartas em todo o jogo, ganharam cartas dedicadas: **Usucapião** (posse) e **Estudo social** (família) — só aparecem por recompensa, nunca no baralho inicial, para não mexer na calibração de largada.
 
 ## Credibilidade — a coerência da defesa (0-10, começa em 6)
 
-O sistema anti-aleatoriedade. Réplica pertinente: +1. Lateral: −1. Faixas: **8-10 tribuna dominada** (tudo ×1,15) · 4-7 neutro · **1-3 defesa advertida** (×0,7) · **0: o juiz indefere de plano** — a rodada termina e a credibilidade volta a 3. Quem erra entra em espiral; quem lê domina a tribuna. Proteções: piso 2 nos casos 1-2 da jornada; **pedido de reconsideração** 1×/caso (volta a 4, custa a rodada). Na entrada da deliberação, a credibilidade **consolida**: (cred − 5) × 2 na balança.
+O sistema anti-aleatoriedade. Réplica pertinente: +1. Lateral: −1. Faixas: **8-10 tribuna dominada** (tudo ×1,15) · 4-7 neutro · **1-3 defesa advertida** (×0,7) · **0: o juiz indefere de plano** — a rodada termina, a credibilidade volta a 3, e o momento ganha banner e som próprios ("Indeferido de plano"), como qualquer outra virada de mesa. Quem erra entra em espiral; quem lê domina a tribuna. Proteções: piso 2 nos casos 1-2 da jornada; **pedido de reconsideração** 1×/caso (volta a 4, custa a rodada). Na entrada da deliberação, a credibilidade **consolida**: (cred − 5) × 2 na balança.
 
 ## O rito do caso (fases, sem contagem ansiosa)
 
@@ -45,8 +47,8 @@ Régua na tela: **Distribuição → Instrução → Sustentação → Delibera�
 | Plenário (final) | **8** | 2 + 4 + 2, voga ×1,5 girando a cada 2 |
 
 - **Instrução**: a parte adversa não ataca (organiza os autos). Rodada de preparar: ensaiar cartas, abrir a linha.
-- **Sustentação**: o embate. No meio dela, o **momento de virada** (novos documentos mudam o tema; testemunha vacila — próxima prova ÷2, Técnica reabilita; o juiz sinaliza a preferência da deliberação).
-- **Deliberação**: contenção adversa **dobra**, credibilidade consolida, e pode surgir **acordo** (balança 55-75): aceitar = vitória com 60% dos pontos; recusar = sustentações adversas +30% até o fim.
+- **Sustentação**: o embate. No meio dela, o **momento de virada** — banner "Virada no processo", som próprio e um pulso de destaque no que mudou: novos documentos mudam o tema (destaca o gancho); testemunha vacila — próxima prova ÷2, Técnica reabilita (destaca o anúncio); ou o juiz sinaliza a preferência da deliberação (destaca o julgador) — este último só fora do plenário, que já tem a sua própria voga rotativa. O sinal do julgador não é só narrativo: dá **×1,25** real naquele tipo durante a deliberação, com uma pílula própria (`sinal da deliberação`) até o fim do caso.
+- **Deliberação**: contenção adversa **dobra**, credibilidade consolida, e pode surgir **acordo** — com o mesmo peso visual de uma sentença (símbolo, headline, som de tensão suspensa). Janela 55-75 de convicção: aceitar = vitória com 60% dos pontos; recusar = sustentações adversas +30% até o fim. Em deliberações de mais de uma rodada (o plenário), há uma segunda chance de acordo se a balança entrar na janela depois da primeira oferta.
 
 Vitória: 100 a qualquer momento (plena), >50 no fim da deliberação, ou acordo. Derrota: 0, ≤50 no fim.
 
@@ -60,7 +62,7 @@ Vitória: 100 a qualquer momento (plena), >50 no fim da deliberação, ou acordo
 
 ## Preparo (0-5) — a economia estratégica
 
-Ganha-se +1 ao fim de rodada com réplica pertinente. Gasta-se em: **espiar** a próxima tese (1) · **ensaiar** uma carta (2) · **objeção** — anula o movimento adverso anunciado (3). Cartas raras de impacto entram **em rascunho**: de improviso valem 60%; ensaiadas, o valor pleno. Cartas comuns ensaiadas: ×1,5. Guardar fôlego continua não existindo — mas fechar a rodada tendo acertado a réplica agora rende Preparo: não jogar também é decisão.
+Ganha-se +1 ao fim de rodada com réplica pertinente. Gasta-se em: **espiar** a próxima tese (1) · **ensaiar** uma carta (2) · **objeção** — anula o movimento adverso anunciado (3). Cartas raras de impacto entram **em rascunho**: de improviso valem 60%; ensaiadas, o valor pleno. Cartas comuns ensaiadas: ×1,5. Guardar fôlego continua não existindo — mas fechar a rodada tendo acertado a réplica agora rende Preparo: não jogar também é decisão. Um botão "i" ao lado do rótulo abre a explicação das três ações — por toque, não só por hover, para quem joga no celular.
 
 ## Adversários com arquétipos e memória
 
@@ -72,7 +74,7 @@ base (rascunho ×0,6 / ensaiada ×1,5) → +combo → **pertinência** (réplica
 
 ## Missões, tipos e julgadores
 
-Cada caso traz **uma missão opcional** (+25): vencer sem lateral, fechar uma linha na ordem, terminar com credibilidade ≥7, sustentar 3 disciplinas. Tipos e julgadores como antes: Norma/Fato/Retórica/Técnica; legalista (N ×1,4 · R ×0,7), pragmático (F ×1,4 · N ×0,7), humanista (R ×1,4 · F ×0,7), metódico neutro; Plenário com voga rotativa. A tensão central: a réplica certa pode ser do tipo que o julgador corta. **Julgadores reais**: professores das disciplinas (Postgres), com foto, casados com a área do caso.
+Cada caso traz **uma missão opcional** (+25), sorteada entre sete: vencer sem lateral, fechar uma linha na ordem, terminar com credibilidade ≥7, sustentar 3 disciplinas, fechar o caso com 3 réplicas na palavra-chave, terminar sem a convicção cair abaixo de 40, sustentar 2 argumentos favorecidos pelo julgador. A missão avisa no log, com som próprio, no exato momento em que se cumpre — não só muda de cor num chip fácil de não notar. Tipos e julgadores como antes: Norma/Fato/Retórica/Técnica; legalista (N ×1,4 · R ×0,7), pragmático (F ×1,4 · N ×0,7), humanista (R ×1,4 · F ×0,7), metódico neutro; Plenário com voga rotativa. A tensão central: a réplica certa pode ser do tipo que o julgador corta. **Julgadores reais**: professores das disciplinas (Postgres), com foto, casados com a área do caso.
 
 ## Pontuação — qualidade jurídica, com tetos
 
@@ -102,15 +104,26 @@ Um **HUD compacto fixo** (balança, credibilidade, fase e rodada) aparece no top
 
 Carta 1-de-3 após caso comum (4 com Rede de contatos, raras ~30%) · relíquia 1-de-2 após chefe · Intervalo na FMP entre instâncias · **embargos** (1 repetição do mesmo caso/julgador, só na jornada) · placar em três abas.
 
-## Balanceamento (estado atual — harness com 3 bots, n=150)
+## Balanceamento (estado atual — harness com 4 arquétipos + diagnóstico anti-exploit, n=150)
 
 | Bot | O que lê | Jornadas | Casos individuais |
 |---|---|---|---|
-| Aleatório | nada | **20%** | 71% — precisa de embargos em 93% das jornadas |
-| Aprendiz | só a pertinência da tese | **53%** | 84% |
-| Tático | tudo (tese, chave, juiz, linha, credibilidade, preparo, acordo) | **83%** | 93% |
+| Cego | nada — nem tese, nem julgador | **23%** | 72% |
+| Mediano-confuso | a pertinência, só às vezes (55%); o resto confunde "número grande" com "carta certa" | **40%** | 80% |
+| Aprendiz | só a pertinência da tese, sempre | **55%** | 84% |
+| Atento | tudo (tese, chave, juiz, linha, credibilidade, preparo, acordo) | **82%** | 92% |
 
-Degraus de ~30 pontos entre cada nível de leitura: a habilidade é o que decide. Botões de ajuste: `OPONENTES`, `REPLICA_BONUS`/`DIRETA_BONUS`/`LATERAL_FATOR*`, faixas de credibilidade e `FECHO_LINHA`.
+Degrau claro e crescente do cego ao atento: a habilidade é o que decide. Botões de ajuste: `OPONENTES`, `REPLICA_BONUS`/`DIRETA_BONUS`/`LATERAL_FATOR*`, faixas de credibilidade e `FECHO_LINHA`.
+
+**Diagnóstico anti-exploit** — três arquétipos tentam ativamente quebrar o sistema; nenhum deve superar o bot atento:
+
+| Estratégia tentada | Jornadas | Referência (atento) |
+|---|---|---|
+| Lateral-spam (maior força-base, ignora tema) | 16% | 82% |
+| Acordo-farm (só sustenta o mínimo perto de 55, aceita tudo) | 0% | 82% |
+| Ensaio-bank (ensaia todo rascunho ao cair na mão, sem timing) | 57% | 82% |
+
+Nenhuma estratégia degenerada supera a leitura honesta — inclusive a de "acomodar-se" no acordo, que colapsa (perde quase toda rodada) por não sustentar a balança o suficiente para sobreviver até a deliberação.
 
 ## Identidade
 

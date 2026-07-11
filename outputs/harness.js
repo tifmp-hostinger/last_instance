@@ -1,15 +1,35 @@
 #!/usr/bin/env node
 /* ============================================================
    Última Instância — harness de simulação (sem navegador)
-   Uso: node outputs/harness.js [public/index.html] [nJornadas] [naive|aprendiz|smart|todos]
-   Stub de DOM + timers síncronos + três bots:
-   - aleatório: joga qualquer carta que caiba, sem ler nada
-     (nem a tese, nem o julgador). Alvo: ≤15% de jornadas.
+   Uso: node outputs/harness.js [public/index.html] [nJornadas] [perfil|todos]
+   Stub de DOM + timers síncronos + arquétipos de jogador:
+   - cego (alias naive): joga qualquer carta que caiba, sem ler
+     nada (nem tese, nem julgador). Alvo: ~20% de jornadas.
+   - confuso: lê a pertinência só às vezes (55%); quando não,
+     confunde "número grande" com "carta certa" — o erro clássico
+     do jogador mediano. Nunca usa preparo. Aceita todo acordo sem
+     pensar. Diagnóstico, sem alvo fixo — mede o meio-termo real.
    - aprendiz: lê SÓ a pertinência da tese e prefere réplicas;
      ignora julgador, linha, credibilidade e preparo. Alvo: 45-55%.
-   - tático: lê tudo — tese, palavra-chave, julgador, linha na
-     ordem, credibilidade, preparo, acordo. Alvo: 85-90% (teto).
-   O degrau entre os três é a medida de expressão de habilidade.
+   - atento (alias smart/tático): lê tudo — tese, palavra-chave,
+     julgador, linha na ordem, credibilidade, preparo, acordo.
+     Alvo: 85-90% (teto).
+   - otimizador-*: tenta ativamente quebrar o sistema.
+       lateral  → ignora pertinência, sempre joga a carta de maior
+                  força-base impressa (aposta que número bruto bate
+                  a penalidade de tema).
+       acordo   → joga honesto até ~55 de convicção, depois SEGURA
+                  (só joga cartas de bloqueio/baixo custo) para
+                  garantir a janela de acordo e aceita a primeira
+                  oferta sempre — testa se "acomodar-se" rende mais
+                  que jogar para vencer.
+       ensaio   → ensaia (2 de preparo) todo rascunho/raro assim
+                  que cai na mão, não importa o momento — testa se
+                  bancar o ensaio sem timing bate o uso cirúrgico.
+     Nenhum deve superar o bot-atento em pontos ou taxa de vitória;
+     se superar, é um exploit real a corrigir.
+   O degrau entre cego → confuso → aprendiz → atento é a medida de
+   expressão de habilidade.
    ============================================================ */
 'use strict';
 const fs = require('fs');
@@ -19,6 +39,8 @@ const vm = require('vm');
 const arquivo = process.argv[2] || path.join(__dirname, '..', 'public', 'index.html');
 const N = parseInt(process.argv[3] || '60', 10);
 const quem = (process.argv[4] || 'todos').toLowerCase();
+const ALIAS = { cego:'naive', atento:'smart' };
+function resolvePerfil(p){ return ALIAS[p] || p; }
 
 /* ---------- stub de DOM ---------- */
 function makeClassList(){
@@ -101,6 +123,43 @@ if (!m){ console.error('Não encontrei o <script> do jogo em ' + arquivo); proce
 const codigo = m[1];
 new vm.Script(codigo, { filename: 'jogo.js' });   // valida a sintaxe antes de rodar
 
+/* ---------- orquestração de "todos": um processo do SO por perfil ----------
+   Cada jornada cria um vm.createContext novo; em lotes grandes (n=150 × vários
+   perfis) o V8 não recicla rápido o bastante sozinho, nem com gc() explícito —
+   isolar cada perfil no seu próprio processo devolve a memória ao SO ao final
+   de cada um, em vez de acumular contextos vivos ao longo de todo o "todos". */
+const MACHINE = process.env.HARNESS_MACHINE === '1';
+if (quem === 'todos'){
+  const { spawnSync } = require('child_process');
+  const PERFIS_TODOS = ['cego', 'confuso', 'aprendiz', 'atento', 'otimizador-lateral', 'otimizador-acordo', 'otimizador-ensaio'];
+  console.log('Última Instância · harness v4 — ' + N + ' jornadas por bot — ' + path.basename(arquivo));
+  const resultados = {};
+  let cabecalhoOtimizadorImpresso = false;
+  PERFIS_TODOS.forEach(function(p){
+    if (p.indexOf('otimizador') === 0 && !cabecalhoOtimizadorImpresso){
+      console.log('— diagnóstico anti-exploit (nenhuma variante deve superar o bot-atento) —');
+      cabecalhoOtimizadorImpresso = true;
+    }
+    const r = spawnSync(process.execPath, [__filename, arquivo, String(N), p], {
+      encoding: 'utf8', env: Object.assign({}, process.env, { HARNESS_MACHINE: '1' })
+    });
+    var resumo = null;
+    (r.stdout || '').split('\n').forEach(function(l){
+      if (l.indexOf('##RESULT##') === 0) resumo = JSON.parse(l.slice('##RESULT##'.length));
+      else if (l.trim()) console.log(l);
+    });
+    if (r.status !== 0){
+      console.error('  (processo do perfil "' + p + '" falhou — status ' + r.status + ')');
+      if (r.stderr) process.stderr.write(r.stderr);
+    }
+    resultados[p] = resumo;
+    if (p.indexOf('otimizador') === 0 && resultados.atento && resumo && (resumo.pct > resultados.atento.pct || resumo.pontos > resultados.atento.pontos)){
+      console.log('  ⚠ ' + p + ' SUPEROU o bot-atento — possível exploit real.');
+    }
+  });
+  process.exit(0);
+}
+
 /* ---------- utilidades dos bots ---------- */
 function valorMovimento(mov){
   if (!mov) return 0;
@@ -147,6 +206,37 @@ function botJogaRodada(api, perfil, rnd){
       const pertinentes = jogaveis.filter(c => api.cartaPertinente(c.carta, B.tese) === true);
       const pool = pertinentes.length ? pertinentes : jogaveis;
       escolha = pool[Math.floor(rnd() * pool.length)];
+    } else if (perfil === 'confuso'){
+      // jogador mediano: metade das vezes lê a pertinência corretamente;
+      // a outra metade comete o erro clássico — acha que "número maior" é "carta certa".
+      // nunca mexe em preparo (o sistema passa despercebido); nunca pede reconsideração.
+      const pertinentes = jogaveis.filter(c => api.cartaPertinente(c.carta, B.tese) === true);
+      if (pertinentes.length && rnd() < 0.55){
+        escolha = pertinentes[Math.floor(rnd() * pertinentes.length)];
+      } else {
+        escolha = jogaveis.reduce((m, c) => (c.carta.base > m.carta.base ? c : m), jogaveis[0]);
+      }
+    } else if (perfil === 'otimizador-lateral'){
+      // aposta que força-base bruta bate a penalidade de argumento lateral — ignora tudo mais
+      escolha = jogaveis.reduce((m, c) => (c.carta.base > m.carta.base ? c : m), jogaveis[0]);
+    } else if (perfil === 'otimizador-ensaio'){
+      // bancarizador: ensaia todo rascunho/raro assim que cai na mão, sem olhar o momento
+      const p = jogaveis.find(c => (c.carta.rascunho || c.carta.rar === 'r') && !B.ensaiadas[c.id] && B.prep >= 2);
+      if (p){ api.gastarPreparo('ensaiar', p.i); continue; }
+      const pertinentes = jogaveis.filter(c => api.cartaPertinente(c.carta, B.tese) === true);
+      const pool = pertinentes.length ? pertinentes : jogaveis;
+      escolha = pool[Math.floor(rnd() * pool.length)];
+    } else if (perfil === 'otimizador-acordo'){
+      // joga honesto até ~55, depois só sustenta o mínimo (bloqueio/custo baixo) pra travar na janela de acordo
+      const pertinentes = jogaveis.filter(c => api.cartaPertinente(c.carta, B.tese) === true);
+      if (B.p >= 53){
+        const seguro = jogaveis.filter(c => (c.carta.fx && c.carta.fx.block) || c.carta.custo === 0);
+        if (!seguro.length) break;   // não empurra mais a balança de propósito
+        escolha = seguro[Math.floor(rnd() * seguro.length)];
+      } else {
+        const pool = pertinentes.length ? pertinentes : jogaveis;
+        escolha = pool[Math.floor(rnd() * pool.length)];
+      }
     } else {
       // tático: pontua cada carta no contexto completo da rodada
       // preparo primeiro: ensaia rascunhos na instrução, arma objeção contra golpes grandes
@@ -201,7 +291,7 @@ function botJogaRodada(api, perfil, rnd){
   if (fim && !fim.fim && !fim.travado && fim.rodada === rodadaInicial) api.encerrarRodada();
 }
 
-const RANK_CARTAS_SMART = ['confissao','dna','sumula','sustentacao','pericia','habeas','repercussao','narrativa','consequencias','gravacao','cdc','pacta','tutela','cautelar','embargosdec','documento','reconstituicao','analogia','peroracao','indubio','registro','doutrina','amicus','juntada','questao','preliminar','dignidade','ethos','testemunha','boafe','exordio','pausa','dilacao','objecao','legalidade'];
+const RANK_CARTAS_SMART = ['confissao','dna','sumula','sustentacao','pericia','habeas','repercussao','narrativa','consequencias','gravacao','cdc','pacta','tutela','cautelar','embargosdec','documento','reconstituicao','usucapiao','estudosocial','analogia','peroracao','indubio','registro','doutrina','amicus','juntada','questao','preliminar','dignidade','ethos','testemunha','boafe','exordio','pausa','dilacao','objecao','legalidade'];
 const RANK_RELIQUIAS_SMART = ['cafe','rede','vade','dossie','anel','tese','tribuna','praxe'];
 
 function botRecompensa(api, perfil, rnd){
@@ -240,6 +330,7 @@ function botAcordo(api, perfil, rnd){
   const { B } = api.estado();
   if (perfil === 'naive'){ (rnd() < 0.5 ? api.aceitarAcordo : api.recusarAcordo)(); return; }
   if (perfil === 'aprendiz'){ (B.p < 65 ? api.aceitarAcordo : api.recusarAcordo)(); return; }
+  if (perfil === 'confuso' || perfil === 'otimizador-acordo'){ api.aceitarAcordo(); return; }  // aceita sem pensar
   (B.p < 62 ? api.aceitarAcordo : api.recusarAcordo)();
 }
 
@@ -249,7 +340,8 @@ function jogarJornada(seed, perfil){
   vm.runInContext(codigo, ctx, { filename: 'jogo.js' });
   const api = ctx.window.UI_API;
   if (!api) throw new Error('UI_API não exposta pelo jogo');
-  const salt = perfil === 'smart' ? 7 : perfil === 'aprendiz' ? 3 : 0;
+  const SALTS = { smart:7, aprendiz:3, confuso:5, 'otimizador-lateral':11, 'otimizador-ensaio':13, 'otimizador-acordo':17 };
+  const salt = SALTS[perfil] || 0;
   const rnd = (function(s){ let a = s>>>0; return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; })(seed*2654435761 + salt);
 
   api.novaJornada('livre', 'harness-' + seed);
@@ -285,6 +377,9 @@ function jogarJornada(seed, perfil){
 }
 
 /* ---------- relatório ---------- */
+// cada jornada cria um vm.createContext novo (~3700 linhas de jogo); em lotes grandes (n=150 ×
+// vários perfis) o V8 não recicla rápido o bastante sozinho — força a coleta a cada 20 jornadas.
+function liberarMemoria(){ if (typeof global.gc === 'function') global.gc(); }
 function rodarLote(perfil){
   const r = { vitorias: 0, casos: 0, casosTot: 0, pontos: 0, plenas: 0, acordos: 0, quedas: {}, embargosUsados: 0, derrotasCaso: 0, disputasCaso: 0 };
   for (let i = 1; i <= N; i++){
@@ -299,7 +394,9 @@ function rodarLote(perfil){
     r.disputasCaso += j.casos + j.perdeuEm.length;
     const queda = j.venceu ? null : j.perdeuEm[j.perdeuEm.length - 1];
     if (queda) r.quedas[queda] = (r.quedas[queda] || 0) + 1;
+    if (i % 20 === 0) liberarMemoria();
   }
+  liberarMemoria();
   return r;
 }
 function imprime(nome, alvo, r){
@@ -311,9 +408,29 @@ function imprime(nome, alvo, r){
   console.log('  plenas/jornada: ' + (r.plenas / N).toFixed(1) + ' · acordos/jornada: ' + (r.acordos / N).toFixed(1) + ' · jornadas com embargos: ' + r.embargosUsados + '/' + N);
   const quedas = Object.keys(r.quedas).sort((a,b)=>a-b).map(c => 'caso ' + c + ': ' + r.quedas[c]).join(' · ');
   console.log('  onde caiu: ' + (quedas || '—'));
+  const resumo = { pct: Number(pct), pontos: Math.round(r.pontos / N) };
+  if (MACHINE) console.log('##RESULT##' + JSON.stringify(resumo));   // lido pelo processo-pai em "todos"
+  return resumo;
 }
 
-console.log('Última Instância · harness v4 — ' + N + ' jornadas por bot — ' + path.basename(arquivo));
-if (quem === 'naive' || quem === 'todos') imprime('bot aleatório', '≤15%', rodarLote('naive'));
-if (quem === 'aprendiz' || quem === 'todos') imprime('bot aprendiz', '45-55%', rodarLote('aprendiz'));
-if (quem === 'smart' || quem === 'todos') imprime('bot tático', '85-90%', rodarLote('smart'));
+if (!MACHINE) console.log('Última Instância · harness v4 — ' + N + ' jornadas por bot — ' + path.basename(arquivo));
+const alvo = resolvePerfil(quem);
+const resultados = {};
+if (alvo === 'naive') resultados.cego = imprime('bot-cego', '~20%', rodarLote('naive'));
+if (quem === 'confuso') resultados.confuso = imprime('bot mediano-confuso', 'diagnóstico', rodarLote('confuso'));
+if (quem === 'aprendiz') resultados.aprendiz = imprime('bot aprendiz', '45-55%', rodarLote('aprendiz'));
+if (alvo === 'smart') resultados.atento = imprime('bot-atento', '~85%', rodarLote('smart'));
+
+const OTIMIZADORES = ['otimizador-lateral', 'otimizador-acordo', 'otimizador-ensaio'];
+if (OTIMIZADORES.indexOf(quem) >= 0){
+  resultados[quem] = imprime(quem, 'nunca deve superar o bot-atento', rodarLote(quem));
+} else if (quem === 'otimizador'){
+  console.log('— diagnóstico anti-exploit (nenhuma variante deve superar o bot-atento) —');
+  OTIMIZADORES.forEach(function(v){
+    const r = imprime(v, 'referência: bot-atento', rodarLote(v));
+    resultados[v] = r;
+    if (resultados.atento && (r.pct > resultados.atento.pct || r.pontos > resultados.atento.pontos)){
+      console.log('  ⚠ ' + v + ' SUPEROU o bot-atento — possível exploit real.');
+    }
+  });
+}
