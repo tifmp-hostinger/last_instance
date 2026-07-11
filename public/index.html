@@ -3165,7 +3165,14 @@ function carregarDisciplinas(){
 function enviarPartida(partida){
   if (!SERVIDOR.online){ enfileirar(partida); return; }
   fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(partida) })
-    .then(function(d){ if (d && d.rank) reconciliarMerito(d.rank); processarFila(); })
+    .then(function(d){
+      // {ok:false} é um 200 do Express (não cai no catch por si só) — mas quer dizer que
+      // nada foi persistido no Postgres (ex.: erro de banco). Tratar como falha de envio,
+      // senão a partida some da fila sem nunca ter sido gravada.
+      if (!d || !d.ok) throw new Error('partida não confirmada pelo servidor');
+      if (d.rank) reconciliarMerito(d.rank);
+      processarFila();
+    })
     .catch(function(){ enfileirar(partida); });
 }
 function enfileirar(partida){
@@ -3175,8 +3182,10 @@ function enfileirar(partida){
 }
 /* reenvia a fila offline; o servidor deduplica por (cpf,modo,seed), então reenviar uma
    partida que já foi aceita não pontua de novo — só devolve o estado atual do mérito.
-   Uma partida rejeitada pelo servidor (não por falha de rede) não pode travar as
-   próximas para sempre: depois de 5 rejeições ela é descartada e a fila segue. */
+   Uma partida rejeitada pelo servidor por ERRO (ex.: banco fora do ar, schema
+   desatualizado) fica retentando sem limite — não é culpa dela, então não conta como
+   tentativa. Só uma rejeição HTTP (4xx/5xx — payload malformado, sessão expirada) conta,
+   e depois de 5 dessas ela é descartada para não travar as próximas para sempre. */
 function processarFila(){
   if (!SERVIDOR.online) return;
   var fila = store.get('ui_fila', []);
@@ -3184,7 +3193,8 @@ function processarFila(){
   var item = fila[0];
   fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(item.partida) })
     .then(function(d){
-      if (d && d.rank) reconciliarMerito(d.rank);
+      if (!d || !d.ok) throw new Error('partida não confirmada pelo servidor');
+      if (d.rank) reconciliarMerito(d.rank);
       fila.shift(); store.set('ui_fila', fila);
       if (fila.length) processarFila();
     })
