@@ -187,17 +187,18 @@ async function salvarPartida(p) {
     // ON CONFLICT exige o índice parcial uq_partidas_dedup (db/schema.sql); se a instalação
     // tinha duplicatas anteriores à migração v5, esse índice pode não existir — ver o
     // diagnóstico no schema.sql. Nesse caso este INSERT lança e cai no catch abaixo.
+    // DO UPDATE (em vez de DO NOTHING) devolve o id existente na mesma viagem ao banco —
+    // sem isso, toda resubmissão legítima (retry de rede, fila offline) custaria duas
+    // consultas em vez de uma. xmax=0 é o idioma padrão do Postgres pra saber se a linha
+    // devolvida por um upsert foi inserida agora ou já existia.
     var r = await pool.query(
       'INSERT INTO ' + ident(T_PARTIDAS) + ' (cpf, nome, semestre, pontos, casos, venceu, modo, seed) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ' +
-      'ON CONFLICT (cpf, modo, seed) WHERE seed IS NOT NULL AND seed <> \'\' DO NOTHING RETURNING id',
+      'ON CONFLICT (cpf, modo, seed) WHERE seed IS NOT NULL AND seed <> \'\' DO UPDATE SET seed = EXCLUDED.seed ' +
+      'RETURNING id, (xmax = 0) AS inserted',
       [reg.cpf, reg.nome, reg.semestre, reg.pontos, reg.casos, reg.venceu, reg.modo, reg.seed]
     );
-    if (r.rows.length) return { ok: true, id: r.rows[0].id, duplicado: false };
-    var ex = await pool.query(
-      'SELECT id FROM ' + ident(T_PARTIDAS) + ' WHERE cpf=$1 AND modo=$2 AND seed=$3 ORDER BY criado_em ASC LIMIT 1',
-      [reg.cpf, reg.modo, reg.seed]
-    );
-    return { ok: true, id: ex.rows[0] ? ex.rows[0].id : null, duplicado: true };
+    var row = r.rows[0];
+    return { ok: true, id: row.id, duplicado: !row.inserted };
   } catch (e) {
     console.error('[db] salvarPartida falhou:', e.message);
     return { ok: false };
@@ -371,6 +372,11 @@ async function aplicarResultadoPartida(cpf, nome, temporada, tipo, pontos, casos
   var c = soNumeros(cpf);
   var sem = temporada || process.env.SEMESTRE || '';
   if (['jornada', 'semana'].indexOf(tipo) < 0) return { divisao: 0, pm: 0, delta: 0, aplicado: false, erro: true };
+  // sanitiza uma vez só, antes de ramificar — o modo mock usava (pontos||0) sem parseInt,
+  // então um valor não numérico virava NaN e corrompia o PM do aluno pra sempre (nenhum
+  // dos clamps de divisão/promoção corrige NaN, já que toda comparação com NaN é falsa)
+  pontos = parseInt(pontos, 10) || 0;
+  casos = parseInt(casos, 10) || 0;
   if (!hasDB) {
     if (partidaId != null && rankAplicados.has(partidaId)) {
       var atual = rankMemoria.get(c + ':' + sem);
@@ -397,7 +403,7 @@ async function aplicarResultadoPartida(cpf, nome, temporada, tipo, pontos, casos
   try {
     var q = await pool.query(
       'SELECT * FROM aplicar_resultado_partida($1,$2,$3,$4,$5,$6,$7,$8)',
-      [c, nome || 'Estudante', sem, tipo, parseInt(pontos, 10) || 0, parseInt(casos, 10) || 0, !!venceu, partidaId || null]
+      [c, nome || 'Estudante', sem, tipo, pontos, casos, !!venceu, partidaId != null ? partidaId : null]
     );
     var row = q.rows[0];
     return { divisao: row.divisao, pm: row.pm, delta: row.delta_pm, aplicado: row.aplicado };

@@ -40,6 +40,20 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 const SEMESTRE = process.env.SEMESTRE || '2026-2';
 const VERSAO = require('../package.json').version;
 
+/* semana ISO calculada pelo SERVIDOR — nunca a do cliente (espelha semanaISO/chaveSemana
+   de public/index.html; qualquer mudança lá precisa ser espelhada aqui). É o que fecha o
+   "seed forjado": sem isto, o cliente podia escolher a seed de qualquer partida/semana e
+   burlar a deduplicação (cpf,modo,seed) enviando uma seed nova a cada requisição. */
+function chaveSemanaServidor() {
+  var d = new Date();
+  var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  var dia = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - dia);
+  var ano = t.getUTCFullYear();
+  var sem = Math.ceil(((t - Date.UTC(ano, 0, 1)) / 86400000 + 1) / 7);
+  return ano + '-S' + (sem < 10 ? '0' : '') + sem;
+}
+
 /* pequeno limitador de tentativas de login por IP (defesa básica) */
 const tentativas = new Map();
 function podeTentar(ip) {
@@ -154,22 +168,34 @@ app.post('/api/partidas', auth.exigir, async function (req, res) {
   p.cpf = req.usuario.cpf;
   p.nome = req.usuario.nome;
   p.semestre = req.usuario.semestre || SEMESTRE;
+
+  // a seed dos modos que valem PM/Ordem do Mérito NUNCA vem do cliente: a jornada do
+  // semestre tem uma seed fixa por (cpf, temporada) e o caso da semana usa a semana ISO
+  // calculada aqui, no servidor. Sem isto, um cliente podia mandar uma seed nova a cada
+  // requisição e burlar por completo a deduplicação (cpf,modo,seed) — repetindo a
+  // "vitória" quantas vezes quisesse para farmar PM sem limite. O dedup em si (índice
+  // único em partidas + idempotência por partida_id em rank_movimentos) já existia; o que
+  // faltava era não deixar o cliente escolher a chave que esse dedup usa.
+  if (p.modo === 'semestre') p.seed = 'semestre-' + p.semestre;
+  else if (p.modo === 'semana') p.seed = 'semana-' + chaveSemanaServidor();
+
   var salvo = await db.salvarPartida(p);
   if (!salvo.ok) return res.json({ ok: false });
 
   // a Ordem do Mérito só se move para modos que valem PM (jornada do semestre / caso da
   // semana); o delta é recalculado aqui a partir do resultado bruto (pontos/casos/venceu),
   // nunca a partir de um valor final — e é amarrado ao id da partida para nunca dobrar.
+  // db.salvarPartida já garante um id (mesmo em duplicata, devolve o id da linha
+  // existente), então aplicarResultadoPartida é sempre chamada — a própria idempotência
+  // por partida_id decide se aplica de novo ou só devolve o estado atual.
   var tipo = TIPO_MERITO_POR_MODO[p.modo];
   var rank = null;
   if (tipo) {
-    if (salvo.duplicado && salvo.id == null) {
-      var atual = await db.lerRank(p.cpf, p.semestre);
-      rank = atual ? Object.assign({ delta: 0, aplicado: false }, atual) : null;
-    } else {
-      var r = await db.aplicarResultadoPartida(p.cpf, p.nome, p.semestre, tipo, p.pontos, p.casos, !!p.venceu, salvo.id);
-      rank = { divisao: r.divisao, pm: r.pm, delta: r.delta, aplicado: r.aplicado };
-    }
+    var r = await db.aplicarResultadoPartida(p.cpf, p.nome, p.semestre, tipo, p.pontos, p.casos, !!p.venceu, salvo.id);
+    // erro:true = a mutação falhou (banco fora do ar, corrida rara no índice de
+    // idempotência) — NUNCA repassar {divisao:0,pm:0} como se fosse o padrão real do
+    // aluno; o cliente reconciliaria a Ordem do Mérito local para zero por engano.
+    rank = r.erro ? null : { divisao: r.divisao, pm: r.pm, delta: r.delta, aplicado: r.aplicado };
   }
   res.json({ ok: true, duplicado: !!salvo.duplicado, rank: rank });
 });

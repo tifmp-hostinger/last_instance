@@ -60,7 +60,7 @@ body.dark #fundo::before{background:radial-gradient(circle,rgba(238,42,66,.17),r
 body.dark #fundo::after{background:radial-gradient(circle,rgba(191,186,164,.08),rgba(191,186,164,0) 68%)}
 @keyframes flutua1{from{transform:translate(0,0) rotate(0deg)}to{transform:translate(9vmax,7vmax) rotate(24deg)}}
 @keyframes flutua2{from{transform:translate(0,0) scale(1)}to{transform:translate(-8vmax,-6vmax) scale(1.14)}}
-@media (prefers-reduced-motion:reduce){#fundo::before,#fundo::after{animation:none}.simbolo.gira{animation:pop .6s var(--spring) both}}
+@media (prefers-reduced-motion:reduce){#fundo::before,#fundo::after{animation:none}}
 
 #fx{position:fixed;inset:0;z-index:60;pointer-events:none}
 
@@ -124,6 +124,10 @@ main{display:flex;justify-content:center;min-height:100vh}
 #scr-title{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92vh;text-align:center;gap:0}
 .simbolo{width:52px;height:52px;animation:pop .6s var(--spring) both}
 .simbolo.gira{animation:pop .6s var(--spring) both,vira 6.5s ease-in-out 1.5s infinite}
+/* precisa vir DEPOIS da regra acima (mesma especificidade — a ordem no CSS decide) para
+   realmente desligar o giro; declarada antes, a regra de cima sempre ganhava e o símbolo
+   girava mesmo com prefers-reduced-motion ativo */
+@media (prefers-reduced-motion:reduce){.simbolo.gira{animation:pop .6s var(--spring) both}}
 #scr-title .lema{margin:18px 0 8px;font-weight:600;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--fg3)}
 #scr-title h1{font-family:var(--serif);font-style:italic;font-weight:600;margin:0 0 6px;
   font-size:clamp(44px,9vw,84px);line-height:.98;letter-spacing:-.02em}
@@ -169,7 +173,7 @@ main{display:flex;justify-content:center;min-height:100vh}
 .mult.voga{border-color:var(--red);color:#fff;background:var(--red);animation:pulsa 2.4s ease-in-out infinite}
 
 /* ---- balança ---- */
-.painel-balanca{background:var(--ink);border-radius:18px;padding:16px 20px 14px;color:var(--cream);margin-bottom:13px;position:relative;overflow:hidden}
+.painel-balanca{background:var(--ink);border-radius:18px;padding:16px 20px 14px;color:var(--cream);margin-bottom:13px;position:relative}
 body.dark .painel-balanca{background:#161414;border:1px solid rgba(191,186,164,.18)}
 .painel-balanca .cima{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .painel-balanca .tit{font-family:var(--serif);font-style:italic;font-size:15px}
@@ -906,6 +910,7 @@ body.dark .e-alta{color:#f06f80}
     <button class="volta" id="meritoVolta">Voltar</button>
   </div>
   <div class="mer-atual" id="merAtual"></div>
+  <div class="rotulo" id="merPosicao" style="margin:0 0 9px;display:none"></div>
   <div class="rotulo" style="margin:0 0 9px">A escada — do Calouro à Cátedra</div>
   <div class="escada" id="merEscada"></div>
   <div class="bloco-cfg">
@@ -1891,37 +1896,37 @@ var TIPO_DICA_FRACA = {
   R:'apelos sem lastro em fato ou norma convencem menos aqui.',
   T:'tecnicismo sem mérito por trás convence menos aqui.'
 };
+/* qual tipo de argumento o julgador mais valoriza e qual menos — usada tanto pela ficha
+   completa (descreverJuiz) quanto pelas tags rápidas em pintarBatalha, pra nunca divergir */
+function extremosMult(mult){
+  mult = mult || { N:1, F:1, R:1, T:1 };
+  var alto = TIPO_ORDEM.reduce(function(m,t){ return (mult[t]||1) > (mult[m]||1) ? t : m; }, TIPO_ORDEM[0]);
+  var baixo = TIPO_ORDEM.reduce(function(m,t){ return (mult[t]||1) < (mult[m]||1) ? t : m; }, TIPO_ORDEM[0]);
+  return { alto: alto, baixo: baixo, flat: (mult[alto]||1) <= 1 && (mult[baixo]||1) >= 1 };
+}
 function descreverJuiz(juiz){
   if (B && B.vogaIdx >= 0){
     var atual = TIPO_ORDEM[B.vogaIdx];
-    return { curta:'A atenção do Plenário reveza entre os quatro tipos de argumento.',
-      longa:'O Plenário não tem preferência fixa: a cada 2 rodadas, um tipo de argumento passa a valer mais — agora é <b>' + TIPOS[atual] + '</b>. '
-        + TIPO_DICA_FORTE[atual] + ' Fique de olho no aviso de revezamento (acima) para adaptar a mão.' };
+    return 'O Plenário não tem preferência fixa: a cada 2 rodadas, um tipo de argumento passa a valer mais — agora é <b>' + TIPOS[atual] + '</b>. '
+      + TIPO_DICA_FORTE[atual] + ' Fique de olho no aviso de revezamento (acima) para adaptar a mão.';
   }
-  var mult = (juiz && juiz.mult) || { N:1, F:1, R:1, T:1 };
-  var alto = TIPO_ORDEM.reduce(function(m,t){ return mult[t] > mult[m] ? t : m; }, TIPO_ORDEM[0]);
-  var baixo = TIPO_ORDEM.reduce(function(m,t){ return mult[t] < mult[m] ? t : m; }, TIPO_ORDEM[0]);
-  if (mult[alto] <= 1 && mult[baixo] >= 1){
-    return { curta:'Pesa Norma, Fato, Retórica e Técnica da mesma forma.',
-      longa:'Este julgador não favorece nenhum tipo de argumento — o que decide é a pertinência: responder à tese com o tema certo vale mais do que escolher um tipo de carta.' };
+  var ext = extremosMult(juiz && juiz.mult);
+  if (ext.flat){
+    return 'Este julgador não favorece nenhum tipo de argumento — o que decide é a pertinência: responder à tese com o tema certo vale mais do que escolher um tipo de carta.';
   }
-  return {
-    curta:'Valoriza mais ' + TIPOS[alto] + '; dá menos peso a ' + TIPOS[baixo] + '.',
-    longa:'<b>' + TIPO_LONGO[alto] + '.</b> ' + TIPO_DICA_FORTE[alto]
-      + '<br><br><b>' + TIPO_LONGO[baixo] + '.</b> ' + TIPO_DICA_FRACA[baixo]
-  };
+  return '<b>' + TIPO_LONGO[ext.alto] + '.</b> ' + TIPO_DICA_FORTE[ext.alto]
+    + '<br><br><b>' + TIPO_LONGO[ext.baixo] + '.</b> ' + TIPO_DICA_FRACA[ext.baixo];
 }
 /* ficha do julgador — a metade da estratégia que não é ler a tese; toque, não hover
    (mesmo padrão de acessibilidade móvel do botão de preparo, acima) */
 function abrirFichaJulgador(){
   if (!B || !B.juiz) return;
   var juiz = B.juiz;
-  var d = descreverJuiz(juiz);
   modal({ titulo: esc(juiz.nome), html:
     '<div style="display:flex;flex-direction:column;gap:12px">'
     + (juiz.disciplina ? '<div style="font-size:12px;color:var(--fg3)">' + esc(juiz.disciplina) + (juiz.area ? ' · ' + esc(juiz.area) : '') + '</div>' : '')
     + '<div><b style="color:var(--red)">Perfil ' + esc(juiz.perfil) + '</b></div>'
-    + '<div>' + d.longa + '</div>'
+    + '<div>' + descreverJuiz(juiz) + '</div>'
     + '<div style="border-top:1px dashed var(--line-2);padding-top:10px;font-size:12px;color:var(--fg3)">A disposição do julgador (logo abaixo do nome, em tela) também reage à balança e à credibilidade a cada rodada.</div>'
     + '</div>',
     botoes:[{ t:'Entendi', ghost:true }] });
@@ -2453,6 +2458,10 @@ function reconciliarMerito(rank){
   m.div = rank.divisao; m.pm = rank.pm;
   store.set('ui_merito', m);
   atualizarTitulo();
+  // se a tela da Ordem do Mérito já estiver aberta (pintada com a estimativa otimista),
+  // repinta agora que o valor autoritativo do servidor chegou — senão ela ficava
+  // mostrando o número antigo até o jogador sair e voltar
+  if (typeof meritoEstaAberta === 'function' && meritoEstaAberta()) mostrarMerito();
 }
 function textoMerito(m){ return DIVISOES[m.div] + ' · ' + m.pm + ' PM'; }
 
@@ -2485,13 +2494,12 @@ function pintarBatalha(inicial){
     mults.appendChild(el('span', 'mult voga', 'Em voga: ' + TIPOS[TIPO_ORDEM[B.vogaIdx]]));
     mults.appendChild(el('span', 'mult', 'reveza a cada 2 rodadas'));
   } else {
-    var maisAlto = TIPO_ORDEM.reduce(function(m,t){ return (juiz.mult[t]||1) > (juiz.mult[m]||1) ? t : m; }, TIPO_ORDEM[0]);
-    var maisBaixo = TIPO_ORDEM.reduce(function(m,t){ return (juiz.mult[t]||1) < (juiz.mult[m]||1) ? t : m; }, TIPO_ORDEM[0]);
-    if ((juiz.mult[maisAlto]||1) <= 1 && (juiz.mult[maisBaixo]||1) >= 1){
+    var ext = extremosMult(juiz.mult);
+    if (ext.flat){
       mults.appendChild(el('span', 'mult', 'Pesa todos os tipos igual'));
     } else {
-      mults.appendChild(el('span', 'mult fav', 'Valoriza ' + TIPOS[maisAlto]));
-      mults.appendChild(el('span', 'mult desf', 'Menos peso: ' + TIPOS[maisBaixo]));
+      mults.appendChild(el('span', 'mult fav', 'Valoriza ' + TIPOS[ext.alto]));
+      mults.appendChild(el('span', 'mult desf', 'Menos peso: ' + TIPOS[ext.baixo]));
     }
   }
 
@@ -3150,15 +3158,21 @@ function fazerLogout(){
 }
 
 /* ---------- juízes reais (disciplinas do banco) ---------- */
-function carregarDisciplinas(){
-  if (!SERVIDOR.online) return Promise.resolve();
-  return fetchJSON(CONFIG.API_BASE + '/disciplinas', {}, 5000).then(function(d){
+/* busca um pool de julgadores reais (disciplinas do banco) e monta as entradas em JUIZES —
+   usada tanto pelo pool por semestre (carregarDisciplinas) quanto pelo pool global do caso
+   da semana (carregarDisciplinasSemana): mesma lógica, só o endpoint e o prefixo do id mudam.
+   Nunca rejeita: lista vazia ou falha de rede resolvem para null, e quem chama decide o
+   fallback (JUIZES_FALLBACK para o pool por semestre; null, que poolJuizesSemana() também
+   resolve para JUIZES_FALLBACK, no caso da semana). */
+function carregarPoolJuizes(url, prefixo){
+  if (!SERVIDOR.online) return Promise.resolve(null);
+  return fetchJSON(CONFIG.API_BASE + url, {}, 5000).then(function(d){
     var lista = (d && d.disciplinas) || [];
-    if (!lista.length){ JUIZES_COMUNS = JUIZES_FALLBACK.slice(); return; }
+    if (!lista.length) return null;
     var ids = [];
     lista.slice(0, 40).forEach(function(disc, i){
       var perfil = MULT_PERFIL[disc.perfil] ? disc.perfil : perfilPorNome(disc.professor || disc.nome);
-      var id = 'db' + i;
+      var id = prefixo + i;
       JUIZES[id] = {
         id: id, nome: disc.professor || disc.nome || 'Julgador', perfil: PERFIL_ROTULO[perfil],
         perfilId: perfil, mult: MULT_PERFIL[perfil], foto: disc.foto || '', area: disc.area || '',
@@ -3166,30 +3180,16 @@ function carregarDisciplinas(){
       };
       ids.push(id);
     });
-    JUIZES_COMUNS = ids;
-  }, function(){ JUIZES_COMUNS = JUIZES_FALLBACK.slice(); });
+    return ids;
+  }, function(){ return null; });
 }
-
+function carregarDisciplinas(){
+  return carregarPoolJuizes('/disciplinas', 'db').then(function(ids){ JUIZES_COMUNS = (ids && ids.length) ? ids : JUIZES_FALLBACK.slice(); });
+}
 /* pool global de julgadores reais pro caso da semana (ver JUIZES_SEMANA acima) —
    /api/disciplinas/semana não filtra por semestre de propósito */
 function carregarDisciplinasSemana(){
-  if (!SERVIDOR.online) return Promise.resolve();
-  return fetchJSON(CONFIG.API_BASE + '/disciplinas/semana', {}, 5000).then(function(d){
-    var lista = (d && d.disciplinas) || [];
-    if (!lista.length){ JUIZES_SEMANA = null; return; }
-    var ids = [];
-    lista.slice(0, 40).forEach(function(disc, i){
-      var perfil = MULT_PERFIL[disc.perfil] ? disc.perfil : perfilPorNome(disc.professor || disc.nome);
-      var id = 'sem' + i;
-      JUIZES[id] = {
-        id: id, nome: disc.professor || disc.nome || 'Julgador', perfil: PERFIL_ROTULO[perfil],
-        perfilId: perfil, mult: MULT_PERFIL[perfil], foto: disc.foto || '', area: disc.area || '',
-        disciplina: disc.nome || ''
-      };
-      ids.push(id);
-    });
-    JUIZES_SEMANA = ids;
-  }, function(){ JUIZES_SEMANA = null; });
+  return carregarPoolJuizes('/disciplinas/semana', 'sem').then(function(ids){ JUIZES_SEMANA = ids; });
 }
 /* pool efetivamente usado no caso da semana: professores reais quando disponíveis,
    senão os fictícios — nunca some o julgador da tela */
@@ -3223,6 +3223,10 @@ function processarFila(){
   if (!SERVIDOR.online) return;
   var fila = store.get('ui_fila', []);
   if (!fila.length) return;
+  // migra entradas no formato antigo (partida solta, salva por uma versão anterior a
+  // esta) para {partida,tentativas} — sem isto, item.partida vinha undefined e a partida
+  // real do aluno era descartada em silêncio como se tivesse sido enviada
+  fila = fila.map(function(item){ return (item && item.partida) ? item : { partida: item, tentativas: 0 }; });
   var item = fila[0];
   fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(item.partida) })
     .then(function(d){
@@ -3529,6 +3533,26 @@ function mostrarMerito(){
     + '<b>100 PM</b> sobem uma divisão. Até <b>Bacharelando I</b> não se perde PM (divisões de entrada).<br>'
     + '<b>Virada de semestre</b> — nova temporada: desce-se uma divisão e o PM zera. A cátedra se conquista de novo.';
   mostrar('scr-merito');
+  carregarPosicaoMerito();
+}
+/* posição do aluno no ranking da temporada — busca à parte porque é um dado do servidor
+   (nunca calculável localmente); some sem quebrar nada se estiver offline/modo local */
+function carregarPosicaoMerito(){
+  var el = $('merPosicao');
+  if (!el) return;
+  if (!SERVIDOR.online || SERVIDOR.modo === 'local' || !SERVIDOR.autenticado){ el.style.display = 'none'; return; }
+  fetchJSON(CONFIG.API_BASE + '/rank/posicao', {}, 5000).then(function(d){
+    var p = d && d.posicao;
+    if (!p || !p.total){ el.style.display = 'none'; return; }
+    el.textContent = 'posição ' + p.posicao + ' de ' + p.total + ' nesta temporada';
+    el.style.display = '';
+  }).catch(function(){ el.style.display = 'none'; });
+}
+/* a tela do Mérito está aberta agora? usada por reconciliarMerito() pra repintar na hora
+   se o servidor confirmar um valor diferente da estimativa otimista já em tela */
+function meritoEstaAberta(){
+  var e = $('scr-merito');
+  return !!(e && e.classList && !e.classList.contains('hidden'));
 }
 
 /* ---------- sustentação com juiz de IA (casos-chefe) ---------- */

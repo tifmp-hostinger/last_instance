@@ -199,24 +199,34 @@ BEGIN
     RAISE EXCEPTION 'aplicar_resultado_partida: tipo inválido: %', p_tipo;
   END IF;
 
-  -- idempotência: esta partida já gerou um movimento? devolve o estado atual sem aplicar de novo
-  IF p_partida_id IS NOT NULL AND EXISTS (SELECT 1 FROM rank_movimentos m WHERE m.partida_id = p_partida_id) THEN
-    SELECT r.divisao, r.pm INTO v_div, v_pm FROM rank_alunos r WHERE r.cpf = p_cpf AND r.temporada = p_temporada;
-    RETURN QUERY SELECT COALESCE(v_div, 0), COALESCE(v_pm, 0), 0, FALSE;
-    RETURN;
-  END IF;
-
   -- primeira aparição do aluno nesta temporada: herda a "virada de temporada" da última
   -- divisão conhecida (divisão-1, pm=0 — sem gate de proteção, igual ao front)
   SELECT EXISTS(SELECT 1 FROM rank_alunos WHERE cpf = p_cpf AND temporada = p_temporada) INTO v_existe;
   IF NOT v_existe THEN
-    SELECT divisao INTO v_prev_div FROM rank_alunos WHERE cpf = p_cpf AND temporada <> p_temporada ORDER BY atualizado_em DESC LIMIT 1;
+    -- "r." é obrigatório aqui: um "divisao" cru seria ambíguo entre a coluna de
+    -- rank_alunos e o parâmetro de saída "divisao" do RETURNS TABLE desta função
+    SELECT r.divisao INTO v_prev_div FROM rank_alunos r WHERE r.cpf = p_cpf AND r.temporada <> p_temporada ORDER BY r.atualizado_em DESC LIMIT 1;
     INSERT INTO rank_alunos (cpf, nome, temporada, divisao, pm, maior_divisao)
       VALUES (p_cpf, p_nome, p_temporada, GREATEST(0, COALESCE(v_prev_div, 0) - 1), 0, GREATEST(0, COALESCE(v_prev_div, 0) - 1))
       ON CONFLICT (cpf, temporada) DO NOTHING;
   END IF;
 
+  -- trava a linha ANTES de checar idempotência (não depois): duas chamadas concorrentes
+  -- para o mesmo partida_id serializam aqui — a segunda só é destravada depois que a
+  -- primeira já commitou, e só então enxerga o movimento da primeira. Checar a
+  -- idempotência antes da trava permitiria as duas passarem pela checagem ao mesmo
+  -- tempo (nenhum movimento visto ainda), a segunda recalcular e aplicar o delta em
+  -- cima do estado já atualizado pela primeira, e só falhar depois — no INSERT do
+  -- ledger, com uma violação de índice único sem tratamento, que o servidor então
+  -- devolvia ao cliente como se fosse a divisão/PM reais do aluno (zerados).
   SELECT r.divisao, r.pm INTO v_div, v_pm FROM rank_alunos r WHERE r.cpf = p_cpf AND r.temporada = p_temporada FOR UPDATE;
+
+  -- idempotência: esta partida já gerou um movimento? devolve o estado atual sem aplicar de novo
+  IF p_partida_id IS NOT NULL AND EXISTS (SELECT 1 FROM rank_movimentos m WHERE m.partida_id = p_partida_id) THEN
+    RETURN QUERY SELECT v_div, v_pm, 0, FALSE;
+    RETURN;
+  END IF;
+
   v_div0 := v_div; v_pm0 := v_pm;
 
   IF p_tipo = 'semana' THEN
