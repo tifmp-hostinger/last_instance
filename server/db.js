@@ -365,7 +365,7 @@ function calcularDeltaPM(tipo, venceu, pontos, casos, divisaoAtual) {
   // v6: a jornada não elimina — o PM escala com casos vencidos (0..8) + bônus de qualidade; nunca pune.
   // Espelha exatamente aplicar_resultado_partida (db/schema.sql) e aplicarMerito (public/index.html).
   return {
-    delta: Math.min(80, Math.round((casos || 0) / 8 * 72) + Math.min(8, Math.round((pontos || 0) / 200))),
+    delta: Math.min(80, Math.round((casos || 0) / 8 * 72) + Math.max(0, Math.min(8, Math.round((pontos || 0) / 200)))),
     motivo: 'jornada do semestre concluída (' + (casos || 0) + ' de 8 casos)'
   };
 }

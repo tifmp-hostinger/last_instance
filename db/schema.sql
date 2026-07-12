@@ -244,7 +244,7 @@ BEGIN
     -- com quantos casos foram vencidos (0..8, a "nota do semestre") + pequeno bônus de qualidade
     -- pela pontuação total. Nunca pune: 0 casos = 0 PM. 8/8 = +80 (o topo, a jornada impecável).
     -- p_venceu aqui significa "venceu TODOS os 8" (impecável), usado só para vitorias/derrotas.
-    v_delta := LEAST(80, ROUND(COALESCE(p_casos, 0) / 8.0 * 72) + LEAST(8, ROUND(COALESCE(p_pontos, 0) / 200.0)));
+    v_delta := LEAST(80, ROUND(COALESCE(p_casos, 0) / 8.0 * 72) + GREATEST(0, LEAST(8, ROUND(COALESCE(p_pontos, 0) / 200.0))));
     v_motivo := 'jornada do semestre concluída (' || COALESCE(p_casos, 0) || ' de 8 casos)';
   END IF;
 

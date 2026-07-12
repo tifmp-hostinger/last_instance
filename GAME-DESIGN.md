@@ -111,22 +111,22 @@ Como todos os bots agora jogam os 8 casos, a habilidade se lê em **% de casos v
 
 | Bot | O que lê | Casos vencidos | Pontos | Impecáveis 8/8 |
 |---|---|---|---|---|
-| Cego | nada — nem tese, nem julgador | 72% | ~1680 | 12% |
-| Mediano-confuso | a pertinência, só às vezes (55%) | 82% | ~1910 | 18% |
-| Aprendiz | só a pertinência da tese, sempre | 85% | ~2070 | 23% |
-| Atento | tudo (tese, chave, juiz, linha, credibilidade, preparo, acordo) | 91% | ~2240 | 57% |
+| Cego | nada — nem tese, nem julgador | 67% (2ª metade ~62%) | ~1470 | 5% |
+| Mediano-confuso | a pertinência, só às vezes (55%) | 76% | ~1700 | 8% |
+| Aprendiz | só a pertinência da tese, sempre | 80% | ~1890 | 18% |
+| Atento | tudo (tese, chave, juiz, linha, credibilidade, preparo, acordo) | 85% | ~2105 | 34% |
 
-O degrau em **pontos** e em **impecáveis** (o atento fecha 8/8 quase 5× mais que o cego) é o que expressa a habilidade agora. Botões de ajuste: `OPONENTES`, `REPLICA_BONUS`/`DIRETA_BONUS`/`LATERAL_FATOR*`, faixas de credibilidade e `FECHO_LINHA`. **Nota de design:** sem eliminação, a curva de "% de casos vencidos" comprime (o cego vence muitos casos por sorte); se a Ordem do Mérito precisar separar mais a habilidade, o caminho é subir a dificuldade individual dos casos.
+**A dificuldade sobe em rampa** (v6): o fator lateral (carta fora do tema) escala por instância — Foro cheio, TJRS ×0,78, STF ×0,55 — e a parte adversa vem +35% na deliberação. Da metade da jornada em diante, jogar no chute não sustenta mais a balança (o cego cai de ~72% para ~62% de casos na 2ª metade), mas quem lê a tese continua vencendo. O degrau em **pontos** e em **impecáveis** (o atento fecha 8/8 quase 7× mais que o cego) é o que expressa a habilidade. **Pontuação justa:** caso perdido conta **negativo** (o quanto a convicção ficou abaixo de 50, até −50), então o placar (top 10 por pontos totais) separa de verdade quem perde bem de quem perde feio. Botões de ajuste: `OPONENTES`, `REPLICA_BONUS`/`DIRETA_BONUS`/`LATERAL_FATOR*` e a escala por instância em `computarDano`.
 
 **Diagnóstico anti-exploit** — três arquétipos tentam quebrar o sistema; nenhum deve superar o atento (em casos vencidos nem em pontos):
 
 | Estratégia tentada | Casos vencidos | Pontos | Referência (atento) |
 |---|---|---|---|
-| Lateral-spam (maior força-base, ignora tema) | 67% | ~1540 | 91% / ~2240 |
-| Acordo-farm (só sustenta o mínimo perto de 55, aceita tudo) | 25% | ~370 | 91% / ~2240 |
-| Ensaio-bank (ensaia todo rascunho ao cair na mão, sem timing) | 85% | ~2070 | 91% / ~2240 |
+| Lateral-spam (maior força-base, ignora tema) | 59% | ~1240 | 85% / ~2105 |
+| Acordo-farm (só sustenta o mínimo perto de 55, aceita tudo) | 16% | **negativo** | 85% / ~2105 |
+| Ensaio-bank (ensaia todo rascunho ao cair na mão, sem timing) | 81% | ~1940 | 85% / ~2105 |
 
-Nenhuma estratégia degenerada supera a leitura honesta — o acordo-farm colapsa (não sustenta a balança o suficiente e perde a maioria dos casos).
+Nenhuma estratégia degenerada supera a leitura honesta — e o acordo-farm agora fecha o semestre com pontuação **negativa** (perde a maioria dos casos e as derrotas custam pontos).
 
 ## Identidade
 

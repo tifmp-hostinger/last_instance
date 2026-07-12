@@ -418,10 +418,12 @@ function imprime(nome, alvo, r){
 if (!MACHINE) console.log('Última Instância · harness v4 — ' + N + ' jornadas por bot — ' + path.basename(arquivo));
 const alvo = resolvePerfil(quem);
 const resultados = {};
-if (alvo === 'naive') resultados.cego = imprime('bot-cego', '~20%', rodarLote('naive'));
+// v6 (jornada sem eliminação): o alvo é % de CASOS vencidos, não jornadas. A 2ª metade é mais
+// dura (fator lateral escala por instância), então o chute perde valor do TJRS ao STF.
+if (alvo === 'naive') resultados.cego = imprime('bot-cego', 'casos ~65% · pontos baixos', rodarLote('naive'));
 if (quem === 'confuso') resultados.confuso = imprime('bot mediano-confuso', 'diagnóstico', rodarLote('confuso'));
-if (quem === 'aprendiz') resultados.aprendiz = imprime('bot aprendiz', '45-55%', rodarLote('aprendiz'));
-if (alvo === 'smart') resultados.atento = imprime('bot-atento', '~85%', rodarLote('smart'));
+if (quem === 'aprendiz') resultados.aprendiz = imprime('bot aprendiz', 'casos ~80%', rodarLote('aprendiz'));
+if (alvo === 'smart') resultados.atento = imprime('bot-atento', 'casos ~85% · o teto', rodarLote('smart'));
 
 const OTIMIZADORES = ['otimizador-lateral', 'otimizador-acordo', 'otimizador-ensaio'];
 if (OTIMIZADORES.indexOf(quem) >= 0){

@@ -62,7 +62,7 @@ BEGIN
     -- v6: a jornada não elimina. O PM escala com quantos dos 8 casos foram vencidos
     -- (a "nota do semestre") + pequeno bônus de qualidade pela pontuação. Nunca pune:
     -- 0 casos = 0 PM; 8/8 = +80 (o topo). p_venceu = "venceu TODOS os 8" (impecável).
-    v_delta := LEAST(80, ROUND(COALESCE(p_casos, 0) / 8.0 * 72) + LEAST(8, ROUND(COALESCE(p_pontos, 0) / 200.0)));
+    v_delta := LEAST(80, ROUND(COALESCE(p_casos, 0) / 8.0 * 72) + GREATEST(0, LEAST(8, ROUND(COALESCE(p_pontos, 0) / 200.0))));
     v_motivo := 'jornada do semestre concluída (' || COALESCE(p_casos, 0) || ' de 8 casos)';
   END IF;
 
