@@ -149,13 +149,16 @@ END $$;
 --   SELECT cpf, modo, seed, COUNT(*) FROM partidas
 --     WHERE seed IS NOT NULL AND seed <> '' GROUP BY cpf, modo, seed HAVING COUNT(*) > 1;
 -- o bloco abaixo tenta criar o índice e, se achar duplicata, avisa em vez de
--- derrubar o resto do script (o restante do schema continua sendo aplicado).
+-- derrubar o resto do script (o restante do schema continua sendo aplicado). O
+-- IF NOT EXISTS é o que faz um segundo "rode de novo" ficar de fato silencioso quando
+-- o índice já foi criado com sucesso — sem ele, toda reaplicação do schema.sql
+-- reimprimia o mesmo aviso de "já existe ou há duplicata", mesmo já resolvido.
 DO $$
 BEGIN
   BEGIN
-    CREATE UNIQUE INDEX uq_partidas_dedup ON partidas (cpf, modo, seed) WHERE seed IS NOT NULL AND seed <> '';
-  EXCEPTION WHEN unique_violation OR duplicate_table THEN
-    RAISE NOTICE 'uq_partidas_dedup: já existe ou há duplicatas em partidas (cpf,modo,seed) — resolva com a consulta de diagnóstico no comentário acima e rode de novo';
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_partidas_dedup ON partidas (cpf, modo, seed) WHERE seed IS NOT NULL AND seed <> '';
+  EXCEPTION WHEN unique_violation THEN
+    RAISE NOTICE 'uq_partidas_dedup: há duplicatas em partidas (cpf,modo,seed) — resolva com a consulta de diagnóstico no comentário acima e rode de novo';
   END;
 END $$;
 
