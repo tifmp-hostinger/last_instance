@@ -301,9 +301,15 @@ body.dark .anuncio .desc{color:#d8a08f}
 .ps-dobra{background:rgba(238,42,66,.12);color:var(--red);border:1px solid rgba(238,42,66,.4)}
 .ps-block{background:rgba(42,111,107,.12);color:#2A6F6B;border:1px solid rgba(42,111,107,.4)}
 .ps-conten{background:rgba(110,107,102,.12);color:var(--fg3);border:1px solid rgba(110,107,102,.4)}
-.caixinha{flex:0 0 auto;background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:12px 15px;text-align:center;min-width:106px}
-.caixinha .num{font-family:var(--serif);font-style:italic;font-size:25px;font-weight:600;line-height:1.15}
-.caixinha .de{color:var(--sand);font-size:14px}
+/* painel único "sua situação": credibilidade + fôlego + preparo reunidos (antes eram 3 caixas) */
+.painel-situacao{flex:1;min-width:230px;background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:12px 15px}
+.sit-grade{display:flex;gap:12px}
+.sit-item{flex:1;text-align:center;min-width:0}
+.sit-item + .sit-item{border-left:1px solid var(--card-line);padding-left:12px}
+.sit-val{padding-top:3px}
+.sit-item .num{font-family:var(--serif);font-style:italic;font-size:25px;font-weight:600;line-height:1.15}
+.sit-item .de{color:var(--sand);font-size:14px}
+.painel-situacao .prep-acoes{margin-top:10px;padding-top:10px;border-top:1px solid var(--card-line)}
 .folego{display:flex;gap:6px;justify-content:center;padding-top:7px;min-height:24px}
 .folego span{width:15px;height:15px;border-radius:50%;transition:background .2s,border .2s}
 .folego .on{background:var(--red);box-shadow:0 0 8px rgba(238,42,66,.5)}
@@ -628,7 +634,7 @@ body.dark .e-alta{color:#f06f80}
   .mao-cab{flex-wrap:wrap}
   .mao-cab .rotulo{white-space:nowrap}
   .anuncio{flex-basis:100%}
-  .status .caixinha{flex:1;min-width:96px}
+  .painel-situacao{flex-basis:100%}
   .bandeja{overflow-x:auto}
   .bandeja .slot{min-width:104px}
   #faseBanner span{font-size:19px;padding:11px 24px}
@@ -794,19 +800,25 @@ body.dark .e-alta{color:#f06f80}
       <div class="desc" id="oppDesc">—</div>
       <div id="statusPills"></div>
     </div>
-    <div class="caixinha" id="cxCred">
-      <div class="rotulo">Credibilidade</div>
-      <div style="padding-top:3px"><span class="num" id="credNum">6</span><span class="de"> / 10</span></div>
-      <div class="cred-estado" id="credEstado"></div>
-    </div>
-    <div class="caixinha" id="cxFolego">
-      <div class="rotulo">Fôlego</div>
-      <div class="folego" id="folego"></div>
-    </div>
-    <div class="caixinha" id="cxPrep">
-      <div class="rotulo">Preparo <button class="info-i" id="prepInfo" aria-label="O que faz cada ação de preparo" style="width:15px;height:15px;font-size:9px;vertical-align:1px">i</button></div>
-      <div class="prep-estrelas" id="prepEstrelas"></div>
-      <div class="prep-acoes">
+    <!-- sua situação: credibilidade, fôlego e preparo reunidos num painel só (como o
+         julgador foi reunido na balança) — o que era três caixas soltas agora é um bloco -->
+    <div class="painel-situacao" id="cxSituacao">
+      <div class="sit-grade">
+        <div class="sit-item" id="cxCred">
+          <span class="rotulo">Credibilidade</span>
+          <div class="sit-val"><span class="num" id="credNum">6</span><span class="de"> / 10</span></div>
+          <div class="cred-estado" id="credEstado"></div>
+        </div>
+        <div class="sit-item" id="cxFolego">
+          <span class="rotulo">Fôlego</span>
+          <div class="folego" id="folego"></div>
+        </div>
+        <div class="sit-item" id="cxPrep">
+          <span class="rotulo">Preparo <button class="info-i" id="prepInfo" aria-label="O que faz cada ação de preparo" style="width:15px;height:15px;font-size:9px;vertical-align:1px">i</button></span>
+          <div class="prep-estrelas" id="prepEstrelas"></div>
+        </div>
+      </div>
+      <div class="prep-acoes" id="prepAcoes">
         <button class="prep-btn" id="prepEspiar" title="Antecipar a próxima pauta (1 de preparo)">Espiar · 1</button>
         <button class="prep-btn" id="prepEnsaiar" title="Ensaiar uma carta da mão (2 de preparo)">Ensaiar · 2</button>
         <button class="prep-btn" id="prepObjecao" title="Anular o próximo movimento adverso (3 de preparo)">Objeção · 3</button>
@@ -2612,6 +2624,13 @@ function pintarBatalha(inicial){
   if (B.vogaRevelada) pills.appendChild(el('span','pilula-status ps-sinal','Sinal da deliberação: ' + TIPOS[B.vogaRevelada.tipo] + ' ×1,25 nessa fase'));
   if (B.bloqueio > 0) pills.appendChild(el('span','pilula-status ps-block','Sua contenção: ' + B.bloqueio));
   if (B.conten > 0) pills.appendChild(el('span','pilula-status ps-conten','Contenção adversa: ' + B.conten));
+  // menos ruído: na instrução a parte adversa só organiza os autos (nada acontece). Se não há
+  // nenhuma pílula de estado pra mostrar, esconde a caixa inteira em vez de anunciar o vazio.
+  var anun = $('anuncio');
+  if (anun && anun.classList){
+    var ocioso = B.fase === 'instrucao' && !pills.children.length && !B.negate;
+    anun.classList.toggle('hidden', !!ocioso);
+  }
 
   // credibilidade
   var cx = $('cxCred');
