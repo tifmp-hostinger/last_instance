@@ -359,6 +359,19 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 #modalCard{width:min(400px,94vw);max-height:88vh;overflow:auto;background:var(--cream);color:var(--ink);
   border-radius:20px;box-shadow:0 30px 70px rgba(0,0,0,.45);animation:pop .45s var(--spring) both;scrollbar-width:thin}
 #modalCard.escuro{background:var(--ink);color:var(--cream)}
+/* #modalCard (sem .escuro) é sempre claro — papel — em qualquer tema do site, mas
+   .btn-ghost usa cores adaptáveis ao tema (--fg2/--line-2/--fg3/--fg), pensadas pra
+   sentar sobre --bg/--card (que SEGUEM o tema). Em tema escuro do site, isso virava
+   texto claro sobre o cartão claro do modal — quase invisível. Cores fixas aqui,
+   iguais às que o próprio modal já usa pro corpo do texto (var(--ink-2)/var(--ink)). */
+#modalCard:not(.escuro) .btn-ghost{color:var(--ink-2);border-color:var(--line)}
+#modalCard:not(.escuro) .btn-ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+/* espelho: #modalCard.escuro é sempre escuro — tinta — em qualquer tema do site (acordo,
+   sentença), mas .btn-ghost sem essa regra herdava --fg2/--line-2, que em tema claro do
+   site é texto escuro sobre o próprio cartão escuro do modal. Mesmas cores fixas que o
+   botão "Seguir sem sustentar" da sustentação de IA já usava à mão. */
+#modalCard.escuro .btn-ghost{color:var(--sand);border-color:rgba(191,186,164,.35)}
+#modalCard.escuro .btn-ghost:hover{border-color:var(--cream);color:var(--cream)}
 .modal-pad{padding:26px 26px 24px}
 .modal-botoes{display:flex;flex-direction:column;gap:9px;margin-top:20px}
 
@@ -577,6 +590,7 @@ body.dark .mer-atual{background:#1c1a1a;border:1px solid rgba(191,186,164,.2)}
 .e-media{color:var(--fg2)}
 .e-alta{color:var(--red-700)}
 .e-topo{color:var(--red)}
+body.dark .e-entrada{color:#a39d8f}
 body.dark .e-media{color:var(--sand)}
 body.dark .e-alta{color:#f06f80}
 
@@ -1348,6 +1362,7 @@ function mostrar(id){
   TELAS.forEach(function(t){ var e=$(t); if(e) e.classList.toggle('hidden', t!==id); });
   var e = $(id); if (e){ e.style.animation='none'; void e.offsetWidth; e.style.animation=''; }
   if (id !== 'scr-battle'){ var h=$('hudMini'); if (h && h.classList) h.classList.remove('on'); }
+  if (id !== 'scr-title') esconderBoasVindas();
   if (typeof window!=='undefined' && window.scrollTo) window.scrollTo(0,0);
 }
 
@@ -3079,10 +3094,16 @@ function mostrarBoasVindas(){
   if (boasVindasTimer){ clearTimeout(boasVindasTimer); boasVindasTimer = null; }
   b.classList.remove('hidden');
   requestAnimationFrame(function(){ b.classList.add('on'); });
-  boasVindasTimer = setTimeout(function(){
-    b.classList.remove('on');
-    setTimeout(function(){ b.classList.add('hidden'); }, 550);
-  }, 4200);
+  boasVindasTimer = setTimeout(esconderBoasVindas, 4200);
+}
+/* fixo no topo da tela: se o aluno navegar antes do timer, o toast some junto —
+   senão ele flutua por cima do cabeçalho da tela seguinte (pior no mobile, onde
+   o cabeçalho ocupa duas linhas). */
+function esconderBoasVindas(){
+  if (boasVindasTimer){ clearTimeout(boasVindasTimer); boasVindasTimer = null; }
+  var b = $('boasVindas'); if (!b || !b.classList.contains('on')) return;
+  b.classList.remove('on');
+  setTimeout(function(){ b.classList.add('hidden'); }, 550);
 }
 
 /* o servidor é a memória entre aparelhos: jornada feita, semana jogada e rank */
