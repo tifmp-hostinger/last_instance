@@ -243,6 +243,12 @@ body.dark .painel-balanca{background:#161414;border:1px solid rgba(191,186,164,.
 .prep-btn[disabled]{opacity:.35;cursor:not-allowed}
 .prep-btn.armado{background:var(--red);border-color:var(--red);color:#fff}
 
+/* revelar aos poucos: na 1ª batalha, painéis avançados só aparecem quando entram em jogo */
+.oculto-revelar{display:none !important}
+.revelar-fade{animation:revelaFade .45s ease both}
+@keyframes revelaFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.revelar-fade{animation:none}}
+
 /* ---- bandeja da linha argumentativa ---- */
 .bandeja{display:flex;gap:8px;margin-bottom:13px}
 .bandeja .slot{flex:1;border:1.5px dashed var(--line-2);border-radius:10px;padding:7px 10px;min-height:40px;
@@ -2666,6 +2672,20 @@ function pintarBatalha(inicial){
   // reconsideração
   var br = $('btnReconsiderar');
   br.classList.toggle('hidden', !(B.cred <= 3 && !B.reconsideracaoUsada && podeAgir));
+
+  // revelar aos poucos, só na PRIMEIRA batalha (caso 0 da jornada): a bandeja da linha e as
+  // ações de preparo ficam ocultas até a 1ª carta jogada — o começo é só ler a tese e replicar.
+  // Depois da 1ª carta, aparecem com um fade (uma vez), sem sobrecarregar quem está aprendendo.
+  var primeiraBatalha = S && S.modo !== 'semana' && B.caso === 0 && B.jogadas && B.jogadas.length === 0 && !B.fim;
+  ['bandeja','prepAcoes'].forEach(function(pid){
+    var pe = $(pid); if (!pe || !pe.classList) return;
+    if (primeiraBatalha){ pe.classList.add('oculto-revelar'); pe.classList.remove('revelar-fade'); }
+    else {
+      var estavaOculto = pe.classList.contains('oculto-revelar');
+      pe.classList.remove('oculto-revelar');
+      if (estavaOculto) pe.classList.add('revelar-fade');   // fade só na transição (1ª carta)
+    }
+  });
 
   // bandeja da linha argumentativa
   var bd = $('bandeja'); bd.innerHTML = '';
