@@ -148,10 +148,22 @@ main{display:flex;justify-content:center;min-height:100vh}
 .topo h2{font-family:var(--serif);font-style:italic;font-weight:600;font-size:26px;margin:0}
 
 /* ---- batalha: cabeçalho ---- */
-.cab{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px;flex-wrap:wrap}
-.cab .linha1{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
-.cab h1{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(19px,3.4vw,26px);line-height:1.08;margin:0 0 3px}
+/* cabeçalho do caso — agora dentro do painel escuro da balança, compacto, com um filete
+   separando da barra "Balança da convicção" logo abaixo */
+.caso-cab{padding-bottom:11px;margin-bottom:11px;border-bottom:1px solid rgba(191,186,164,.18)}
+.caso-linha1{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.caso-titulo{font-family:var(--serif);font-style:italic;font-weight:600;font-size:clamp(17px,3vw,22px);line-height:1.1;margin:0 0 2px;color:var(--cream)}
+.caso-partes{font-size:11.5px;color:var(--sand)}
+.caso-cab .rotulo{color:var(--sand)}
+.caso-cab .missao-chip{color:var(--cream);border-color:rgba(191,186,164,.4)}
+.caso-cab .missao-chip.ok{color:#7fd6c8;border-color:rgba(127,214,200,.5)}
 .pont{color:var(--sand)}
+/* chip de fase ao lado do título da balança (substitui a régua do rito) */
+.fase-chip{font-family:var(--sans);font-style:normal;font-size:9.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--sand);border:1px solid rgba(191,186,164,.4);border-radius:var(--r-pill);
+  padding:2px 8px;margin-left:6px;vertical-align:2px;white-space:nowrap}
+.fase-chip:empty{display:none}
+.fase-chip.delib{color:#fff;border-color:var(--red);background:var(--red);animation:pulsa 2.6s ease-in-out infinite}
 /* o julgador mora dentro do painel da balança (que já é escuro) — aqui é só uma linha
    compacta, sem caixa própria; o painel inteiro é quem dá o fundo e a cor do texto */
 .julgador{display:flex;gap:10px;align-items:center;padding-top:10px;margin-top:8px;
@@ -214,14 +226,6 @@ body.dark .painel-balanca{background:#161414;border:1px solid rgba(191,186,164,.
 .tese-gancho{font-size:10.5px;color:var(--fg3);border-top:1px dashed var(--line-2);margin-top:8px;padding-top:7px;font-style:italic}
 .tese-gancho:empty{display:none}
 
-/* ---- régua do rito ---- */
-.rito{display:flex;align-items:center;gap:5px;margin:-4px 0 13px;flex-wrap:wrap}
-.rito .etapa{font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);
-  border:1px solid var(--line-2);border-radius:var(--r-pill);padding:3px 10px;opacity:.55;white-space:nowrap}
-.rito .etapa.feita{opacity:.85;border-color:var(--sand);color:var(--sand)}
-.rito .etapa.agora{opacity:1;background:var(--red);border-color:var(--red);color:#fff;animation:pulsa 3s ease-in-out infinite}
-.rito .seta{color:var(--line-2);font-size:10px}
-.rito .sub{font-size:10px;color:var(--fg3);margin-left:5px}
 
 /* ---- credibilidade e preparo ---- */
 #cxCred .num{transition:color .3s}
@@ -628,7 +632,6 @@ body.dark .e-alta{color:#f06f80}
     padding-left:16px;padding-right:16px;scrollbar-width:none}
   #mao::-webkit-scrollbar{display:none}
   #mao .carta{flex:0 0 132px;scroll-snap-align:start;min-height:172px}
-  .cab{flex-direction:column}
   .acoes{width:100%;flex-direction:row}
   .acoes .btn{flex:1}
   .mao-cab{flex-wrap:wrap}
@@ -721,42 +724,24 @@ body.dark .e-alta{color:#f06f80}
 
 <!-- ============ BATALHA ============ -->
 <section id="scr-battle" class="scr hidden">
-  <div class="cab">
-    <div style="flex:1;min-width:0">
-      <div class="linha1">
-        <svg class="simbolo" style="width:13px;height:13px;animation:none" viewBox="0 0 100 100" aria-hidden="true" fill="#EE2A42"><use href="#ic-balanca"/></svg>
+  <div class="painel-balanca">
+    <!-- o caso mora na própria balança: título, área e missão no topo do painel,
+         compactos — menos altura de página, tudo o que importa num lugar só -->
+    <div class="caso-cab">
+      <div class="caso-linha1">
+        <svg class="simbolo" style="width:12px;height:12px;animation:none" viewBox="0 0 100 100" aria-hidden="true" fill="#EE2A42"><use href="#ic-balanca"/></svg>
         <span class="eyebrow" id="cabInstancia">Foro Central de Porto Alegre</span>
         <span class="pont">·</span>
         <span class="rotulo" id="cabCaso">Caso 1 de 8</span>
         <span class="passos" id="cabPassos" aria-hidden="true"></span>
       </div>
-      <h1 id="cabTitulo">—</h1>
-      <div class="meta-txt" id="cabPartes">—</div>
+      <h2 class="caso-titulo" id="cabTitulo">—</h2>
+      <div class="caso-partes" id="cabPartes">—</div>
       <div class="missao-chip" id="missaoChip"></div>
     </div>
-  </div>
-
-  <!-- régua do rito: onde o processo está, sem contagem ansiosa -->
-  <div class="rito" id="rito" aria-hidden="true"></div>
-
-  <div class="painel-balanca">
     <div class="cima">
-      <span class="tit">Balança da convicção</span>
+      <span class="tit">Balança da convicção <span class="fase-chip" id="faseChip"></span></span>
       <span id="convNum">50</span>
-    </div>
-    <!-- o julgador mora na balança: é quem avalia os argumentos dos dois lados abaixo —
-         não uma caixa à parte. i (abre a ficha) funciona a toque, não só a hover. -->
-    <div class="julgador" id="julPainel">
-      <img class="foto hidden" id="julFoto" alt="">
-      <div class="jul-corpo">
-        <div class="jul-linha1">
-          <span class="rotulo">Julgador</span>
-          <button class="info-i" id="julInfo" aria-label="O que este julgador valoriza" style="width:15px;height:15px;font-size:9px;vertical-align:1px">i</button>
-        </div>
-        <div class="nome" id="julNome">—</div>
-        <div class="disposicao" id="julDisp">—</div>
-        <div class="mults" id="julMults"></div>
-      </div>
     </div>
     <svg id="balanca" viewBox="0 0 320 132" aria-hidden="true">
       <line x1="160" y1="34" x2="160" y2="112" stroke="#BFBAA4" stroke-width="4" stroke-linecap="round" opacity=".85"/>
@@ -780,6 +765,20 @@ body.dark .e-alta{color:#f06f80}
     </svg>
     <div class="trilha"><div class="centro"></div><div id="convMarca"></div></div>
     <div class="trilha-rotulos"><span>0 · causa perdida</span><span>50</span><span>100 · convicção plena</span></div>
+    <!-- o julgador avalia os dois lados da balança: fica logo abaixo dela, ainda no painel.
+         i (abre a ficha) funciona a toque, não só a hover. -->
+    <div class="julgador" id="julPainel">
+      <img class="foto hidden" id="julFoto" alt="">
+      <div class="jul-corpo">
+        <div class="jul-linha1">
+          <span class="rotulo">Julgador</span>
+          <button class="info-i" id="julInfo" aria-label="O que este julgador valoriza" style="width:15px;height:15px;font-size:9px;vertical-align:1px">i</button>
+        </div>
+        <div class="nome" id="julNome">—</div>
+        <div class="disposicao" id="julDisp">—</div>
+        <div class="mults" id="julMults"></div>
+      </div>
+    </div>
   </div>
 
   <div class="painel-tese" id="painelTese">
@@ -2579,22 +2578,16 @@ function pintarBatalha(inicial){
     mChip.classList.toggle('ok', missaoCumprida());
   } else mChip.textContent = '';
 
-  // régua do rito
-  var rito = $('rito'); rito.innerHTML = '';
-  var etapas = [['Distribuição','feita'],['Instrução','instrucao'],['Sustentação','sustentacao'],['Deliberação','deliberacao'],['Sentença','']];
-  var ordemFase = { instrucao:1, sustentacao:2, deliberacao:3 };
-  var atual = ordemFase[B.fase] || 1;
-  etapas.forEach(function(e, i){
-    var cls = 'etapa';
-    if (i === 0) cls += ' feita';
-    else if (i === 4) cls += (B.fim ? ' agora' : '');
-    else cls += (ordemFase[e[1]] < atual ? ' feita' : (e[1] === B.fase ? ' agora' : ''));
-    rito.appendChild(el('span', cls, e[0]));
-    if (i < etapas.length-1) rito.appendChild(el('span','seta','›'));
-  });
-  var iniFase = B.fase === 'instrucao' ? 1 : B.fase === 'sustentacao' ? B.meta.instrucao + 1 : B.prazo - B.meta.delib + 1;
-  var totFase = B.fase === 'instrucao' ? B.meta.instrucao : B.fase === 'sustentacao' ? B.prazo - B.meta.instrucao - B.meta.delib : B.meta.delib;
-  rito.appendChild(el('span','sub', (Math.min(B.rodada,B.prazo) - iniFase + 1) + 'ª de ' + totFase + (B.fase==='sustentacao'?' na sustentação':'')));
+  // fase atual, compacta (no lugar da antiga régua do rito): só o que importa — em que fase o
+  // caso está e a rodada. Deliberação ganha destaque porque é onde a parte adversa vem mais forte.
+  var faseChip = $('faseChip');
+  if (faseChip){
+    var iniFase = B.fase === 'instrucao' ? 1 : B.fase === 'sustentacao' ? B.meta.instrucao + 1 : B.prazo - B.meta.delib + 1;
+    var totFase = B.fase === 'instrucao' ? B.meta.instrucao : B.fase === 'sustentacao' ? B.prazo - B.meta.instrucao - B.meta.delib : B.meta.delib;
+    var nRod = Math.min(B.rodada, B.prazo) - iniFase + 1;
+    faseChip.textContent = B.fim ? 'sentença' : (FASE_ROTULO[B.fase] || 'Instrução').toLowerCase() + ' · ' + nRod + '/' + totFase;
+    faseChip.className = 'fase-chip' + (B.fase === 'deliberacao' && !B.fim ? ' delib' : '');
+  }
 
   $('convNum').textContent = Math.round(B.p);
   $('convNum').classList.toggle('plena', B.p >= 100);
@@ -3071,7 +3064,7 @@ function verDemo(){
               txt:'Réplica direta: a tese foi riscada, a balança pesou mais forte e o log explicou o porquê — é aqui que se aprende o Direito.' },
     { t:34200,foco:'#bandeja',        txt:'Monte a linha na ordem — fundamento, prova, arremate — para fechar a tese (+8 e +1 de credibilidade).' },
     { t:39400,foco:'#cxPrep',         txt:'Preparo compra vantagem: espiar a próxima pauta, ensaiar uma carta, anular o movimento adverso. Ganhe-o com réplicas pertinentes.' },
-    { t:44600,foco:'#rito',           txt:'O caso segue o rito: instrução, sustentação e deliberação — onde a contenção dobra e pode surgir acordo. Boa audiência.' }
+    { t:44600,foco:'#faseChip',       txt:'A fase do caso fica ao lado da balança: instrução, sustentação e, no fim, a deliberação — onde a parte adversa vem mais forte. Feche cedo, com convicção alta. Boa audiência.' }
   ];
   passos.forEach(function(p){
     demoTimers.push(setTimeout(function(){
