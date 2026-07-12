@@ -2225,7 +2225,7 @@ function finalizarSemana(venceu, motivo){
   var mer = aplicarMerito('semana', venceu, pontos, venceu ? 1 : 0);
   marcarSemana(venceu, pontos);
   salvarPartidaLocal({
-    nome: PERFIL.nome || 'Estudante', ra: PERFIL.ra || '', sem: PERFIL.sem || CONFIG.SEMESTRE,
+    nome: PERFIL.nome || 'Estudante', ra: PERFIL.ra || '', sem: CONFIG.SEMESTRE,
     pontos: pontos, casos: venceu ? 1 : 0, venceu: !!venceu,
     modo: 'semana', seed: S.seed, quando: new Date().toISOString(), v: CONFIG.VERSAO
   });
@@ -2430,6 +2430,22 @@ function encerrarJornada(){
   registrarPartida(venceuTudo);
   telaOver(venceuTudo, cv);
 }
+/* sair da batalha sem encerrar a jornada: o progresso fica salvo (o caso atual recomeça ao
+   retomar; os casos já jogados e a pontuação ficam guardados). É a saída padrão do menu —
+   assim os casos que ainda faltam continuam disponíveis, não travam. */
+function sairDaBatalhaPausa(){
+  if (S) salvarRun();
+  S = null; B = null; setTema(false); atualizarTitulo(); mostrar('scr-title');
+}
+/* encerrar em definitivo (opção deliberada e avisada): fecha a jornada com a pontuação atual */
+function confirmarEncerrarBatalha(semana){
+  modal({ titulo: semana ? 'Desistir da pauta da semana?' : 'Encerrar a jornada em definitivo?',
+    html: semana
+      ? 'A sustentação é <b>uma por semana</b>: desistir registra a derrota desta pauta na Ordem do Mérito. A próxima abre na segunda-feira.'
+      : 'Isso <b>fecha a jornada do semestre em definitivo</b> com a pontuação atual (' + casosVencidos() + ' de 8 casos, <b>' + S.pontos + ' pontos</b>) — os casos que faltam não pontuam e a jornada <b>não poderá ser retomada</b>. Para jogar os que faltam, escolha “Sair — retomo depois”.',
+    botoes:[ { t: semana ? 'Desistir mesmo assim' : 'Encerrar em definitivo', fn:function(){ if (semana) finalizarSemana(false, 'desistencia'); else encerrarJornada(); } },
+             { t:'Continuar jogando', ghost:true } ] });
+}
 function telaOver(venceuTudo, cv){
   cv = (cv == null) ? casosVencidos() : cv;
   setTema(venceuTudo ? !!JORNADA[JORNADA.length-1].dark : false);
@@ -2461,7 +2477,9 @@ function telaOver(venceuTudo, cv){
 
 function registrarPartida(venceuTudo){
   salvarPartidaLocal({
-    nome: PERFIL.nome || 'Estudante', ra: PERFIL.ra || '', sem: PERFIL.sem || CONFIG.SEMESTRE,
+    // sem = a temporada do env (CONFIG.SEMESTRE, vinda da sessão) — a mesma fonte que o servidor
+    // usa para o ranking. O semestre do aluno no perfil serve só para as disciplinas/professores.
+    nome: PERFIL.nome || 'Estudante', ra: PERFIL.ra || '', sem: CONFIG.SEMESTRE,
     pontos: S.pontos, casos: casosVencidos(), venceu: !!venceuTudo,
     modo: S.modo, seed: S.seed, quando: new Date().toISOString(), v: CONFIG.VERSAO
   });
@@ -3802,18 +3820,9 @@ function ligarEventos(){
         : 'Caso ' + (B.caso+1) + ' de 8 · ' + esc(B.meta.inst) + '<br>Pontos até aqui: <b>' + S.pontos + '</b> · casos vencidos: ' + casosVencidos()),
       botoes:[
         { t:'Voltar ao caso', ghost:true },
+        { t:'Sair — retomo depois', ghost:true, fn: sairDaBatalhaPausa },
         { t:'Ver baralho e relíquias', ghost:true, fn: verPilhas },
-        { t: semana ? 'Desistir da pauta' : 'Encerrar a jornada', fn:function(){
-            modal({ titulo: semana ? 'Desistir da pauta da semana?' : 'Encerrar a jornada agora?',
-              html: semana
-                ? 'A sustentação é <b>uma por semana</b>: desistir registra a derrota desta pauta na Ordem do Mérito. A próxima abre na segunda-feira.'
-                : 'Encerrar agora fecha a jornada com a <b>pontuação atual</b> (' + casosVencidos() + ' de 8 casos vencidos, <b>' + S.pontos + ' pontos</b>) — os casos não jogados ficam sem pontuar. Vale para o placar e a Ordem do Mérito.',
-              botoes:[ { t: semana ? 'Desistir mesmo assim' : 'Encerrar mesmo assim', fn:function(){
-                          if (semana) finalizarSemana(false, 'desistencia');
-                          else encerrarJornada();
-                        } },
-                       { t:'Continuar jogando', ghost:true } ] });
-          } }
+        { t: semana ? 'Desistir da pauta' : 'Encerrar em definitivo', ghost:true, fn:function(){ confirmarEncerrarBatalha(semana); } }
       ]});
   });
 
@@ -3849,7 +3858,14 @@ function ligarEventos(){
   $('cfgDemo').addEventListener('click', verDemo);
   $('cfgApagar').addEventListener('click', function(){
     modal({ titulo:'Apagar os dados deste aparelho?', html:'Placar local, jornada salva, preferências e identificação serão removidos. Essa ação não desfaz.',
-      botoes:[ { t:'Apagar tudo', fn:function(){ ['ui_fmp_run','ui_fmp_placar','ui_perfil','ui_fila','ui_demo_vista','ui_mudo','ui_tema','ui_vibra','ui_merito','ui_jornada','ui_semana'].forEach(store.del); PERFIL={nome:'',ra:'',sem:'',token:''}; TEMA='auto'; VIBRA=true; mudo=false; setTema(false); atualizarTitulo(); mostrar('scr-title'); } },
+      botoes:[ { t:'Apagar tudo', fn:function(){
+            ['ui_fmp_run','ui_fmp_placar','ui_perfil','ui_fila','ui_demo_vista','ui_semana_jogada','ui_mudo','ui_tema','ui_vibra','ui_merito','ui_jornada','ui_semana'].forEach(store.del);
+            PERFIL={nome:'',ra:'',sem:'',token:''}; TEMA='auto'; VIBRA=true; mudo=false; setTema(false);
+            // com servidor: re-sincroniza. A jornada e a semana já feitas continuam registradas
+            // no servidor — apagar o aparelho não as libera de novo; iniciarSessao() as re-trava.
+            if (SERVIDOR.online && SERVIDOR.autenticado && SERVIDOR.modo !== 'local'){ iniciarSessao(); }
+            else { atualizarTitulo(); mostrar('scr-title'); }
+          } },
                { t:'Manter', ghost:true } ]});
   });
 

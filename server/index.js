@@ -125,9 +125,11 @@ app.get('/api/disciplinas/semana', auth.exigir, async function (req, res) {
 });
 
 app.get('/api/placar', auth.exigir, async function (req, res) {
-  // aba=merito / merito_hall: ranking da Ordem do Mérito (divisão+PM), não a soma de pontos
+  // a temporada é sempre o SEMESTRE do env (a fonte única). As abas de "semestre" mostram só
+  // a temporada corrente; o cliente não escolhe o semestre (senão a aba podia divergir do que
+  // foi gravado). As abas "hall" somam tudo, todas as temporadas.
   if (req.query.aba === 'merito') {
-    var itensM = await db.listarRankTemporada(req.query.sem || SEMESTRE);
+    var itensM = await db.listarRankTemporada(SEMESTRE);
     return res.json({ itens: itensM });
   }
   if (req.query.aba === 'merito_hall') {
@@ -135,14 +137,15 @@ app.get('/api/placar', auth.exigir, async function (req, res) {
     return res.json({ itens: itensH });
   }
   var aba = req.query.aba === 'semestre' ? 'semestre' : 'hall';
-  var itens = await db.listarPlacar(aba, req.query.sem || SEMESTRE);
+  var itens = await db.listarPlacar(aba, SEMESTRE);
   res.json({ itens: itens });
 });
 
 app.get('/api/progresso', auth.exigir, async function (req, res) {
   // a jornada do semestre é única e a pauta da semana é uma só — este endpoint
-  // é a memória entre aparelhos (o front funde com o estado local)
-  var sem = req.usuario.semestre || SEMESTRE;
+  // é a memória entre aparelhos (o front funde com o estado local). A temporada é o
+  // SEMESTRE do env (mesma fonte que POST /api/partidas usa ao gravar).
+  var sem = SEMESTRE;
   var chave = String(req.query.semana || '').slice(0, 12);
   var r = await db.progressoAluno(req.usuario.cpf, sem, chave);
   res.json(r);
@@ -167,7 +170,11 @@ app.post('/api/partidas', auth.exigir, async function (req, res) {
   // a identidade vem da sessão, não do cliente (não confiar no corpo para quem é o aluno)
   p.cpf = req.usuario.cpf;
   p.nome = req.usuario.nome;
-  p.semestre = req.usuario.semestre || SEMESTRE;
+  // a TEMPORADA (a "estação" do ranking) é sempre o SEMESTRE do env — a fonte única da verdade.
+  // Trocar o env vira a temporada para todos. (O semestre do aluno em `usuarios` só filtra as
+  // DISCIPLINAS/professores, não o ranking.) Sem isto, a partida entrava sob o semestre do aluno
+  // enquanto o placar/rank consultavam o env: a aba "Semestre" ficava vazia quando divergiam.
+  p.semestre = SEMESTRE;
 
   // a seed dos modos que valem PM/Ordem do Mérito NUNCA vem do cliente: a jornada do
   // semestre tem uma seed fixa por (cpf, temporada) e o caso da semana usa a semana ISO
