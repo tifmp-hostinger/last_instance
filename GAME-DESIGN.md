@@ -1,4 +1,4 @@
-# Última Instância — game design (v4.3 "Audiência viva")
+# Última Instância — game design (v5 "Segurança da Ordem do Mérito + julgador na balança")
 
 > A proposta completa de redesign, com o diagnóstico e o racional de cada sistema, está em `REDESIGN.md`. Este documento descreve **o jogo como ele é hoje**.
 
@@ -74,7 +74,7 @@ base (rascunho ×0,6 / ensaiada ×1,5) → +combo → **pertinência** (réplica
 
 ## Missões, tipos e julgadores
 
-Cada caso traz **uma missão opcional** (+25), sorteada entre sete: vencer sem lateral, fechar uma linha na ordem, terminar com credibilidade ≥7, sustentar 3 disciplinas, fechar o caso com 3 réplicas na palavra-chave, terminar sem a convicção cair abaixo de 40, sustentar 2 argumentos favorecidos pelo julgador. A missão avisa no log, com som próprio, no exato momento em que se cumpre — não só muda de cor num chip fácil de não notar. Tipos e julgadores como antes: Norma/Fato/Retórica/Técnica; legalista (N ×1,4 · R ×0,7), pragmático (F ×1,4 · N ×0,7), humanista (R ×1,4 · F ×0,7), metódico neutro; Plenário com voga rotativa. A tensão central: a réplica certa pode ser do tipo que o julgador corta. **Julgadores reais**: professores das disciplinas (Postgres), com foto, casados com a área do caso.
+Cada caso traz **uma missão opcional** (+25), sorteada entre sete: vencer sem lateral, fechar uma linha na ordem, terminar com credibilidade ≥7, sustentar 3 disciplinas, fechar o caso com 3 réplicas na palavra-chave, terminar sem a convicção cair abaixo de 40, sustentar 2 argumentos favorecidos pelo julgador. A missão avisa no log, com som próprio, no exato momento em que se cumpre — não só muda de cor num chip fácil de não notar. Tipos e julgadores como antes: Norma/Fato/Retórica/Técnica; legalista (N ×1,4 · R ×0,7), pragmático (F ×1,4 · N ×0,7), humanista (R ×1,4 · F ×0,7), metódico neutro; Plenário com voga rotativa. A tensão central: a réplica certa pode ser do tipo que o julgador corta. **Julgadores reais**: professores das disciplinas (Postgres), com foto, casados com a área do caso. Os multiplicadores acima são a mecânica interna — a ficha do julgador (na balança da convicção, desde a v5) nunca mostra o número cru ao aluno, só a tradução em linguagem simples ("valoriza fato", "menos peso: norma").
 
 ## Pontuação — qualidade jurídica, com tetos
 
@@ -89,7 +89,7 @@ A divisão é a **trajetória acadêmica** (neutra — nenhuma carreira real aci
 - **Pontos de Mérito**: caso da semana vitória **+14 a +22** / derrota **−6** (o motor semanal); jornada do semestre vitória **+60 a +80** / derrota **+3 por caso vencido** (o evento único não pune). 100 PM = sobe.
 - **Divisões de entrada** (até Bacharelando I) não perdem PM.
 - **Temporada = semestre letivo**: na virada, desce 1 divisão e o PM zera.
-- Persistida no Postgres (`rank_alunos`) quando há sessão; local sem servidor. No login, o jogo adota o maior progresso entre aparelho e servidor.
+- Persistida no Postgres (`rank_alunos`) quando há sessão; local sem servidor. A divisão/PM nunca são um valor que o cliente manda e o servidor aceita: eles só mudam como efeito calculado de uma partida real, dentro de `POST /api/partidas`, por uma função Postgres com a linha travada contra corrida entre partidas concorrentes (ver `CODIGO.md` § Segurança da Ordem do Mérito). O que o cliente guarda localmente é só uma **estimativa** para a UI não travar esperando rede — a resposta do servidor sempre sobrescreve.
 - **O elo em cena**: ao entrar no jogo, um chip animado (emblema + nome + divisão) desliza do topo e some sozinho — o aluno vê a sua posição atual junto ao próprio nome, sem precisar abrir a tela do Mérito.
 
 ## Placar — um ranking por aluno
