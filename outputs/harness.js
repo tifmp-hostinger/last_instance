@@ -357,18 +357,19 @@ function jogarJornada(seed, perfil){
     if (B && !B.fim){ botJogaRodada(api, perfil, rnd); continue; }
     if (B && B.fim === 'vitoria'){ api.aposCaso(); continue; }
     if (B && B.fim === 'derrota'){
+      // v6: perder um caso não elimina — registra e segue para o próximo (sem embargos)
       perdeuEm.push(B.caso + 1);
-      if (S.embargos > 0) api.oporEmbargos();
-      else api.encerrarJornadaDerrota();
+      api.aposCasoPerdido();
       continue;
     }
     break;
   }
   const { S } = api.estado();
   if (guarda >= 6000) throw new Error('guarda de loop estourou (seed ' + seed + ', ' + perfil + ')');
+  const casosVenc = S.detalhe.filter(d => d.venceu).length;
   return {
-    venceu: S.detalhe.length === 8,
-    casos: S.detalhe.length,
+    venceu: casosVenc === 8,          // "impecável" = 8/8 (o topo, não mais a condição de sobreviver)
+    casos: casosVenc,
     pontos: S.pontos,
     plenas: S.detalhe.filter(d => d.plena).length,
     acordos: S.detalhe.filter(d => d.acordo).length,
@@ -381,7 +382,7 @@ function jogarJornada(seed, perfil){
 // vários perfis) o V8 não recicla rápido o bastante sozinho — força a coleta a cada 20 jornadas.
 function liberarMemoria(){ if (typeof global.gc === 'function') global.gc(); }
 function rodarLote(perfil){
-  const r = { vitorias: 0, casos: 0, casosTot: 0, pontos: 0, plenas: 0, acordos: 0, quedas: {}, embargosUsados: 0, derrotasCaso: 0, disputasCaso: 0 };
+  const r = { vitorias: 0, casos: 0, casosTot: 0, pontos: 0, plenas: 0, acordos: 0, quedas: {}, derrotasCaso: 0, disputasCaso: 0 };
   for (let i = 1; i <= N; i++){
     const j = jogarJornada(i, perfil);
     if (j.venceu) r.vitorias++;
@@ -389,26 +390,27 @@ function rodarLote(perfil){
     r.pontos += j.pontos;
     r.plenas += j.plenas;
     r.acordos += j.acordos;
-    r.embargosUsados += j.perdeuEm.length ? 1 : 0;
     r.derrotasCaso += j.perdeuEm.length;
     r.disputasCaso += j.casos + j.perdeuEm.length;
-    const queda = j.venceu ? null : j.perdeuEm[j.perdeuEm.length - 1];
-    if (queda) r.quedas[queda] = (r.quedas[queda] || 0) + 1;
+    // v6: registra TODAS as posições onde perdeu um caso (não só a última — não há mais "queda" única)
+    j.perdeuEm.forEach(function(c){ r.quedas[c] = (r.quedas[c] || 0) + 1; });
     if (i % 20 === 0) liberarMemoria();
   }
   liberarMemoria();
   return r;
 }
 function imprime(nome, alvo, r){
-  const pct = (100 * r.vitorias / N).toFixed(0);
-  const pctCaso = r.disputasCaso ? (100 * (r.disputasCaso - r.derrotasCaso) / r.disputasCaso).toFixed(0) : '—';
+  // v6: a jornada não elimina — toda jornada joga os 8 casos. A métrica de habilidade passa a ser
+  // "% de casos vencidos" (não mais "sobreviver aos 8"). "impecáveis" (8/8) é só o topo.
+  const pctCaso = r.disputasCaso ? (100 * (r.disputasCaso - r.derrotasCaso) / r.disputasCaso) : 0;
+  const pctCasoTxt = pctCaso.toFixed(0);
+  const pctImpec = (100 * r.vitorias / N).toFixed(0);
   console.log('— ' + nome + ' (alvo ' + alvo + ') —');
-  console.log('  jornadas vencidas: ' + r.vitorias + '/' + N + ' (' + pct + '%) · casos individuais: ' + pctCaso + '%');
-  console.log('  casos por jornada: ' + (r.casos / N).toFixed(1) + ' de 8 · pontos médios: ' + Math.round(r.pontos / N));
-  console.log('  plenas/jornada: ' + (r.plenas / N).toFixed(1) + ' · acordos/jornada: ' + (r.acordos / N).toFixed(1) + ' · jornadas com embargos: ' + r.embargosUsados + '/' + N);
+  console.log('  casos vencidos: ' + pctCasoTxt + '% (' + (r.casos / N).toFixed(1) + ' de 8 por jornada) · impecáveis 8/8: ' + r.vitorias + '/' + N + ' (' + pctImpec + '%)');
+  console.log('  pontos médios: ' + Math.round(r.pontos / N) + ' · plenas/jornada: ' + (r.plenas / N).toFixed(1) + ' · acordos/jornada: ' + (r.acordos / N).toFixed(1));
   const quedas = Object.keys(r.quedas).sort((a,b)=>a-b).map(c => 'caso ' + c + ': ' + r.quedas[c]).join(' · ');
-  console.log('  onde caiu: ' + (quedas || '—'));
-  const resumo = { pct: Number(pct), pontos: Math.round(r.pontos / N) };
+  console.log('  casos perdidos por posição: ' + (quedas || '—'));
+  const resumo = { pct: Number(pctCaso.toFixed(0)), impecaveis: Number(pctImpec), pontos: Math.round(r.pontos / N) };
   if (MACHINE) console.log('##RESULT##' + JSON.stringify(resumo));   // lido pelo processo-pai em "todos"
   return resumo;
 }

@@ -362,8 +362,12 @@ function calcularDeltaPM(tipo, venceu, pontos, casos, divisaoAtual) {
     if (venceu) return { delta: 14 + Math.min(8, Math.round((pontos || 0) / 60)), motivo: 'caso da semana vencido' };
     return { delta: (divisaoAtual < DIV_PROTEGIDAS) ? 0 : -6, motivo: 'caso da semana perdido' };
   }
-  if (venceu) return { delta: Math.min(80, 60 + Math.round((pontos || 0) / 120)), motivo: 'jornada do semestre vencida' };
-  return { delta: Math.min(24, (casos || 0) * 3), motivo: 'jornada do semestre encerrada' };
+  // v6: a jornada não elimina — o PM escala com casos vencidos (0..8) + bônus de qualidade; nunca pune.
+  // Espelha exatamente aplicar_resultado_partida (db/schema.sql) e aplicarMerito (public/index.html).
+  return {
+    delta: Math.min(80, Math.round((casos || 0) / 8 * 72) + Math.min(8, Math.round((pontos || 0) / 200))),
+    motivo: 'jornada do semestre concluída (' + (casos || 0) + ' de 8 casos)'
+  };
 }
 
 /* único caminho de escrita para divisao/pm. partidaId (quando fornecido) garante que a

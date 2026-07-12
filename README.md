@@ -4,7 +4,7 @@ O jogo de cartas da FMP — Fundação Escola Superior do Ministério Público. 
 
 A cada rodada a parte adversa **protocola uma tese** (com a palavra-chave sublinhada) e o aluno joga o **argumento que a refuta** — não a carta de maior número; a carta que também responde à palavra-chave ganha uma marca própria, visível antes de jogar. Errar o tema custa **credibilidade**; com ela zerada, o juiz indefere de plano — com banner e som, como qualquer outra virada de mesa. O caso segue o rito (instrução → sustentação → deliberação), com linha argumentativa, preparo, viradas e acordo dramatizados como a sentença que são, e sete missões possíveis por caso. É um roguelike de deck-building com o Direito como matéria-prima — rápido de entender, difícil de dominar (calibrado por simulação com quatro arquétipos de leitura, do cego ao atento, mais um diagnóstico anti-exploit: nenhuma estratégia de "quebrar o sistema" supera a leitura honesta).
 
-Dois modos, cada um com a sua tela: a **Jornada do semestre** (única por aluno — 8 casos cuja sentença final transita em julgado, antessala em forma de autos com a trajetória caso a caso) e o **Caso da semana** (uma sustentação por semana, a mesma pauta seeded para toda a FMP, antessala em forma de edital com prazo até domingo). A progressão competitiva é a **Ordem do Mérito** (de Calouro a Catedrático, com a escada e os emblemas das 13 divisões em tela própria), por semestre letivo. O design completo está em `GAME-DESIGN.md` e o racional do redesign em `REDESIGN.md`.
+Dois modos, cada um com a sua tela: a **Jornada do semestre** (uma por aluno — os 8 casos, jogados todos: ganha-se ou perde-se cada um e **a pontuação total é o que conta**, sem eliminação; antessala em forma de autos com a trajetória caso a caso) e o **Caso da semana** (uma sustentação por semana, a mesma pauta seeded para toda a FMP, antessala em forma de edital com prazo até domingo). A jornada abre depois que o aluno **vê o tutorial** e **sustenta ao menos um caso da semana** — a introdução à tribuna antes da campanha inteira. A progressão competitiva é a **Ordem do Mérito** (de Calouro a Catedrático, com a escada e os emblemas das 13 divisões em tela própria), por semestre letivo. O design completo está em `GAME-DESIGN.md` e o racional do redesign em `REDESIGN.md`.
 
 ## Arquitetura
 
@@ -68,6 +68,12 @@ EXISTS` em tudo) cria:
 > `partida_id`), então reenvio de rede ou fila offline não pontua duas vezes.
 > Detalhes e consultas de validação estão comentados em `db/schema.sql`; para
 > reverter só a parte nova, `db/rollback_v5_elo_seguranca.sql`.
+>
+> **Atualização v6 (jornada sem eliminação).** A jornada deixou de eliminar o
+> aluno ao perder um caso: joga-se os 8 e a pontuação total é o que conta. Isso
+> muda só a fórmula de PM da jornada — aplique `db/migration_v6_jornada_sem_eliminacao.sql`
+> (um `CREATE OR REPLACE` da função, sem tocar em tabelas nem dados):
+> `psql "$DATABASE_URL" -f db/migration_v6_jornada_sem_eliminacao.sql`
 
 > **Professores não aparecem no jogo (caem nos juízes fictícios)?** É quase sempre o filtro de semestre: `disciplinas.semestre`, se preenchido, precisa bater com o `semestre` do aluno em `usuarios` (ou ficar `NULL`, que vale para qualquer aluno). Confira com `SELECT nome, semestre, ativo FROM disciplinas;` — o mais simples é deixar `semestre` em branco na `disciplinas` enquanto não houver disciplinas de mais de um período cadastradas ao mesmo tempo.
 
@@ -86,7 +92,7 @@ docker run -d -p 3000:3000 --env-file .env ultima-instancia
 npm run harness   # = node outputs/harness.js public/index.html 150 todos
 ```
 
-Quatro arquétipos jogam jornadas completas: o **cego** (não lê nada) vence ~23%; o **confuso** (lê a pertinência só às vezes, o resto confunde "número grande" com "carta certa") ~40%; o **aprendiz** (lê só a pertinência) ~55%; o **atento** (lê tudo) ~82%. Mais um diagnóstico anti-exploit — três estratégias que tentam quebrar o sistema (lateral-spam, acordo-farm, ensaio-bank) — nenhuma supera o atento. O degrau entre os arquétipos é a prova de que habilidade decide. Qualquer mudança em `CARTAS`, `TESES` ou `OPONENTES` pede nova rodada do harness; `todos` roda cada perfil em um processo separado (o volume de simulação em lote é grande demais para caber num só processo Node sem estourar a memória).
+Quatro arquétipos jogam os 8 casos (na v6 a jornada não elimina, então todos jogam a jornada inteira). A habilidade se expressa em **quantos casos se vence** e em **quantos pontos** se soma: o **cego** (não lê nada) vence ~72% dos casos, média ~1680 pontos; o **atento** (lê tudo) ~91% dos casos, ~2240 pontos, e fecha jornadas **impecáveis** (8/8) cinco vezes mais que o cego. Mais um diagnóstico anti-exploit — três estratégias que tentam quebrar o sistema (lateral-spam, acordo-farm, ensaio-bank) — nenhuma supera o atento nem em casos vencidos nem em pontos. Qualquer mudança em `CARTAS`, `TESES` ou `OPONENTES` pede nova rodada do harness; `todos` roda cada perfil em um processo separado (o volume de simulação em lote é grande demais para caber num só processo Node sem estourar a memória).
 
 ## Documentação
 

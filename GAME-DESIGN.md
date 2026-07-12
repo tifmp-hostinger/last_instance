@@ -10,14 +10,15 @@ O aluno é a defesa em casos fictícios, com a **balança da convicção** (0 a 
 
 | | **Jornada do semestre** | **Caso da semana** |
 |---|---|---|
-| O que é | a campanha: 8 casos, três instâncias — Foro Central (1-3), TJRS (4-6), STF (7-8, tema escuro) | um único caso, o mesmo para toda a FMP |
-| Frequência | **uma por aluno por semestre** — a sentença final transita em julgado | **uma sustentação por semana** (segunda a domingo), sem embargos |
-| Antessala | **os autos**: capa escura carimbada (aguarda distribuição / em andamento / trânsito em julgado ou arquivada) e a trajetória vertical dos 8 casos | **o edital**: papel pautado com instância, processo, julgador, parte adversa, rito, material de apoio, missão e o prazo — encerra domingo |
-| Seed | aleatória; progresso salvo entre casos; embargos 1×; abandonar **arquiva como derrota** | da semana ISO — mesmo caso, mesmo julgador (fictício, para ser igual para todos) e mesmo material; ciclo de 6 pautas (o plenário do STF é exclusivo da jornada) |
-| Baralho | cresce por recompensas, relíquias e eventos | inicial + 2-4 cartas de apoio da semana (seeded; pautas difíceis levam mais) |
-| PM | o grande evento: vitória +60 a +80; derrota rende +3 por caso vencido | o motor semanal: vitória +14 a +22; derrota −6 |
+| O que é | a campanha: 8 casos, três instâncias — Foro Central (1-3), TJRS (4-6), STF (7-8, tema escuro). **Jogam-se os 8 — ganhando ou perdendo cada um; a pontuação total é o que conta (sem eliminação)** | um único caso, o mesmo para toda a FMP |
+| Pré-requisito | **abre depois de ver o tutorial + sustentar 1 caso da semana** — a introdução à tribuna antes da campanha inteira | disponível desde o início (é a porta de entrada) |
+| Frequência | **uma por aluno por semestre** | **uma sustentação por semana** (segunda a domingo), sem embargos |
+| Antessala | **os autos**: capa escura carimbada (pré-requisitos / aguarda distribuição / em andamento / concluída) e a trajetória vertical dos 8 casos, cada um marcado **vencido** ou **perdido** | **o edital**: papel pautado com instância, processo, julgador, parte adversa, rito, material de apoio, missão e o prazo — encerra domingo |
+| Ao perder um caso | **segue para o próximo** — o caso perdido não pontua, mas a jornada continua. Encerrar cedo fecha com a pontuação atual | a sentença encerra a semana (é caso único) |
+| Baralho | cresce por recompensas (só ao **vencer** um caso) e relíquias/eventos — perder é a própria penalidade (baralho mais fraco adiante) | inicial + 2-4 cartas de apoio da semana (seeded; pautas difíceis levam mais) |
+| PM | escala com **casos vencidos (0..8)** + bônus de qualidade; **nunca pune**. 8/8 = +80 (a jornada impecável) | o motor semanal: vitória +14 a +22; derrota −6 |
 
-O servidor é a memória entre aparelhos (`GET /api/progresso`): jornada já sentenciada e semana já sustentada não se repetem trocando de celular.
+O servidor é a memória entre aparelhos (`GET /api/progresso`): jornada já concluída e semana já sustentada não se repetem trocando de celular.
 
 ## O coração didático: a tese e a réplica
 
@@ -86,7 +87,7 @@ A divisão é a **trajetória acadêmica** (neutra — nenhuma carreira real aci
 **Calouro → Bacharelando III/II/I → Bacharel → Especialista II/I → Mestre II/I → Doutor II/I → Livre-docente → Catedrático.**
 
 - **Tela própria**: emblema atual grande + barra de PM, e a **escada completa das 13 divisões**, cada uma com o seu **emblema SVG** (livro, divisas, diploma, pena, balança, capelo, tribuna, estrela laureada) — o aluno vê onde está e até onde dá para chegar. O botão do título mostra a divisão corrente.
-- **Pontos de Mérito**: caso da semana vitória **+14 a +22** / derrota **−6** (o motor semanal); jornada do semestre vitória **+60 a +80** / derrota **+3 por caso vencido** (o evento único não pune). 100 PM = sobe.
+- **Pontos de Mérito**: caso da semana vitória **+14 a +22** / derrota **−6** (o motor semanal); jornada do semestre **escala com os casos vencidos** (0 a 8) mais um bônus de qualidade — 8/8 chega a **+80** (a jornada impecável), e **nunca pune** (perder casos só rende menos PM, nunca negativo). 100 PM = sobe.
 - **Divisões de entrada** (até Bacharelando I) não perdem PM.
 - **Temporada = semestre letivo**: na virada, desce 1 divisão e o PM zera.
 - Persistida no Postgres (`rank_alunos`) quando há sessão; local sem servidor. A divisão/PM nunca são um valor que o cliente manda e o servidor aceita: eles só mudam como efeito calculado de uma partida real, dentro de `POST /api/partidas`, por uma função Postgres com a linha travada contra corrida entre partidas concorrentes (ver `CODIGO.md` § Segurança da Ordem do Mérito). O que o cliente guarda localmente é só uma **estimativa** para a UI não travar esperando rede — a resposta do servidor sempre sobrescreve.
@@ -102,28 +103,30 @@ Um **HUD compacto fixo** (balança, credibilidade, fase e rodada) aparece no top
 
 ## Meta-jogo
 
-Carta 1-de-3 após caso comum (4 com Rede de contatos, raras ~30%) · relíquia 1-de-2 após chefe · Intervalo na FMP entre instâncias · **embargos** (1 repetição do mesmo caso/julgador, só na jornada) · placar em três abas.
+Carta 1-de-3 após caso **vencido** comum (4 com Rede de contatos, raras ~30%) · relíquia 1-de-2 após caso-chefe vencido · Intervalo na FMP entre instâncias · placar em três abas. (Sem embargos desde a v6 — como a jornada não elimina, a "segunda chance" perdeu o sentido: perder um caso já não termina a campanha.)
 
-## Balanceamento (estado atual — harness com 4 arquétipos + diagnóstico anti-exploit, n=150)
+## Balanceamento (v6 — a jornada não elimina; harness com 4 arquétipos + diagnóstico anti-exploit)
 
-| Bot | O que lê | Jornadas | Casos individuais |
+Como todos os bots agora jogam os 8 casos, a habilidade se lê em **% de casos vencidos**, **pontos médios** e **jornadas impecáveis** (8/8) — não mais em "sobreviver".
+
+| Bot | O que lê | Casos vencidos | Pontos | Impecáveis 8/8 |
+|---|---|---|---|---|
+| Cego | nada — nem tese, nem julgador | 72% | ~1680 | 12% |
+| Mediano-confuso | a pertinência, só às vezes (55%) | 82% | ~1910 | 18% |
+| Aprendiz | só a pertinência da tese, sempre | 85% | ~2070 | 23% |
+| Atento | tudo (tese, chave, juiz, linha, credibilidade, preparo, acordo) | 91% | ~2240 | 57% |
+
+O degrau em **pontos** e em **impecáveis** (o atento fecha 8/8 quase 5× mais que o cego) é o que expressa a habilidade agora. Botões de ajuste: `OPONENTES`, `REPLICA_BONUS`/`DIRETA_BONUS`/`LATERAL_FATOR*`, faixas de credibilidade e `FECHO_LINHA`. **Nota de design:** sem eliminação, a curva de "% de casos vencidos" comprime (o cego vence muitos casos por sorte); se a Ordem do Mérito precisar separar mais a habilidade, o caminho é subir a dificuldade individual dos casos.
+
+**Diagnóstico anti-exploit** — três arquétipos tentam quebrar o sistema; nenhum deve superar o atento (em casos vencidos nem em pontos):
+
+| Estratégia tentada | Casos vencidos | Pontos | Referência (atento) |
 |---|---|---|---|
-| Cego | nada — nem tese, nem julgador | **23%** | 72% |
-| Mediano-confuso | a pertinência, só às vezes (55%); o resto confunde "número grande" com "carta certa" | **40%** | 80% |
-| Aprendiz | só a pertinência da tese, sempre | **55%** | 84% |
-| Atento | tudo (tese, chave, juiz, linha, credibilidade, preparo, acordo) | **82%** | 92% |
+| Lateral-spam (maior força-base, ignora tema) | 67% | ~1540 | 91% / ~2240 |
+| Acordo-farm (só sustenta o mínimo perto de 55, aceita tudo) | 25% | ~370 | 91% / ~2240 |
+| Ensaio-bank (ensaia todo rascunho ao cair na mão, sem timing) | 85% | ~2070 | 91% / ~2240 |
 
-Degrau claro e crescente do cego ao atento: a habilidade é o que decide. Botões de ajuste: `OPONENTES`, `REPLICA_BONUS`/`DIRETA_BONUS`/`LATERAL_FATOR*`, faixas de credibilidade e `FECHO_LINHA`.
-
-**Diagnóstico anti-exploit** — três arquétipos tentam ativamente quebrar o sistema; nenhum deve superar o bot atento:
-
-| Estratégia tentada | Jornadas | Referência (atento) |
-|---|---|---|
-| Lateral-spam (maior força-base, ignora tema) | 16% | 82% |
-| Acordo-farm (só sustenta o mínimo perto de 55, aceita tudo) | 0% | 82% |
-| Ensaio-bank (ensaia todo rascunho ao cair na mão, sem timing) | 57% | 82% |
-
-Nenhuma estratégia degenerada supera a leitura honesta — inclusive a de "acomodar-se" no acordo, que colapsa (perde quase toda rodada) por não sustentar a balança o suficiente para sobreviver até a deliberação.
+Nenhuma estratégia degenerada supera a leitura honesta — o acordo-farm colapsa (não sustenta a balança o suficiente e perde a maioria dos casos).
 
 ## Identidade
 

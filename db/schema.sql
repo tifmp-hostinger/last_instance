@@ -240,12 +240,12 @@ BEGIN
     END IF;
     v_motivo := CASE WHEN p_venceu THEN 'caso da semana vencido' ELSE 'caso da semana perdido' END;
   ELSE
-    IF p_venceu THEN
-      v_delta := LEAST(80, 60 + ROUND(COALESCE(p_pontos, 0) / 120.0));
-    ELSE
-      v_delta := LEAST(24, COALESCE(p_casos, 0) * 3);
-    END IF;
-    v_motivo := CASE WHEN p_venceu THEN 'jornada do semestre vencida' ELSE 'jornada do semestre encerrada' END;
+    -- v6: a jornada não elimina — joga-se os 8 casos, ganhando ou perdendo cada um. O PM escala
+    -- com quantos casos foram vencidos (0..8, a "nota do semestre") + pequeno bônus de qualidade
+    -- pela pontuação total. Nunca pune: 0 casos = 0 PM. 8/8 = +80 (o topo, a jornada impecável).
+    -- p_venceu aqui significa "venceu TODOS os 8" (impecável), usado só para vitorias/derrotas.
+    v_delta := LEAST(80, ROUND(COALESCE(p_casos, 0) / 8.0 * 72) + LEAST(8, ROUND(COALESCE(p_pontos, 0) / 200.0)));
+    v_motivo := 'jornada do semestre concluída (' || COALESCE(p_casos, 0) || ' de 8 casos)';
   END IF;
 
   v_pm := v_pm + v_delta;
