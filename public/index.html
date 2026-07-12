@@ -297,8 +297,7 @@ body.dark .ps-sinal{background:rgba(191,186,164,.14);color:var(--sand);border-co
 .log-item.replica{background:rgba(238,42,66,.05);border-radius:0 8px 8px 0;padding-top:3px;padding-bottom:3px}
 
 /* ---- linha de status ---- */
-.status{display:flex;gap:11px;margin-bottom:14px;flex-wrap:wrap}
-.anuncio{flex:1;min-width:220px;background:#FBEFE9;border:1px solid #F2C9B8;border-radius:14px;padding:12px 15px;transition:opacity .3s}
+.anuncio{background:#FBEFE9;border:1px solid #F2C9B8;border-radius:14px;padding:12px 15px;margin-bottom:13px;transition:opacity .3s}
 body.dark .anuncio{background:rgba(238,42,66,.09);border-color:rgba(238,42,66,.3)}
 .anuncio .rotulo{color:#C24A2A}
 body.dark .anuncio .rotulo{color:#f0907d}
@@ -312,7 +311,7 @@ body.dark .anuncio .desc{color:#d8a08f}
 .ps-block{background:rgba(42,111,107,.12);color:#2A6F6B;border:1px solid rgba(42,111,107,.4)}
 .ps-conten{background:rgba(110,107,102,.12);color:var(--fg3);border:1px solid rgba(110,107,102,.4)}
 /* painel único "sua situação": credibilidade + fôlego + preparo reunidos (antes eram 3 caixas) */
-.painel-situacao{flex:1;min-width:230px;background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:12px 15px}
+.painel-situacao{background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:12px 15px;margin-bottom:13px}
 .sit-grade{display:flex;gap:12px}
 .sit-item{flex:1;text-align:center;min-width:0}
 .sit-item + .sit-item{border-left:1px solid var(--card-line);padding-left:12px}
@@ -642,8 +641,6 @@ body.dark .e-alta{color:#f06f80}
   .acoes .btn{flex:1}
   .mao-cab{flex-wrap:wrap}
   .mao-cab .rotulo{white-space:nowrap}
-  .anuncio{flex-basis:100%}
-  .painel-situacao{flex-basis:100%}
   .bandeja{overflow-x:auto}
   .bandeja .slot{min-width:104px}
   #faseBanner span{font-size:19px;padding:11px 24px}
@@ -787,6 +784,39 @@ body.dark .e-alta{color:#f06f80}
     </div>
   </div>
 
+  <!-- as cartas vêm logo abaixo da balança: jogar uma carta faz a balança acima pesar a favor
+       ou contra na hora — o aluno vê a convicção reagir sem tirar os olhos da mão -->
+  <div class="mao-cab">
+    <span class="rotulo">Sua mão</span>
+    <span class="dica">toque para sustentar · <b>i</b> abre a ficha</span>
+    <button class="pilhas" id="btnPilhas">compra 0 · descarte 0</button>
+  </div>
+  <div id="mao"></div>
+
+  <!-- seus recursos, logo abaixo das cartas: credibilidade, fôlego e preparo num painel só -->
+  <div class="painel-situacao" id="cxSituacao">
+    <div class="sit-grade">
+      <div class="sit-item" id="cxCred">
+        <span class="rotulo">Credibilidade</span>
+        <div class="sit-val"><span class="num" id="credNum">6</span><span class="de"> / 10</span></div>
+        <div class="cred-estado" id="credEstado"></div>
+      </div>
+      <div class="sit-item" id="cxFolego">
+        <span class="rotulo">Fôlego</span>
+        <div class="folego" id="folego"></div>
+      </div>
+      <div class="sit-item" id="cxPrep">
+        <span class="rotulo">Preparo <button class="info-i" id="prepInfo" aria-label="O que faz cada ação de preparo" style="width:15px;height:15px;font-size:9px;vertical-align:1px">i</button></span>
+        <div class="prep-estrelas" id="prepEstrelas"></div>
+      </div>
+    </div>
+    <div class="prep-acoes" id="prepAcoes">
+      <button class="prep-btn" id="prepEspiar" title="Antecipar a próxima pauta (1 de preparo)">Espiar · 1</button>
+      <button class="prep-btn" id="prepEnsaiar" title="Ensaiar uma carta da mão (2 de preparo)">Ensaiar · 2</button>
+      <button class="prep-btn" id="prepObjecao" title="Anular o próximo movimento adverso (3 de preparo)">Objeção · 3</button>
+    </div>
+  </div>
+
   <div class="painel-tese" id="painelTese">
     <span class="carimbo" aria-hidden="true">protocolada</span>
     <div class="tese-topo">
@@ -798,48 +828,15 @@ body.dark .e-alta{color:#f06f80}
     <div class="tese-gancho" id="gancho"></div>
   </div>
 
-  <div class="status">
-    <div class="anuncio" id="anuncio">
-      <div class="rotulo">Parte adversa anuncia</div>
-      <div class="mov" id="oppMov">—</div>
-      <div class="desc" id="oppDesc">—</div>
-      <div id="statusPills"></div>
-    </div>
-    <!-- sua situação: credibilidade, fôlego e preparo reunidos num painel só (como o
-         julgador foi reunido na balança) — o que era três caixas soltas agora é um bloco -->
-    <div class="painel-situacao" id="cxSituacao">
-      <div class="sit-grade">
-        <div class="sit-item" id="cxCred">
-          <span class="rotulo">Credibilidade</span>
-          <div class="sit-val"><span class="num" id="credNum">6</span><span class="de"> / 10</span></div>
-          <div class="cred-estado" id="credEstado"></div>
-        </div>
-        <div class="sit-item" id="cxFolego">
-          <span class="rotulo">Fôlego</span>
-          <div class="folego" id="folego"></div>
-        </div>
-        <div class="sit-item" id="cxPrep">
-          <span class="rotulo">Preparo <button class="info-i" id="prepInfo" aria-label="O que faz cada ação de preparo" style="width:15px;height:15px;font-size:9px;vertical-align:1px">i</button></span>
-          <div class="prep-estrelas" id="prepEstrelas"></div>
-        </div>
-      </div>
-      <div class="prep-acoes" id="prepAcoes">
-        <button class="prep-btn" id="prepEspiar" title="Antecipar a próxima pauta (1 de preparo)">Espiar · 1</button>
-        <button class="prep-btn" id="prepEnsaiar" title="Ensaiar uma carta da mão (2 de preparo)">Ensaiar · 2</button>
-        <button class="prep-btn" id="prepObjecao" title="Anular o próximo movimento adverso (3 de preparo)">Objeção · 3</button>
-      </div>
-    </div>
+  <div class="anuncio" id="anuncio">
+    <div class="rotulo">Parte adversa anuncia</div>
+    <div class="mov" id="oppMov">—</div>
+    <div class="desc" id="oppDesc">—</div>
+    <div id="statusPills"></div>
   </div>
 
   <!-- bandeja da linha argumentativa: fundamento → prova → arremate -->
   <div class="bandeja" id="bandeja" aria-label="Linha argumentativa"></div>
-
-  <div class="mao-cab">
-    <span class="rotulo">Sua mão</span>
-    <span class="dica">toque para sustentar · <b>i</b> abre a ficha</span>
-    <button class="pilhas" id="btnPilhas">compra 0 · descarte 0</button>
-  </div>
-  <div id="mao"></div>
 
   <div class="rodape-batalha">
     <div class="log-caixa">
