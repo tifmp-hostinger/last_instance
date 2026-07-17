@@ -176,6 +176,23 @@ app.post('/api/partidas', auth.exigir, async function (req, res) {
   // enquanto o placar/rank consultavam o env: a aba "Semestre" ficava vazia quando divergiam.
   p.semestre = SEMESTRE;
 
+  // INTEGRIDADE DO RANKING: o jogo é um HTML aberto — um aluno pode abrir o DevTools e forjar
+  // o corpo do POST. A Ordem do Mérito (divisão/PM) já é recalculada no servidor, mas a coluna
+  // `pontos` (que ORDENA o placar do top-10, e o top-10 vale nota) entrava crua. Duas travas:
+  // (1) só os modos que o cliente v6 de fato persiste (semestre/semana) são aceitos — os modos
+  //     legados sem seed forçada não deduplicavam e deixavam farmar pontos ilimitados; e
+  // (2) pontos/casos são limitados à faixa fisicamente alcançável jogando (derivada de
+  //     pontuarCaso no cliente: até ~475/caso; jornada de 8 casos ≈ [-400, 3800], semana 1 caso
+  //     ≈ [-50, 475]; derrota conta negativo, por isso o piso é negativo). Assim um POST com
+  //     pontos:999999 é limitado ao teto honesto em vez de liderar o ranking. Clampa (não
+  //     rejeita) para nunca descartar uma pontuação legítima de borda.
+  if (p.modo !== 'semestre' && p.modo !== 'semana') return res.status(400).json({ ok: false, erro: 'modo_invalido' });
+  var TETO_PONTOS = p.modo === 'semestre' ? 3900 : 520;
+  var PISO_PONTOS = p.modo === 'semestre' ? -450 : -80;
+  p.casos = Math.max(0, Math.min(8, Math.round(Number(p.casos) || 0)));
+  p.pontos = Math.max(PISO_PONTOS, Math.min(TETO_PONTOS, Math.round(Number(p.pontos) || 0)));
+  p.venceu = !!p.venceu;
+
   // a seed dos modos que valem PM/Ordem do Mérito NUNCA vem do cliente: a jornada do
   // semestre tem uma seed fixa por (cpf, temporada) e o caso da semana usa a semana ISO
   // calculada aqui, no servidor. Sem isto, um cliente podia mandar uma seed nova a cada

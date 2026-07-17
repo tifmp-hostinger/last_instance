@@ -215,7 +215,9 @@ async function salvarPartida(p) {
 async function listarPlacar(aba, semestre) {
   var sem = semestre || process.env.SEMESTRE || '';
   if (!hasDB) {
-    var lista = placarMemoria.slice();
+    // só os modos que valem placar (semestre/semana) somam pontos — barra qualquer modo legado
+    // sem seed forçada de contaminar o ranking (defesa em profundidade junto do POST).
+    var lista = placarMemoria.filter(function (p) { return p.modo === 'semestre' || p.modo === 'semana'; });
     if (aba === 'semestre' && sem) lista = lista.filter(function (p) { return p.semestre === sem; });
     var ag = agregarPorAluno(lista);
     ag.sort(function (a, b) { return b.pontos - a.pontos; });
@@ -223,8 +225,9 @@ async function listarPlacar(aba, semestre) {
   }
   try {
     var params = [];
-    var where = '';
-    if (aba === 'semestre' && sem) { params.push(sem); where = ' WHERE semestre = $1'; }
+    var conds = ["modo IN ('semestre','semana')"];   // só modos que valem placar contam pontos
+    if (aba === 'semestre' && sem) { params.push(sem); conds.push('semestre = $1'); }
+    var where = ' WHERE ' + conds.join(' AND ');
     var sql = 'SELECT cpf, MAX(nome) AS nome, SUM(pontos) AS pontos, '
       + "BOOL_OR(modo = 'semestre' AND venceu) AS jornada_venceu, "
       + "COUNT(*) FILTER (WHERE modo = 'semestre') AS jornada_registrada, "
@@ -444,13 +447,15 @@ async function listarRankTemporada(temporada) {
   if (!hasDB) {
     var lista = Array.from(rankMemoria.values()).filter(function (r) { return r.temporada === sem; });
     lista.sort(function (a, b) { return b.divisao - a.divisao || b.pm - a.pm; });
+    // NÃO expor cpf: o ranking é visível a qualquer aluno logado; CPF é PII (LGPD). A identidade
+    // do próprio aluno já vem de /api/rank (amarrado à sessão), não desta lista pública.
     return lista.slice(0, 50).map(function (r, i) {
-      return { cpf: r.cpf, nome: r.nome, divisao: r.divisao, pm: r.pm, maior_divisao: r.maior_divisao, vitorias: r.vitorias, derrotas: r.derrotas, posicao: i + 1 };
+      return { nome: r.nome, divisao: r.divisao, pm: r.pm, maior_divisao: r.maior_divisao, vitorias: r.vitorias, derrotas: r.derrotas, posicao: i + 1 };
     });
   }
   try {
     var r = await pool.query(
-      'SELECT cpf, nome, divisao, pm, maior_divisao, vitorias, derrotas, ' +
+      'SELECT nome, divisao, pm, maior_divisao, vitorias, derrotas, ' +   // sem cpf: PII fora do ranking público
       'RANK() OVER (ORDER BY divisao DESC, pm DESC) AS posicao FROM ' + ident(T_RANK) +
       ' WHERE temporada=$1 ORDER BY divisao DESC, pm DESC LIMIT 50',
       [sem]
@@ -472,12 +477,15 @@ async function listarRankHall() {
     });
     var lista = Array.from(porCpf.values());
     lista.sort(function (a, b) { return b.maior_divisao - a.maior_divisao || b.vitorias - a.vitorias; });
-    return lista.slice(0, 50);
+    // sem cpf no payload público (LGPD) — a agregação usa cpf só como chave interna
+    return lista.slice(0, 50).map(function (g) {
+      return { nome: g.nome, maior_divisao: g.maior_divisao, vitorias: g.vitorias, derrotas: g.derrotas };
+    });
   }
   try {
     var r = await pool.query(
-      'SELECT cpf, MAX(nome) AS nome, MAX(maior_divisao) AS maior_divisao, SUM(vitorias) AS vitorias, SUM(derrotas) AS derrotas ' +
-      'FROM ' + ident(T_RANK) + ' GROUP BY cpf ORDER BY maior_divisao DESC, vitorias DESC LIMIT 50'
+      'SELECT MAX(nome) AS nome, MAX(maior_divisao) AS maior_divisao, SUM(vitorias) AS vitorias, SUM(derrotas) AS derrotas ' +
+      'FROM ' + ident(T_RANK) + ' GROUP BY cpf ORDER BY maior_divisao DESC, vitorias DESC LIMIT 50'   // agrupa por cpf mas não o expõe
     );
     return r.rows;
   } catch (e) { console.error('[db] listarRankHall falhou:', e.message); return []; }

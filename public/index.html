@@ -100,6 +100,8 @@ button{font-family:var(--sans)}
 
 /* ---- telas ---- */
 main{display:flex;justify-content:center;min-height:100vh}
+/* conteúdo só para leitor de tela: fora da tela mas anunciável (aria-live) */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .scr{width:100%;max-width:960px;padding:22px 16px 44px;animation:surge .45s var(--spring) both}
 /* a batalha é a única tela que precisa caber sem scroll: menos respiro em cima; o respiro de
    baixo abre espaço para a barra de ação fixa (Encerrar rodada), que não cobre o conteúdo */
@@ -866,6 +868,10 @@ body.dark .e-alta{color:#f06f80}
     <div class="bv-div" id="bvDiv">—</div>
   </div>
 </div>
+
+<!-- região viva para leitor de tela: anuncia convicção e o resultado de cada jogada,
+     já que a balança (SVG) é decorativa/aria-hidden e o número é um <span> mudo -->
+<div id="a11yLive" role="status" aria-live="polite" class="sr-only"></div>
 
 <!-- HUD compacto (mobile): balança, credibilidade e fase sempre à vista -->
 <div id="hudMini" class="glass" aria-hidden="true">
@@ -1875,11 +1881,15 @@ function jogarCarta(idx){
     logJuiz('O julgador indefere de plano: a defesa perdeu a coerência e a palavra nesta rodada. Recomponha-se.');
     som.indeferido(); vibra(60); mostrarFaseBanner('Indeferido de plano');
     pintarBatalha();
+    anunciar('Indeferido de plano: credibilidade zerada, a rodada foi encerrada.');
     if (!checarFim(false)) encerrarRodada();
     return;
   }
 
   pintarBatalha();
+  anunciar('Convicção ' + Math.round(B.p) + '. ' + carta.nome + ': '
+    + (r.pert === true ? ('réplica pertinente, mais ' + r.dano) : (r.pert === false ? ('argumento lateral, mais ' + r.dano) : ('mais ' + r.dano)))
+    + ' na balança. Credibilidade ' + B.cred + ', fôlego ' + B.folego + '.');
   checarFim(false);
 }
 
@@ -2083,6 +2093,7 @@ function turnoAdversario(){
   }
 
   pintarBatalha();
+  anunciar('Parte adversa: ' + (mov.nome || 'aguarda') + '. Convicção ' + Math.round(B.p) + '.');
   if (checarFim(true)) return;
 
   // a parte adversa reconhece padrões: três cartas do mesmo tipo em sequência
@@ -2753,8 +2764,14 @@ function pintarBatalha(inicial){
       }
     }));
   });
+  // teclado: depois de jogar por Enter/Espaço, a mão é redesenhada e o foco cairia no body —
+  // devolve o foco à primeira carta jogável para o aluno seguir sem mouse
+  if (reporFocoMao){ reporFocoMao = false; var pf = mao.querySelector('.carta.pode'); if (pf) pf.focus(); }
 }
 var uiEnsaio = false;   // modo "escolher carta para ensaiar"
+var reporFocoMao = false;   // teclado: após jogar por Enter/Espaço, devolver o foco à mão
+/* anúncio para leitor de tela — a balança é SVG decorativa; aqui vai o texto equivalente */
+function anunciar(msg){ var e = $('a11yLive'); if (e) e.textContent = msg; }
 
 function cartaEl(carta, opts){
   opts = opts || {};
@@ -2777,8 +2794,22 @@ function cartaEl(carta, opts){
     + '<div class="base-linha"><span class="base" style="color:'+cor+'">'+prev+'</span>'
     + '<button class="info-i" aria-label="Ficha da carta">i</button></div></div>';
   wrap.querySelector('.info-i').addEventListener('click', function(ev){ ev.stopPropagation(); abrirFicha(carta, opts.tese); });
-  if (opts.aoClicar && opts.podeJogar !== false) wrap.addEventListener('click', function(){ opts.aoClicar(); });
-  else if (opts.aoClicar && !opts.situacao) wrap.addEventListener('click', function(){ opts.aoClicar(); });
+  // acionável = tem handler E não é uma carta desabilitada em batalha (podeJogar:false + situacao)
+  var acionavel = !!opts.aoClicar && (opts.podeJogar !== false || !opts.situacao);
+  if (acionavel){
+    // teclado/leitor de tela: a carta vira um "button" focável e ativável por Enter/Espaço —
+    // sem isto, quem joga só por teclado consegue encerrar a rodada mas nunca sustentar um argumento
+    wrap.setAttribute('tabindex', '0');
+    wrap.setAttribute('role', 'button');
+    var marca = (opts.tese && respondeChave(carta, opts.tese)) ? ', responde à palavra-chave' : '';
+    wrap.setAttribute('aria-label', carta.nome + ', ' + TIPOS[carta.tipo] + ', custo ' + custo + marca);
+    wrap.addEventListener('click', function(){ opts.aoClicar(); });
+    wrap.addEventListener('keydown', function(ev){
+      if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar'){ ev.preventDefault(); reporFocoMao = true; opts.aoClicar(); }
+    });
+  } else if (opts.podeJogar === false && opts.situacao){
+    wrap.setAttribute('aria-disabled', 'true');   // carta sem fôlego/custo: anunciada como indisponível
+  }
   return wrap;
 }
 
@@ -3188,6 +3219,7 @@ function aplicarPerfilServidor(u){
   SERVIDOR.autenticado = true;
 }
 function entrarNoJogo(){
+  sessaoAvisada = false;   // reconectou: rearma o aviso de sessão e reenvia a fila guardada
   atualizarTitulo();
   processarFila();
   sincronizarProgresso();
@@ -3249,7 +3281,7 @@ function sincronizarProgresso(){
     reconciliarMerito(r);
   }).catch(function(){});
 }
-function mostrarLogin(){
+function mostrarLogin(aviso){
   var mock = $('loginMock');
   if (mock){
     if (SERVIDOR.loginDica){
@@ -3261,6 +3293,8 @@ function mostrarLogin(){
     } else mock.classList.add('hidden');
   }
   mostrar('scr-login');
+  var erro = $('loginErro');
+  if (erro){ if (aviso){ erro.textContent = aviso; erro.classList.remove('hidden'); } else erro.classList.add('hidden'); }
   var cpf = $('loginCpf'); if (cpf) setTimeout(function(){ cpf.focus(); }, 60);
 }
 function fazerLogin(ev){
@@ -3334,6 +3368,22 @@ function carregarDisciplinasSemana(){
    senão os fictícios — nunca some o julgador da tela */
 function poolJuizesSemana(){ return (JUIZES_SEMANA && JUIZES_SEMANA.length) ? JUIZES_SEMANA : JUIZES_FALLBACK; }
 
+var sessaoAvisada = false;
+/* a sessão (cookie JWT) expira (12h, ou um restart do servidor a invalida). Sem isto, um 401
+   ao enviar a partida era engolido pela fila e, após 5 tentativas, a pontuação — que vale nota
+   e premiação — era DESCARTADA em silêncio, sem o aluno saber. Aqui a gente preserva a fila e
+   leva de volta ao login para reconectar; ao entrar, processarFila reenvia e o dedup do
+   servidor (cpf,modo,seed) impede pontuar em dobro. */
+function sessaoExpirou(){
+  if (!SERVIDOR.online || SERVIDOR.modo === 'local') return;   // sem servidor não há sessão a expirar
+  SERVIDOR.autenticado = false;
+  if (sessaoAvisada) return;                                   // não empilhar o aviso a cada retry
+  sessaoAvisada = true;
+  var pend = (store.get('ui_fila', []) || []).length;
+  mostrarLogin(pend
+    ? 'Sua sessão expirou. Entre novamente para registrar a sua pontuação — ela ficou guardada e será enviada assim que você reconectar.'
+    : 'Sua sessão expirou. Entre novamente para continuar.');
+}
 function enviarPartida(partida){
   if (!SERVIDOR.online){ enfileirar(partida); return; }
   fetchJSON(CONFIG.API_BASE + '/partidas', { method:'POST', body: JSON.stringify(partida) })
@@ -3345,7 +3395,7 @@ function enviarPartida(partida){
       if (d.rank) reconciliarMerito(d.rank);
       processarFila();
     })
-    .catch(function(){ enfileirar(partida); });
+    .catch(function(e){ enfileirar(partida); if (e && e.status === 401) sessaoExpirou(); });
 }
 function enfileirar(partida){
   var fila = store.get('ui_fila', []);
@@ -3375,7 +3425,11 @@ function processarFila(){
       if (fila.length) processarFila();
     })
     .catch(function(e){
-      if (e && e.status){
+      if (e && e.status === 401){
+        // sessão expirou: preserva a fila intacta e leva ao re-login. NUNCA contar como
+        // tentativa — senão o score legítimo seria descartado ao expirar a sessão.
+        sessaoExpirou();
+      } else if (e && e.status){
         item.tentativas = (item.tentativas || 0) + 1;
         if (item.tentativas >= 5) fila.shift();
       }
