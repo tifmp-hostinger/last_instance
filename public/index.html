@@ -1101,7 +1101,7 @@ function semanaISO(d){
   return { ano: ano, sem: sem };
 }
 function chaveSemana(){ var w = semanaISO(); return w.ano + '-S' + (w.sem < 10 ? '0' : '') + w.sem; }
-function diasAteDomingo(){ var d = new Date().getDay(); return d === 0 ? 0 : 7 - d; }
+function diasAteDomingo(){ var d = new Date().getUTCDay(); return d === 0 ? 0 : 7 - d; }  // UTC, coerente com semanaISO() — o prazo bate com a virada da semana
 
 var store = {
   get: function(k,fb){ try{ var v = localStorage.getItem(k); return v==null?fb:JSON.parse(v); }catch(e){ return fb; } },
@@ -2545,6 +2545,7 @@ function aplicarMerito(tipo, venceu, pontos, casos){
     if (m.div > DIV_PROTEGIDAS){ m.div--; m.pm += 100; }
     else { m.pm = 0; }
   }
+  if (m.pm > 99) m.pm = 99;   // no topo da escada o PM satura em 99, igual ao servidor (server/db.js) — não acumula sem limite
   store.set('ui_merito', m);
   return { m: m, delta: delta };
 }
@@ -2558,6 +2559,14 @@ function reconciliarMerito(rank){
   m.div = rank.divisao; m.pm = rank.pm;
   store.set('ui_merito', m);
   atualizarTitulo();
+  // se o toast de boas-vindas ("elo") ainda estiver em cena, repinta o emblema/PM com o valor
+  // real do servidor — senão o chip fica mostrando a estimativa local defasada do rodapé
+  var bv = $('boasVindas');
+  if (bv && bv.classList.contains('on')){
+    $('bvEmb').className = 'bv-emb ' + emblemaClasse(m.div);
+    $('bvEmb').innerHTML = emblemaSVG(m.div);
+    $('bvDiv').textContent = DIVISOES[m.div] + ' · ' + m.pm + ' PM';
+  }
   // se a tela da Ordem do Mérito já estiver aberta (pintada com a estimativa otimista),
   // repinta agora que o valor autoritativo do servidor chegou — senão ela ficava
   // mostrando o número antigo até o jogador sair e voltar
@@ -3530,6 +3539,7 @@ function mostrarJornada(){
 }
 function confirmarJornada(){
   if (!jornadaLiberada()){ mostrarJornada(); return; }   // trava dura: nunca inicia sem os pré-requisitos
+  if (jornadaRegistro()){ mostrarJornada(); return; }    // já encerrada em definitivo: não reabre nem sobrescreve (defesa em profundidade)
   modal({ titulo: 'Abrir os autos do semestre?',
     html: 'São <b>oito casos</b>, do Foro Central ao STF. Você joga todos — ganhando ou perdendo cada um — e o progresso fica salvo entre eles. '
       + 'A <b>pontuação total</b> ao fim é o que vale para a Ordem do Mérito e o placar. A jornada é <b>uma por semestre</b>.',
