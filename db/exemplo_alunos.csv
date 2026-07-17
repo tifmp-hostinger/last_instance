@@ -1,0 +1,4 @@
+cpf,data_nascimento,nome,ra,curso,semestre,admin
+01234567890,2003-05-14,Ana Beatriz Souza,20230001,Direito,2026-2,false
+98765432100,2002-11-02,Carlos Eduardo Lima,20230002,Direito,2026-2,false
+11122233344,1980-03-20,Prof. Coordenação Exemplo,DOCENTE,Direito,2026-2,true

@@ -29,8 +29,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
   ra               TEXT,                      -- matrícula (sugerido)
   curso            TEXT,                      -- curso/graduação (sugerido)
   semestre         TEXT,                      -- turma/semestre, ex.: '2026-2' (sugerido)
+  admin            BOOLEAN NOT NULL DEFAULT FALSE,  -- coordenação: libera /api/admin (ver e exportar o ranking com identidade)
   ativo            BOOLEAN NOT NULL DEFAULT TRUE
 );
+-- instalações antigas (v5) recebem a coluna admin sem migração à parte
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS admin BOOLEAN NOT NULL DEFAULT FALSE;
 -- o login compara ignorando pontuação do CPF; este índice acelera a busca
 CREATE INDEX IF NOT EXISTS idx_usuarios_cpf_num
   ON usuarios ((regexp_replace(cpf, '[^0-9]', '', 'g')));

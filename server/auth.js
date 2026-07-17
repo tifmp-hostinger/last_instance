@@ -43,5 +43,15 @@ function exigir(req, res, next) {
   req.usuario = u;
   next();
 }
+/* rotas do professor/coordenador: exige sessão E o marcador admin no perfil (usuarios.admin
+   no banco, ou USUARIO_FIXO_ADMIN no modo sem banco). Sem isto, qualquer aluno logado
+   alcançaria o ranking com identidade/export. */
+function exigirAdmin(req, res, next) {
+  var u = ler(req);
+  if (!u) return res.status(401).json({ erro: 'sessao', mensagem: 'Faça login para continuar.' });
+  if (!u.admin) return res.status(403).json({ erro: 'sem_permissao', mensagem: 'Área restrita à coordenação.' });
+  req.usuario = u;
+  next();
+}
 
-module.exports = { emitir: emitir, ler: ler, encerrar: encerrar, exigir: exigir, efemero: efemero };
+module.exports = { emitir: emitir, ler: ler, encerrar: encerrar, exigir: exigir, exigirAdmin: exigirAdmin, efemero: efemero };

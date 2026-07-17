@@ -729,6 +729,7 @@ body.dark .e-alta{color:#f06f80}
     <button class="btn-ghost" id="btnPlacar">Placar</button>
     <button class="btn-ghost" id="btnDemo">Como jogar</button>
     <button class="btn-ghost" id="btnConfig">Configurações</button>
+    <button class="btn-ghost hidden" id="btnAdmin" style="border-color:rgba(238,42,66,.4);color:var(--red)">Ranking da turma</button>
   </div>
   <footer>
     <span class="fmp">FMP · Fundação Escola Superior do Ministério Público</span>
@@ -991,6 +992,24 @@ body.dark .e-alta{color:#f06f80}
   </div>
   <p class="meta-txt" id="placarLegenda" style="margin:-4px 0 14px;line-height:1.5"></p>
   <div id="placarLista" class="lista-placar"></div>
+</section>
+
+<!-- ============ COORDENAÇÃO (professor) — ranking com identidade + export ============ -->
+<section id="scr-admin" class="scr hidden">
+  <div class="topo">
+    <div>
+      <div class="eyebrow">Coordenação</div>
+      <h2>Ranking da turma</h2>
+    </div>
+    <button class="volta" id="adminVolta">Voltar</button>
+  </div>
+  <div class="abas">
+    <button class="aba ativa" data-aba-admin="semestre">Semestre</button>
+    <button class="aba" data-aba-admin="hall">Todas as temporadas</button>
+  </div>
+  <p class="meta-txt" id="adminLegenda" style="margin:-4px 0 12px;line-height:1.5">Ranking por pontos, com nome e RA — para premiar os melhores. Visível só à coordenação.</p>
+  <div style="margin:0 0 12px"><a class="btn-ghost" id="adminCsv" href="#" style="display:inline-block;text-decoration:none">Baixar planilha (CSV)</a></div>
+  <div id="adminLista" class="lista-placar"></div>
 </section>
 
 <!-- ============ CONFIGURAÇÕES ============ -->
@@ -1399,7 +1418,7 @@ var mudo  = store.get('ui_mudo', false);
 function salvarRun(){ if (S) store.set('ui_fmp_run', S); else store.del('ui_fmp_run'); }
 
 /* ---------- fluxo de telas ---------- */
-var TELAS = ['scr-login','scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-jornada','scr-semana','scr-merito','scr-placar','scr-config'];
+var TELAS = ['scr-login','scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-jornada','scr-semana','scr-merito','scr-placar','scr-admin','scr-config'];
 function mostrar(id){
   TELAS.forEach(function(t){ var e=$(t); if(e) e.classList.toggle('hidden', t!==id); });
   var e = $(id); if (e){ e.style.animation='none'; void e.offsetWidth; e.style.animation=''; }
@@ -3215,11 +3234,12 @@ function iniciarSessao(){
   });
 }
 function aplicarPerfilServidor(u){
-  PERFIL = { nome: u.nome || 'Estudante', ra: u.ra || '', sem: u.semestre || CONFIG.SEMESTRE, cpf: u.cpf || '', token: '' };
+  PERFIL = { nome: u.nome || 'Estudante', ra: u.ra || '', sem: u.semestre || CONFIG.SEMESTRE, cpf: u.cpf || '', token: '', admin: !!u.admin };
   SERVIDOR.autenticado = true;
 }
 function entrarNoJogo(){
   sessaoAvisada = false;   // reconectou: rearma o aviso de sessão e reenvia a fila guardada
+  var ba = $('btnAdmin'); if (ba) ba.classList.toggle('hidden', !PERFIL.admin);   // só a coordenação vê o ranking da turma
   atualizarTitulo();
   processarFila();
   sincronizarProgresso();
@@ -3481,6 +3501,33 @@ function textoPartida(p){
   if (p.modo === 'semana') return (p.venceu ? 'pauta vencida' : 'pauta perdida') + ' · caso da semana';
   var m = p.modo === 'diario' ? 'caso do dia' : p.modo === 'livre' ? 'jornada livre' : 'jornada do semestre';
   return (p.venceu ? 'jornada vencida' : (p.casos + ' de 8 casos')) + ' · ' + m;
+}
+/* tela da COORDENAÇÃO: ranking por pontos com identidade (nome + RA) para premiar os top-10,
+   e link de export CSV. A rota é protegida por auth.exigirAdmin no servidor — o botão só aparece
+   para quem tem admin no perfil; se um aluno forçar a chamada, o 403 mostra "área restrita". */
+function mostrarAdmin(aba){
+  aba = (aba === 'hall') ? 'hall' : 'semestre';
+  mostrar('scr-admin');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-aba-admin]'), function(b){
+    b.classList.toggle('ativa', b.getAttribute('data-aba-admin') === aba);
+  });
+  var csv = $('adminCsv'); if (csv) csv.setAttribute('href', CONFIG.API_BASE + '/admin/placar.csv?aba=' + encodeURIComponent(aba));
+  var lista = $('adminLista');
+  if (!SERVIDOR.online){ lista.innerHTML = '<div class="aviso-rede">O ranking da turma fica disponível quando o jogo está conectado ao servidor da FMP.</div>'; return; }
+  lista.innerHTML = '<div class="aviso-rede">Carregando o ranking da turma…</div>';
+  fetchJSON(CONFIG.API_BASE + '/admin/placar?aba=' + encodeURIComponent(aba))
+    .then(function(dados){
+      var itens = (dados && dados.itens) || [];
+      if (!itens.length){ lista.innerHTML = '<div class="aviso-rede">Ainda não há partidas registradas nesta temporada.</div>'; return; }
+      lista.innerHTML = '';
+      itens.forEach(function(p){
+        var quem = (p.nome || 'Estudante') + (p.ra ? ' · RA ' + p.ra : '');
+        lista.appendChild(liPlacar(p.posicao, quem, p.detalhe || '', p.pontos));
+      });
+    })
+    .catch(function(e){
+      lista.innerHTML = '<div class="aviso-rede">' + ((e && e.status === 403) ? 'Área restrita à coordenação.' : 'Não foi possível falar com o servidor agora. Tente novamente em instantes.') + '</div>';
+    });
 }
 
 /* ============================================================
@@ -3905,8 +3952,14 @@ function ligarEventos(){
   $('rwPular').addEventListener('click', pularRecompensa);
   $('placarVolta').addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
   $('configVolta').addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
-  Array.prototype.forEach.call(document.querySelectorAll('.aba'), function(b){
+  Array.prototype.forEach.call(document.querySelectorAll('.aba[data-aba]'), function(b){
     b.addEventListener('click', function(){ verPlacar(b.getAttribute('data-aba')); });
+  });
+  // coordenação: ranking da turma com identidade + export
+  var ba = $('btnAdmin'); if (ba) ba.addEventListener('click', function(){ mostrarAdmin('semestre'); });
+  var av = $('adminVolta'); if (av) av.addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
+  Array.prototype.forEach.call(document.querySelectorAll('.aba[data-aba-admin]'), function(b){
+    b.addEventListener('click', function(){ mostrarAdmin(b.getAttribute('data-aba-admin')); });
   });
 
   $('overNova').addEventListener('click', function(){ S=null; B=null; setTema(false); mostrarMerito(); });

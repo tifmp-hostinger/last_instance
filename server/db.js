@@ -59,6 +59,7 @@ const FIXO = {
   nome: process.env.USUARIO_FIXO_NOME || 'Aluno FMP',
   semestre: process.env.USUARIO_FIXO_SEMESTRE || process.env.SEMESTRE || '',
   ra: process.env.USUARIO_FIXO_RA || '',
+  admin: /^(1|true|sim|yes)$/i.test(String(process.env.USUARIO_FIXO_ADMIN || '')),  // acesso de coordenação sem banco
   ativo: false
 };
 FIXO.ativo = FIXO.cpf.length === 11 && !!FIXO.nascimento;
@@ -96,13 +97,13 @@ async function autenticar(cpfBruto, nascimentoBruto) {
 
   // usuário fixo do env — vale em qualquer modo (funciona já, sem banco)
   if (FIXO.ativo && cpf === FIXO.cpf && nasc === FIXO.nascimento) {
-    return { ok: true, usuario: perfilPublico({ cpf: cpf, nome: FIXO.nome, ra: FIXO.ra, semestre: FIXO.semestre, curso: '' }) };
+    return { ok: true, usuario: perfilPublico({ cpf: cpf, nome: FIXO.nome, ra: FIXO.ra, semestre: FIXO.semestre, curso: '', admin: FIXO.admin }) };
   }
 
   if (!hasDB) return { ok: false, motivo: 'credenciais', mock: true };
 
   try {
-    var sql = 'SELECT cpf, nome, ra, curso, semestre, ativo FROM ' + ident(T_USUARIOS) +
+    var sql = 'SELECT cpf, nome, ra, curso, semestre, ativo, COALESCE(admin, FALSE) AS admin FROM ' + ident(T_USUARIOS) +
       ' WHERE regexp_replace(cpf, \'[^0-9]\', \'\', \'g\') = $1 AND data_nascimento = $2::date LIMIT 1';
     var r = await pool.query(sql, [cpf, nasc]);
     if (!r.rows.length) return { ok: false, motivo: 'credenciais' };
@@ -120,7 +121,8 @@ function perfilPublico(u) {
     nome: u.nome || 'Estudante',
     ra: u.ra || '',
     curso: u.curso || '',
-    semestre: u.semestre || (process.env.SEMESTRE || '')
+    semestre: u.semestre || (process.env.SEMESTRE || ''),
+    admin: !!u.admin        // coordenação: libera as rotas /api/admin e a tela do professor
   };
 }
 
@@ -281,6 +283,42 @@ function mapPublicoAgregado(p) {
   }
   if (semestres > 1) partes.push(semestres + ' semestres');
   return { nome: p.nome || 'Estudante', pontos: pontos, detalhe: partes.length ? partes.join(' · ') : (pontos + ' pontos') };
+}
+/* versão para a COORDENAÇÃO: o mesmo ranking por pontos, mas COM identidade (nome + RA + CPF)
+   para premiar/exportar. Só alcançável por auth.exigirAdmin — nunca exposto ao aluno. */
+function mapAdminAgregado(p, i) {
+  var base = mapPublicoAgregado(p);
+  var cpf = soNumeros(p.cpf);
+  var ra = p.ra || (cpf === FIXO.cpf ? FIXO.ra : '') || '';
+  return { posicao: i + 1, nome: base.nome, ra: ra, cpf: cpf, pontos: base.pontos, detalhe: base.detalhe };
+}
+async function listarPlacarAdmin(aba, semestre) {
+  var sem = semestre || process.env.SEMESTRE || '';
+  if (!hasDB) {
+    var lista = placarMemoria.filter(function (p) { return p.modo === 'semestre' || p.modo === 'semana'; });
+    if (aba === 'semestre' && sem) lista = lista.filter(function (p) { return p.semestre === sem; });
+    var ag = agregarPorAluno(lista);
+    ag.sort(function (a, b) { return b.pontos - a.pontos; });
+    return ag.slice(0, 500).map(mapAdminAgregado);
+  }
+  try {
+    var params = [];
+    var conds = ["p.modo IN ('semestre','semana')"];
+    if (aba === 'semestre' && sem) { params.push(sem); conds.push('p.semestre = $1'); }
+    var where = ' WHERE ' + conds.join(' AND ');
+    var sql = 'SELECT p.cpf, MAX(p.nome) AS nome, MAX(u.ra) AS ra, SUM(p.pontos) AS pontos, '
+      + "BOOL_OR(p.modo = 'semestre' AND p.venceu) AS jornada_venceu, "
+      + "COUNT(*) FILTER (WHERE p.modo = 'semestre') AS jornada_registrada, "
+      + "COALESCE(MAX(p.casos) FILTER (WHERE p.modo = 'semestre'), 0) AS jornada_casos, "
+      + "COUNT(*) FILTER (WHERE p.modo = 'semana' AND p.venceu) AS semanas_venceu, "
+      + "COUNT(*) FILTER (WHERE p.modo = 'semana') AS semanas_jogadas, "
+      + 'COUNT(DISTINCT p.semestre) AS semestres '
+      + 'FROM ' + ident(T_PARTIDAS) + ' p LEFT JOIN ' + ident(T_USUARIOS)
+      + " u ON regexp_replace(u.cpf, '[^0-9]', '', 'g') = p.cpf"
+      + where + ' GROUP BY p.cpf ORDER BY pontos DESC LIMIT 500';
+    var r = await pool.query(sql, params);
+    return r.rows.map(mapAdminAgregado);
+  } catch (e) { console.error('[db] listarPlacarAdmin falhou:', e.message); return []; }
 }
 
 /* ============================================================
@@ -529,6 +567,7 @@ module.exports = {
   listarDisciplinas: listarDisciplinas,
   salvarPartida: salvarPartida,
   listarPlacar: listarPlacar,
+  listarPlacarAdmin: listarPlacarAdmin,
   progressoAluno: progressoAluno,
   aplicarResultadoPartida: aplicarResultadoPartida,
   lerRank: lerRank,

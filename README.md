@@ -77,6 +77,41 @@ EXISTS` em tudo) cria:
 
 > **Professores não aparecem no jogo (caem nos juízes fictícios)?** É quase sempre o filtro de semestre: `disciplinas.semestre`, se preenchido, precisa bater com o `semestre` do aluno em `usuarios` (ou ficar `NULL`, que vale para qualquer aluno). Confira com `SELECT nome, semestre, ativo FROM disciplinas;` — o mais simples é deixar `semestre` em branco na `disciplinas` enquanto não houver disciplinas de mais de um período cadastradas ao mesmo tempo.
 
+## Início e virada de semestre (runbook)
+
+Passo a passo para a TI da FMP operar o jogo numa turma real.
+
+**1. Criar o esquema** (idempotente — pode rodar de novo sem apagar nada):
+
+```bash
+psql "$DATABASE_URL" -f db/schema.sql
+```
+
+**2. Carregar alunos e disciplinas.** Há dois modelos de planilha prontos em `db/` — exporte a lista da secretaria no mesmo formato de colunas e carregue com `\copy`:
+
+```bash
+# alunos (colunas: cpf,data_nascimento,nome,ra,curso,semestre,admin)
+psql "$DATABASE_URL" -c "\copy usuarios(cpf,data_nascimento,nome,ra,curso,semestre,admin) FROM 'db/exemplo_alunos.csv' WITH (FORMAT csv, HEADER true)"
+
+# disciplinas → julgadores (colunas: nome,professor,area_do_direito,perfil_julgador,foto_professor_url,semestre)
+psql "$DATABASE_URL" -c "\copy disciplinas(nome,professor,area_do_direito,perfil_julgador,foto_professor_url,semestre) FROM 'db/exemplo_disciplinas.csv' WITH (FORMAT csv, HEADER true)"
+```
+
+- `cpf`: só números, 11 dígitos. `data_nascimento`: `AAAA-MM-DD` (é a “senha”). `admin`: `true` só para a coordenação (ver passo 4).
+- `disciplinas.area_do_direito` deve bater com uma das áreas dos casos (`Direito Civil`, `Direito Penal`, `Direito Constitucional`, `Direito do Trabalho`, `Direito de Família`, `Direito do Consumidor`, `Responsabilidade Civil`) para casar o julgador com o caso; `perfil_julgador` ∈ `legalista | pragmatico | humanista | metodico`.
+- Sem a carga, **ninguém loga** (só o usuário fixo do env, se configurado). Confira: `SELECT count(*) FROM usuarios;`
+
+**3. Definir a temporada.** O ranking corrente é a variável de ambiente `SEMESTRE` (ex.: `2026-2`) — a fonte única. Ela precisa bater com o `semestre` das disciplinas do período.
+
+**4. Acesso da coordenação (ver e exportar o top-10).** O professor entra como um aluno qualquer, mas com `admin = true` na `usuarios` (ou, sem banco, com `USUARIO_FIXO_ADMIN=true`). Aí aparece no título o botão **“Ranking da turma”**, que lista o ranking por pontos **com nome + RA** e um link **Baixar planilha (CSV)** — para premiar os melhores. O ranking dos alunos nunca expõe CPF; a identidade só aparece nas rotas `/api/admin/*`, protegidas por sessão de admin. Promover alguém depois: `UPDATE usuarios SET admin = true WHERE cpf = '...';`
+
+**5. Virar o semestre.** Troque a env `SEMESTRE` (ex.: `2026-2` → `2027-1`) e reinicie o serviço — de preferência **fora do horário de aula**. O que acontece:
+- Os **alunos continuam cadastrados** (não são recriados); atualize `usuarios.semestre`/`disciplinas.semestre` para o novo período.
+- O ranking antigo **não some**: continua no **Hall de campeões** (todas as temporadas). A aba **Semestre** passa a mostrar a temporada nova, que começa **vazia** até a primeira partida — isso é esperado, não é perda de dado.
+- Quem estava no meio de uma jornada da temporada anterior fica com ela congelada lá; a nova temporada começa do zero para todos.
+
+> **Atenção (produção):** com `NODE_ENV=production`, o servidor **não sobe** sem `SESSION_SECRET` definido (falha rápido com instrução). Isso evita o segredo efêmero, que invalidaria a sessão de toda a turma a cada restart. Gere um: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
+
 ## Deploy (Docker / EasyPanel)
 
 O `Dockerfile` empacota o backend Node (que já serve o jogo). No **EasyPanel**: serviço tipo App → fonte GitHub (este repositório e branch) → build **Dockerfile** → porta do container **3000** → configure as variáveis de ambiente acima e aponte para o seu Postgres. O EasyPanel cuida do domínio e do HTTPS.

@@ -54,20 +54,43 @@ function chaveSemanaServidor() {
   return ano + '-S' + (sem < 10 ? '0' : '') + sem;
 }
 
-/* pequeno limitador de tentativas de login por IP (defesa básica) */
-const tentativas = new Map();
+/* Limitador de login em duas camadas. As credenciais são CPF (semi-público) + data de
+   nascimento (~11 mil combinações) — adivinháveis. Sem trava por conta, um atacante varre o
+   nascimento de um colega e entra como ele, sabotando o ranking (que vale nota).
+   - por IP: freio grosso contra enumeração em massa a partir de uma origem (zera na espera,
+     para não travar a turma inteira atrás do NAT da escola por causa de alguns erros);
+   - por CONTA (cpf): a proteção real — a partir de 5 erros, espera CRESCENTE (1,2,4,…,30min) e
+     o contador só zera com um login CERTO (não com o passar do tempo). Assim adivinhar por
+     força bruta fica inviável sem travar quem só errou a própria data uma ou duas vezes. */
+const tentativas = new Map();       // ip → {n, ate}
+const tentContas = new Map();        // cpf (só dígitos) → {n, ate}
+function normCpf(c) { return String(c || '').replace(/\D/g, ''); }
 function podeTentar(ip) {
-  var agora = Date.now();
   var reg = tentativas.get(ip) || { n: 0, ate: 0 };
-  if (agora < reg.ate) return false;
-  return true;
+  return Date.now() >= reg.ate;
 }
 function registraTentativa(ip, ok) {
   var reg = tentativas.get(ip) || { n: 0, ate: 0 };
   if (ok) { tentativas.delete(ip); return; }
   reg.n++;
-  if (reg.n >= 8) { reg.ate = Date.now() + 60 * 1000; reg.n = 0; } // 1 min de espera após 8 erros
+  if (reg.n >= 8) { reg.ate = Date.now() + 60 * 1000; reg.n = 0; } // 1 min de espera após 8 erros do mesmo IP
   tentativas.set(ip, reg);
+}
+function contaBloqueada(cpf) {
+  if (!cpf) return false;
+  var reg = tentContas.get(cpf);
+  return !!reg && Date.now() < reg.ate;
+}
+function registraTentativaConta(cpf, ok) {
+  if (!cpf) return;
+  if (ok) { tentContas.delete(cpf); return; }
+  var reg = tentContas.get(cpf) || { n: 0, ate: 0 };
+  reg.n++;
+  if (reg.n >= 5) {                                    // espera crescente 1,2,4,…,30min; NÃO zera com o tempo
+    var mins = Math.min(30, Math.pow(2, reg.n - 5));
+    reg.ate = Date.now() + mins * 60 * 1000;
+  }
+  tentContas.set(cpf, reg);
 }
 
 /* ---- API ---- */
@@ -94,10 +117,13 @@ app.get('/api/session', function (req, res) {
 
 app.post('/api/login', async function (req, res) {
   var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'local';
-  if (!podeTentar(ip)) return res.status(429).json({ erro: 'muitas_tentativas', mensagem: 'Muitas tentativas. Aguarde um minuto e tente de novo.' });
   var body = req.body || {};
+  var cpfNorm = normCpf(body.cpf);
+  if (!podeTentar(ip)) return res.status(429).json({ erro: 'muitas_tentativas', mensagem: 'Muitas tentativas. Aguarde um minuto e tente de novo.' });
+  if (contaBloqueada(cpfNorm)) return res.status(429).json({ erro: 'conta_bloqueada', mensagem: 'Muitas tentativas para este CPF. Aguarde alguns minutos e tente de novo.' });
   var r = await db.autenticar(body.cpf, body.nascimento);
   registraTentativa(ip, r.ok);
+  registraTentativaConta(cpfNorm, r.ok);
   if (!r.ok) {
     var msg = r.motivo === 'formato' ? 'Confira o CPF (11 dígitos) e a data de nascimento.'
       : r.motivo === 'inativo' ? 'Este cadastro está inativo. Procure a secretaria.'
@@ -139,6 +165,30 @@ app.get('/api/placar', auth.exigir, async function (req, res) {
   var aba = req.query.aba === 'semestre' ? 'semestre' : 'hall';
   var itens = await db.listarPlacar(aba, SEMESTRE);
   res.json({ itens: itens });
+});
+
+/* ---- coordenação (professor): ver e exportar o ranking com identidade ----
+   Só quem tem `admin` no perfil (usuarios.admin no banco, ou USUARIO_FIXO_ADMIN sem banco)
+   passa por auth.exigirAdmin. É a única superfície que devolve identidade forte (nome + RA +
+   CPF) — o ranking do aluno nunca traz CPF. Serve para premiar os top-10. */
+function csvCampo(v) {
+  var s = String(v == null ? '' : v);
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+app.get('/api/admin/placar', auth.exigirAdmin, async function (req, res) {
+  var aba = req.query.aba === 'hall' ? 'hall' : 'semestre';
+  var itens = await db.listarPlacarAdmin(aba, SEMESTRE);
+  res.json({ itens: itens, semestre: SEMESTRE, aba: aba });
+});
+app.get('/api/admin/placar.csv', auth.exigirAdmin, async function (req, res) {
+  var aba = req.query.aba === 'hall' ? 'hall' : 'semestre';
+  var itens = await db.listarPlacarAdmin(aba, SEMESTRE);
+  var linhas = [['posicao', 'nome', 'ra', 'cpf', 'pontos', 'detalhe']];
+  itens.forEach(function (it) { linhas.push([it.posicao, it.nome, it.ra, it.cpf, it.pontos, it.detalhe]); });
+  var csv = linhas.map(function (l) { return l.map(csvCampo).join(','); }).join('\r\n');
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="ranking-' + aba + '-' + SEMESTRE + '.csv"');
+  res.send(String.fromCharCode(0xFEFF) + csv);   // BOM para o Excel abrir os acentos corretamente
 });
 
 app.get('/api/progresso', auth.exigir, async function (req, res) {
@@ -233,6 +283,17 @@ app.use(express.static(PUBLIC, {
 }));
 // qualquer rota não-API cai no jogo (SSO em qualquer caminho, deep links)
 app.get(/^(?!\/api\/).*/, function (req, res) { res.sendFile(path.join(PUBLIC, 'index.html')); });
+
+// blindagem de produção: sem SESSION_SECRET, o segredo é efêmero e QUALQUER restart/redeploy
+// invalida os cookies de TODOS os alunos de uma vez (a turma inteira cai para o login). Fora de
+// produção isso é aceitável; em produção é um incidente de sala garantido — falha rápido para
+// não subir quebrado em silêncio.
+if (auth.efemero && process.env.NODE_ENV === 'production') {
+  console.error('FATAL: SESSION_SECRET não definido em produção. Sem ele, cada restart desloga a turma inteira.');
+  console.error('  Gere um: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+  console.error('  e defina SESSION_SECRET no ambiente (EasyPanel › Environment) antes de subir.');
+  process.exit(1);
+}
 
 app.listen(PORT, function () {
   console.log('Última Instância v' + VERSAO + ' no ar em http://0.0.0.0:' + PORT);
