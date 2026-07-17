@@ -102,6 +102,23 @@ button{font-family:var(--sans)}
 main{display:flex;justify-content:center;min-height:100vh}
 /* conteúdo só para leitor de tela: fora da tela mas anunciável (aria-live) */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* ---- guia "Como pontuar" ---- */
+.guia{display:flex;flex-direction:column;gap:13px}
+.guia-bloco{background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:14px 16px}
+.guia-bloco h4{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--red)}
+.guia-bloco p{margin:0;font-size:13px;line-height:1.6;color:var(--fg2)}
+.guia-bloco p + p{margin-top:7px}
+.guia-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.guia-lista li{padding-left:12px;border-left:2px solid var(--sand)}
+.guia-lista li.tira{border-left-color:var(--red)}
+.guia-lista .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.guia-lista .top b{font-size:13px;color:var(--fg)}
+.guia-lista .peso{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--red);white-space:nowrap}
+.guia-lista small{display:block;margin-top:1px;font-size:11.5px;color:var(--fg3);line-height:1.45}
+.guia-passos{counter-reset:gp;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.guia-passos li{counter-increment:gp;font-size:13px;line-height:1.5;color:var(--fg2);padding-left:30px;position:relative}
+.guia-passos li b{color:var(--fg)}
+.guia-passos li::before{content:counter(gp);position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .scr{width:100%;max-width:960px;padding:22px 16px 44px;animation:surge .45s var(--spring) both}
 /* a batalha é a única tela que precisa caber sem scroll: menos respiro em cima; o respiro de
    baixo abre espaço para a barra de ação fixa (Encerrar rodada), que não cobre o conteúdo */
@@ -728,6 +745,7 @@ body.dark .e-alta{color:#f06f80}
     <button class="btn-ghost" id="btnMerito">Ordem do Mérito</button>
     <button class="btn-ghost" id="btnPlacar">Placar</button>
     <button class="btn-ghost" id="btnDemo">Como jogar</button>
+    <button class="btn-ghost" id="btnGuia">Como pontuar</button>
     <button class="btn-ghost" id="btnConfig">Configurações</button>
     <button class="btn-ghost hidden" id="btnAdmin" style="border-color:rgba(238,42,66,.4);color:var(--red)">Ranking da turma</button>
   </div>
@@ -990,8 +1008,52 @@ body.dark .e-alta{color:#f06f80}
     <button class="aba" data-aba="semestre">Semestre</button>
     <button class="aba" data-aba="hall">Hall de campeões</button>
   </div>
-  <p class="meta-txt" id="placarLegenda" style="margin:-4px 0 14px;line-height:1.5"></p>
+  <p class="meta-txt" id="placarLegenda" style="margin:-4px 0 10px;line-height:1.5"></p>
+  <div style="margin:0 0 14px"><button class="btn-ghost" id="btnGuiaPlacar" style="font-size:12px;padding:7px 12px">Como subir no ranking?</button></div>
   <div id="placarLista" class="lista-placar"></div>
+</section>
+
+<!-- ============ GUIA: COMO PONTUAR E SUBIR ============ -->
+<section id="scr-guia" class="scr hidden">
+  <div class="topo">
+    <div>
+      <div class="eyebrow">Pontuação</div>
+      <h2>Como pontuar e subir</h2>
+    </div>
+    <button class="volta" id="guiaVolta">Voltar</button>
+  </div>
+  <div class="guia">
+    <div class="guia-bloco">
+      <h4>O que conta para o ranking</h4>
+      <p>O <b>Placar</b> da temporada soma a sua <b>pontuação total</b>: a jornada do semestre + cada caso da semana que você sustenta. Quanto mais pontos, mais alto no ranking — e a coordenação premia os <b>primeiros colocados</b>.</p>
+      <p>Perder um caso <b>conta negativo</b>, mas perder de raspão custa pouco; o que derruba é ser zerado. Por isso vale jogar todos os casos — mesmo os difíceis — e perder o mínimo possível.</p>
+    </div>
+    <div class="guia-bloco">
+      <h4>Como cada caso pontua — e o que fazer</h4>
+      <ul class="guia-lista">
+        <li><div class="top"><b>Vença com convicção alta</b><span class="peso">+100 a +200</span></div><small>É o maior peso. Terminar acima de 50 já vence; chegar a 100 (convicção plena) dá o bônus máximo.</small></li>
+        <li><div class="top"><b>Réplicas certeiras</b><span class="peso">até +60</span></div><small>Responda ao <b>tema</b> da tese — e melhor ainda à <b>palavra-chave</b> sublinhada (a carta marcada “responde à palavra-chave”).</small></li>
+        <li><div class="top"><b>Mantenha a credibilidade</b><span class="peso">até +50</span></div><small>Coerência da defesa. Credibilidade alta faz tudo valer mais; zerada, o juiz indefere.</small></li>
+        <li><div class="top"><b>Leia o julgador</b><span class="peso">até +40</span></div><small>Jogue o tipo de carta que ele valoriza (veja a ficha “i” do julgador: Norma, Fato ou Retórica).</small></li>
+        <li><div class="top"><b>Feche a linha</b><span class="peso">+20 cada</span></div><small>Monte fundamento → prova → arremate na ordem. Fecha a tese e ainda rende credibilidade.</small></li>
+        <li><div class="top"><b>Feche cedo</b><span class="peso">+10 por rodada</span></div><small>Cada rodada economizada conta. Convicção alta e rápida protege da deliberação, que vem mais forte no fim.</small></li>
+        <li><div class="top"><b>Cumpra a missão do caso</b><span class="peso">+25</span></div><small>Cada caso tem um objetivo extra (no topo da tela). Cumprir soma pontos.</small></li>
+        <li class="tira"><div class="top"><b>Evite argumentos laterais</b><span class="peso">−5 cada</span></div><small>Jogar fora do tema tira pontos <i>e</i> queima credibilidade. Leia a tese antes de sustentar.</small></li>
+      </ul>
+    </div>
+    <div class="guia-bloco">
+      <h4>Ordem do Mérito — o emblema</h4>
+      <p>A sua <b>divisão</b> (do Calouro à Cátedra) é a outra face da progressão: sobe com <b>PM</b>. O caso da semana rende <b>+14 a +22 PM</b> por vitória; a jornada rende PM pelo <b>número de casos vencidos</b> (cada um ~9 PM, até +80). É o prestígio — separado do placar de pontos, mas movido pelas mesmas boas jogadas.</p>
+    </div>
+    <div class="guia-bloco">
+      <h4>Estratégia em 3 passos</h4>
+      <ol class="guia-passos">
+        <li><b>Leia a tese</b> em pauta: ache a palavra-chave sublinhada e o tema.</li>
+        <li><b>Responda no tema</b>, com credibilidade alta e jogando o que o julgador valoriza.</li>
+        <li><b>Feche cedo</b>, com a convicção o mais acima de 50 possível — é daí que vem o grosso dos pontos.</li>
+      </ol>
+    </div>
+  </div>
 </section>
 
 <!-- ============ COORDENAÇÃO (professor) — ranking com identidade + export ============ -->
@@ -1418,7 +1480,7 @@ var mudo  = store.get('ui_mudo', false);
 function salvarRun(){ if (S) store.set('ui_fmp_run', S); else store.del('ui_fmp_run'); }
 
 /* ---------- fluxo de telas ---------- */
-var TELAS = ['scr-login','scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-jornada','scr-semana','scr-merito','scr-placar','scr-admin','scr-config'];
+var TELAS = ['scr-login','scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-jornada','scr-semana','scr-merito','scr-placar','scr-guia','scr-admin','scr-config'];
 function mostrar(id){
   TELAS.forEach(function(t){ var e=$(t); if(e) e.classList.toggle('hidden', t!==id); });
   var e = $(id); if (e){ e.style.animation='none'; void e.offsetWidth; e.style.animation=''; }
@@ -2201,6 +2263,15 @@ function relatorioHTML(venceu){
   var nd = Object.keys(st.disciplinas).length;
   if (nd) linhas.push('Disciplinas na sustentação: ' + nd + ' · credibilidade final ' + B.cred + '/10.');
   if (!venceu && st.arg > 0) linhas.push('Taxa de pertinência: ' + Math.round(100*st.certas/st.arg) + '% — é o número a subir.');
+  // dica prescritiva: o passo mais alavancado para pontuar mais no próximo caso, na ordem do que mais pesa
+  var pert = st.arg > 0 ? st.certas / st.arg : 1;
+  var dica;
+  if (st.laterais > 0) dica = 'Evite argumentos fora do tema — leia a palavra-chave da tese antes de jogar; laterais tiram pontos e credibilidade.';
+  else if (pert < 0.6) dica = 'Responda ao tema da tese: procure a carta que refuta a palavra-chave sublinhada (a marcada “responde à palavra-chave”).';
+  else if (st.linhas === 0) dica = 'Feche a linha na ordem — fundamento → prova → arremate — para somar mais e ganhar credibilidade.';
+  else if (Math.round(B.p) < 80) dica = 'Feche mais cedo e com a convicção mais alta possível (100 = plena) — é daí que vem o grosso dos pontos.';
+  else dica = 'Defesa afiada. Para o topo do placar: convicção plena e a missão do caso cumprida.';
+  linhas.push('<b style="color:var(--cream)">Para pontuar mais:</b> ' + dica);
   return '<div style="text-align:left;font-size:11.5px;line-height:1.55;color:var(--sand);border-top:1px solid rgba(191,186,164,.2);padding-top:10px;margin-top:4px">' + linhas.join('<br>') + '</div>';
 }
 
@@ -3464,9 +3535,9 @@ function verPlacar(aba){
   });
   var legenda = $('placarLegenda');
   legenda.textContent = aba === 'semestre'
-    ? 'A jornada do semestre e todas as pautas semanais sustentadas, somadas por aluno — um único ranking da temporada.'
+    ? 'Sua posição é a sua pontuação total da temporada — a jornada do semestre + cada caso da semana, somados. Quanto mais alto, melhor.'
     : aba === 'hall'
-    ? 'Todas as jornadas e pautas semanais de todos os semestres, somadas por aluno — o placar de sempre.'
+    ? 'A pontuação total de todos os semestres, somada por aluno — o placar de sempre.'
     : 'O histórico salvo neste aparelho.';
   var lista = $('placarLista');
   if (aba === 'aparelho'){
@@ -3790,9 +3861,10 @@ function mostrarMerito(){
   }
   $('merRegras').innerHTML =
     '<b>Caso da semana</b> — vitória +14 a +22 PM (escala pela pontuação); derrota −6. É o motor semanal da Ordem.<br>'
-    + '<b>Jornada do semestre</b> — o grande evento, único: vitória +60 a +80 PM; derrota rende +3 por caso vencido.<br>'
+    + '<b>Jornada do semestre</b> — única: o PM vem do <b>número de casos vencidos</b> (cada um ~9 PM, até +80), com um bônus pela pontuação. Não elimina — jogue os oito.<br>'
     + '<b>100 PM</b> sobem uma divisão. Até <b>Bacharelando I</b> não se perde PM (divisões de entrada).<br>'
-    + '<b>Virada de semestre</b> — nova temporada: desce-se uma divisão e o PM zera. A cátedra se conquista de novo.';
+    + '<b>Virada de semestre</b> — nova temporada: desce-se uma divisão e o PM zera. A cátedra se conquista de novo.<br>'
+    + '<span style="color:var(--fg3)">A <b>divisão</b> é o seu prestígio; o <b>Placar</b> (pontuação total) é o que vale a premiação da temporada. Veja <b>“Como pontuar”</b> no menu.</span>';
   mostrar('scr-merito');
   carregarPosicaoMerito();
 }
@@ -3922,6 +3994,9 @@ function ligarEventos(){
   $('meritoVolta').addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
   $('btnPlacar').addEventListener('click', function(){ verPlacar('aparelho'); });
   $('btnDemo').addEventListener('click', verDemo);
+  $('btnGuia').addEventListener('click', function(){ mostrar('scr-guia'); });
+  var bgp = $('btnGuiaPlacar'); if (bgp) bgp.addEventListener('click', function(){ mostrar('scr-guia'); });
+  var gv = $('guiaVolta'); if (gv) gv.addEventListener('click', function(){ atualizarTitulo(); mostrar('scr-title'); });
   $('btnConfig').addEventListener('click', abrirConfig);
 
   $('btnEncerrar').addEventListener('click', encerrarRodada);

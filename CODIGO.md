@@ -104,6 +104,15 @@ Depois da varredura, os quatro itens de operação/segurança que dependiam de a
 - **Seed + runbook.** `db/exemplo_alunos.csv` e `db/exemplo_disciplinas.csv` são modelos de carga (`\copy`), e o README ganhou a seção "Início e virada de semestre" (carregar alunos/disciplinas, definir `SEMESTRE`, virar o semestre sem perder o Hall, e como marcar um admin).
 - **Visão da coordenação (o professor vê e premia os top-10).** Coluna `usuarios.admin` (ou `USUARIO_FIXO_ADMIN` sem banco) marca a coordenação. Rotas `GET /api/admin/placar` e `/api/admin/placar.csv` (protegidas por `auth.exigirAdmin`) devolvem o ranking por pontos **com identidade** (nome + RA + CPF) e um CSV com BOM; `db.listarPlacarAdmin` faz `LEFT JOIN usuarios` para trazer o RA. No cliente, o botão "Ranking da turma" (`#btnAdmin`, escondido para alunos) abre `#scr-admin` (`mostrarAdmin`) com a lista e o link de exportação. O ranking do aluno continua sem CPF — identidade só nas rotas de admin.
 
+## Clareza da pontuação (v6.1) — guia "Como pontuar e subir"
+
+O jogo pontuava bem, mas o aluno não enxergava **como** os pontos nascem nem **como** subir. Sem poluir a batalha (a explicação é opt-in), entrou:
+
+- **Tela `#scr-guia` ("Como pontuar")** — guia orientado a ação, em quatro blocos: (1) *o que conta para o ranking* (o Placar = pontuação total da temporada, jornada + semanas; derrota conta negativo mas perder de raspão custa pouco); (2) *como cada caso pontua e o que fazer* — os componentes de `pontuarCaso` traduzidos em ações com peso aproximado (vencer com convicção alta +100..200, réplicas certeiras até +60, credibilidade até +50, ler o julgador até +40, fechar a linha +20 cada, fechar cedo +10/rodada, missão +25, laterais −5); (3) *Ordem do Mérito* como a face de prestígio (PM), distinta do placar de pontos; (4) *estratégia em 3 passos*. Alcançável pelo título (`#btnGuia` "Como pontuar"), pelo placar (`#btnGuiaPlacar` "Como subir no ranking?") e citada na tela de Mérito.
+- **Legenda do placar** reescrita: "sua posição é a sua pontuação total da temporada… quanto mais alto, melhor".
+- **Texto de PM da jornada corrigido** (`merRegras`): estava no modelo pré-v6 ("vitória/derrota"); agora diz que o PM vem do número de casos vencidos (~9 cada, até +80) e distingue **divisão (prestígio)** de **placar (premiação)**.
+- **Sentença do caso**: `relatorioHTML` ganhou uma dica prescritiva "Para pontuar mais:" que aponta o passo mais alavancado com base no que o aluno deixou na mesa (laterais → evite; pertinência baixa → responda à palavra-chave; linha não fechada → feche a linha; convicção baixa → feche mais cedo).
+
 ## Segurança da Ordem do Mérito + julgador na balança (v5)
 
 - **O problema corrigido**: até a v4.3, `aplicarMerito()` calculava a divisão/PM inteiros no cliente e `POST /api/rank` mandava `{divisao, pm}` livres no corpo — o servidor só gravava o que o navegador dissesse (`db.salvarRank`). Um cliente malicioso podia se autopromover a Catedrático num único request.
