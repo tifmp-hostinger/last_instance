@@ -1,6 +1,6 @@
 {
   "name": "ultima-instancia",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "description": "Última Instância — o jogo de cartas da FMP, com backend de autenticação e placar em Postgres.",
   "private": true,
   "type": "commonjs",

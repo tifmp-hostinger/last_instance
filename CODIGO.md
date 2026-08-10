@@ -2,6 +2,28 @@
 
 A partir da v3 o projeto tem **duas metades**: o jogo (frontend estático, um só `public/index.html`) e um **backend Node/Express** (`server/`) que serve o jogo, autentica o aluno e guarda o placar no Postgres. Sem banco, o backend roda em **modo mock** (jogável e testável). O jogo também funciona como arquivo estático solto — nesse caso entra em **modo local** (sem login, placar só no aparelho).
 
+## Redesign "tribunal de gala" (v6.1) — cara de jogo
+
+A identidade FMP (vermelho, serifado, editorial) ganhou a camada de jogo — o **ouro** como cor de prestígio e brilho:
+
+- **Tokens** `--gold/--gold-2/--gold-deep`; terceiro orbe dourado no fundo vivo; **halo de holofote** pulsando atrás do emblema do título; lema em ouro com filetes de gala; filete ouro-vermelho no topo do cartão de login.
+- **Botões com acabamento premium**: gradiente + gloss (inset) em `.btn`/`.btn-modo`, e o **glint** — um facho de luz que varre o CTA de tempos em tempos (`.brilhoso`; nos modos, só quando são o CTA real: nem `feito` nem `bloqueada`). Tudo desligado sob `prefers-reduced-motion`.
+- **Cartas raras** com foil dourado; **sentença de convicção plena** com título em ouro laminado (`.sentenca.plena`) e emblema dourado; **contagem animada de pontos** (`contarAte`) na sentença do caso, da semana e no total da jornada (no harness/reduced-motion o número aparece pronto).
+- **Ordem do Mérito como vitrine de troféus**: divisões por metal (entrada bronze, média prata, alta ouro velho, topo ouro vivo com glow) e barra de PM desaguando em ouro.
+- **Gancho semanal**: `prazoPauta()` (contagem regressiva real — "encerra em 3d 14h" — no botão do título, no cartão próximo-passo e no edital) e **sequência de semanas** (`ui_semanas_hist_<aluno>` + `sequenciaSemanas()`): chip dourado "N semanas seguidas" ou, com a pauta pendente, "sequência de N semanas em jogo" em vermelho — motivacional, não vale ponto.
+
+## Revisão completa (v6.1) — 13 achados corrigidos
+
+Caça multi-agente (jogo-core + servidor) com verificação própria; correções:
+
+- **[alta] Slots de save separados** (`runKey`): jornada pausada e pauta da semana não dividem mais `ui_fmp_run` — jogar a semana **destruía** uma jornada pausada (casos, deck, pontos). `runSalvo(modo)` valida dono e semana; `apagarRun(modo)` só limpa o próprio slot.
+- **[alta] Semana em UTC**: `semanaISO` usava calendário local e divergia do servidor (UTC) no domingo à noite em UTC-3 — a pauta jogada "sumia" e a UI liberava jogar de novo (o dedup segurava no banco). Cliente e servidor agora usam campos UTC, e `/api/progresso` passou a consultar pela semana **do servidor** (a mesma da gravação).
+- **[média] Sentença transita em julgado no save** (`S.fase='decidido'`): fechar a aba no modal não desfaz mais a derrota (era save-scum) nem a vitória; a retomada segue de onde parou (a recompensa não escolhida se perde — preço de abandonar o modal).
+- **[média] Dono do save + logout**: run carrega `aluno`; noutro login o save alheio é ignorado (sem apagar — o dono pode voltar). Logout limpa `ui_fila` (a fila do aluno anterior não pode reenviar sob a sessão do próximo).
+- **[média] Missão justa**: `favor2` não é mais sorteada diante de julgador metódico sem plenário (re-sorteio determinístico no mesmo rng — edital e batalha, e a FMP inteira na semana, continuam vendo a mesma missão).
+- **[média] Servidor**: `trust proxy` + `req.ip` (a trava de login por IP não é mais burlável forjando `X-Forwarded-For`); faxina periódica dos limitadores (sem crescimento de memória sem teto); `SESSION_HORAS` inválido não derruba mais o login (fallback 12h); rotas admin **reconferem** `usuarios.admin` no banco a cada request (revogação vale na hora, não em 12h).
+- **[baixa] Miudezas didáticas**: log do argumento lateral mostra o fator **efetivo** (com o agravo da instância); `uiEnsaio` não vaza entre casos e clique sem preparo avisa em vez de morrer em silêncio; a retomada reusa `casoDados` salvos (o julgador não troca em silêncio se o pool de disciplinas mudou).
+
 ## Estrutura
 
 | Caminho | Papel |

@@ -20,6 +20,8 @@
   --ink:#191818; --ink-2:#3A3838; --ink-3:#6E6B66;
   --cream:#EFEEEA; --paper:#F6F5F1; --sand:#BFBAA4;
   --line:#DEDCD4; --line-2:#CFCCBF;
+  /* ouro — a camada de prestígio do redesign "tribunal de gala": brilho, láurea, conquista */
+  --gold:#C9A14E; --gold-2:#E5C77D; --gold-deep:#A47E2E;
   --t-norma:#EE2A42; --t-fato:#2A6F6B; --t-retorica:#B4763A; --t-tecnica:#6E6B66;
   --bg:var(--cream); --fg:var(--ink); --fg2:var(--ink-2); --fg3:var(--ink-3);
   --card:#fff; --card-line:var(--line);
@@ -60,7 +62,14 @@ body.dark #fundo::before{background:radial-gradient(circle,rgba(238,42,66,.17),r
 body.dark #fundo::after{background:radial-gradient(circle,rgba(191,186,164,.08),rgba(191,186,164,0) 68%)}
 @keyframes flutua1{from{transform:translate(0,0) rotate(0deg)}to{transform:translate(9vmax,7vmax) rotate(24deg)}}
 @keyframes flutua2{from{transform:translate(0,0) scale(1)}to{transform:translate(-8vmax,-6vmax) scale(1.14)}}
-@media (prefers-reduced-motion:reduce){#fundo::before,#fundo::after{animation:none}}
+/* o terceiro orbe: um facho de ouro atravessando o palco — o "brilho" do tribunal de gala */
+#fundo .orbe-ouro{position:absolute;width:46vmax;height:46vmax;left:50%;top:-14vmax;margin-left:-23vmax;border-radius:50%;
+  filter:blur(2px);will-change:transform;
+  background:radial-gradient(circle,rgba(201,161,78,.13),rgba(201,161,78,0) 62%);
+  animation:flutua3 52s ease-in-out infinite alternate}
+body.dark #fundo .orbe-ouro{background:radial-gradient(circle,rgba(229,199,125,.10),rgba(229,199,125,0) 62%)}
+@keyframes flutua3{from{transform:translate(0,0) scale(1)}to{transform:translate(6vmax,9vmax) scale(1.18)}}
+@media (prefers-reduced-motion:reduce){#fundo::before,#fundo::after,#fundo .orbe-ouro{animation:none}}
 
 #fx{position:fixed;inset:0;z-index:60;pointer-events:none}
 
@@ -83,14 +92,20 @@ body.dark .glass{background:rgba(25,24,24,.55);border-color:rgba(191,186,164,.18
 
 /* ---- botões ---- */
 button{font-family:var(--sans)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
-  background:var(--red);color:#fff;font-weight:600;font-size:14.5px;letter-spacing:.02em;
+.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
+  background:linear-gradient(180deg,#F5455B 0%,var(--red) 46%,var(--red-600) 100%);color:#fff;font-weight:600;font-size:14.5px;letter-spacing:.02em;
   border-radius:var(--r-sm);padding:13px 22px;min-height:46px;
-  transition:transform .15s var(--spring),background .15s,box-shadow .2s;
-  box-shadow:0 6px 18px rgba(238,42,66,.28)}
-.btn:hover{background:var(--red-600)}
-.btn:active{background:var(--red-700);transform:scale(.98)}
+  transition:transform .15s var(--spring),filter .15s,box-shadow .2s;
+  box-shadow:0 6px 18px rgba(238,42,66,.32),inset 0 1px 0 rgba(255,255,255,.32)}
+.btn:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 9px 24px rgba(238,42,66,.4),inset 0 1px 0 rgba(255,255,255,.32)}
+.btn:active{filter:brightness(.94);transform:scale(.98)}
 .btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+/* glint de jogo: um facho de luz varre o botão de tempos em tempos (só nos CTAs marcados) */
+.brilhoso::after{content:'';position:absolute;top:-40%;bottom:-40%;left:-70%;width:46%;pointer-events:none;
+  background:linear-gradient(105deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.38) 48%,rgba(255,255,255,0) 100%);
+  transform:skewX(-18deg);animation:glint 5.6s ease-in-out infinite}
+@keyframes glint{0%,72%{left:-70%}88%,100%{left:130%}}
+@media (prefers-reduced-motion:reduce){.brilhoso::after{animation:none;display:none}}
 .btn-ghost{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
   background:transparent;color:var(--fg2);border:1px solid var(--line-2);font-weight:500;font-size:13.5px;
   border-radius:var(--r-sm);padding:11px 20px;min-height:44px;transition:border-color .15s,color .15s,transform .15s var(--spring)}
@@ -121,6 +136,16 @@ body.dark .passo-trilha .pt.done i{background:#2A6F6B;border-color:#2A6F6B}
 .passo-txt{font-size:13.5px;line-height:1.52;color:var(--fg2);margin:0 0 11px}
 .passo-txt b{color:var(--fg)}
 .passo-card .btn{padding:11px 22px;font-size:13.5px}
+/* sequência de semanas: a medalha de constância — ouro, ao lado do CTA */
+.seq-chip{display:inline-flex;align-items:center;gap:6px;margin-left:10px;vertical-align:middle;
+  font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-deep);
+  border:1px solid var(--gold);border-radius:var(--r-pill);padding:5px 11px;
+  background:linear-gradient(180deg,rgba(229,199,125,.16),rgba(201,161,78,.08))}
+.seq-chip::before{content:'';width:7px;height:7px;flex:0 0 auto;
+  background:var(--gold);clip-path:polygon(50% 0,63% 38%,100% 50%,63% 62%,50% 100%,37% 62%,0 50%,37% 38%)}
+body.dark .seq-chip{color:var(--gold-2);border-color:rgba(201,161,78,.55)}
+.seq-chip.risco{color:var(--red);border-color:rgba(238,42,66,.5);background:rgba(238,42,66,.07)}
+.seq-chip.risco::before{background:var(--red)}
 /* ---- guia "Como pontuar" ---- */
 .guia{display:flex;flex-direction:column;gap:13px}
 .guia-bloco{background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:14px 16px}
@@ -151,10 +176,13 @@ body.dark .passo-trilha .pt.done i{background:#2A6F6B;border-color:#2A6F6B}
 
 /* ---- login ---- */
 #scr-login{display:flex;align-items:center;justify-content:center;min-height:92vh}
-.login-caixa{width:min(380px,92vw);display:flex;flex-direction:column;align-items:center;
+.login-caixa{position:relative;width:min(380px,92vw);display:flex;flex-direction:column;align-items:center;
   background:var(--card);border:1px solid var(--card-line);border-radius:var(--r-lg);
-  padding:34px 30px 28px;box-shadow:var(--sombra)}
-.login-caixa .simbolo{width:44px;height:44px}
+  padding:36px 30px 28px;box-shadow:var(--sombra);overflow:hidden}
+/* filete de gala no topo do cartão de login */
+.login-caixa::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,rgba(201,161,78,0) 0%,var(--gold) 18%,var(--red) 50%,var(--gold) 82%,rgba(201,161,78,0) 100%)}
+.login-caixa .simbolo{width:46px;height:46px;filter:drop-shadow(0 3px 10px rgba(238,42,66,.3))}
 .login-caixa form{width:100%}
 .login-erro{background:rgba(238,42,66,.1);border:1px solid rgba(238,42,66,.35);color:var(--red);
   border-radius:9px;padding:10px 12px;font-size:12.5px;margin-bottom:12px;line-height:1.4}
@@ -162,14 +190,28 @@ body.dark .passo-trilha .pt.done i{background:#2A6F6B;border-color:#2A6F6B}
   border-radius:9px;padding:10px 12px;font-size:11.5px;margin-top:14px;line-height:1.45;text-align:center}
 
 /* ---- título ---- */
-#scr-title{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92vh;text-align:center;gap:0}
+#scr-title{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92vh;text-align:center;gap:0}
+/* holofote do palco: um halo quente atrás do emblema — o primeiro "uau" da tela */
+#scr-title::before{content:'';position:absolute;top:4%;left:50%;transform:translateX(-50%);width:min(520px,86vw);height:300px;
+  pointer-events:none;z-index:-1;border-radius:50%;filter:blur(4px);
+  background:radial-gradient(closest-side,rgba(238,42,66,.14) 0%,rgba(201,161,78,.10) 42%,rgba(201,161,78,0) 74%);
+  animation:halo 5.2s ease-in-out infinite}
+body.dark #scr-title::before{background:radial-gradient(closest-side,rgba(238,42,66,.22) 0%,rgba(229,199,125,.12) 44%,rgba(229,199,125,0) 74%)}
+@keyframes halo{0%,100%{opacity:.75;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.06)}}
+@media (prefers-reduced-motion:reduce){#scr-title::before{animation:none}}
 .simbolo{width:52px;height:52px;animation:pop .6s var(--spring) both}
+#scr-title .simbolo{width:58px;height:58px;filter:drop-shadow(0 4px 14px rgba(238,42,66,.35))}
 .simbolo.gira{animation:pop .6s var(--spring) both,vira 6.5s ease-in-out 1.5s infinite}
 /* precisa vir DEPOIS da regra acima (mesma especificidade — a ordem no CSS decide) para
    realmente desligar o giro; declarada antes, a regra de cima sempre ganhava e o símbolo
    girava mesmo com prefers-reduced-motion ativo */
 @media (prefers-reduced-motion:reduce){.simbolo.gira{animation:pop .6s var(--spring) both}}
-#scr-title .lema{margin:18px 0 8px;font-weight:600;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--fg3)}
+#scr-title .lema{margin:18px 0 8px;font-weight:700;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-deep);
+  display:flex;align-items:center;gap:12px}
+body.dark #scr-title .lema{color:var(--gold-2)}
+/* filetes de gala ladeando o lema */
+#scr-title .lema::before,#scr-title .lema::after{content:'';width:34px;height:1px;
+  background:linear-gradient(90deg,rgba(201,161,78,0),var(--gold) 50%,rgba(201,161,78,0))}
 #scr-title h1{font-family:var(--serif);font-style:italic;font-weight:600;margin:0 0 6px;
   font-size:clamp(44px,9vw,84px);line-height:.98;letter-spacing:-.02em}
 #scr-title h1 em{color:var(--red);font-style:italic}
@@ -375,7 +417,7 @@ body.dark .anuncio .desc{color:#d8a08f}
 .carta{position:relative;background:var(--cream);border:1px solid #DEDCD4;border-radius:13px;overflow:hidden;
   box-shadow:0 6px 16px rgba(25,24,24,.08);display:flex;flex-direction:column;color:var(--ink);
   transition:transform .16s var(--spring),box-shadow .16s,opacity .2s;animation:sobe .3s ease both;text-align:left}
-.carta.rara{border-color:var(--sand);box-shadow:0 6px 16px rgba(25,24,24,.08),0 0 0 1.5px var(--sand)}
+.carta.rara{border-color:var(--gold);box-shadow:0 6px 16px rgba(25,24,24,.08),0 0 0 1.5px var(--gold),0 0 14px rgba(201,161,78,.22)}
 .carta.ensaiada{box-shadow:0 6px 16px rgba(25,24,24,.08),0 0 0 1.5px #2A6F6B,0 0 14px rgba(42,111,107,.3)}
 .carta.pode{cursor:pointer}
 .carta.pode:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(25,24,24,.18)}
@@ -392,8 +434,8 @@ body.dark .anuncio .desc{color:#d8a08f}
 .info-i{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;
   border:1px solid var(--sand);color:#8f8b7f;font-size:11px;font-style:italic;font-family:var(--serif);cursor:pointer;background:none;padding:0}
 .info-i:hover{border-color:var(--red);color:var(--red)}
-.tag-rara{position:absolute;top:31px;right:-1px;font-size:7px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
-  background:var(--sand);color:var(--ink);padding:2px 7px;border-radius:6px 0 0 6px}
+.tag-rara{position:absolute;top:31px;right:-1px;font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  background:linear-gradient(180deg,var(--gold-2),var(--gold));color:var(--ink);padding:2px 7px;border-radius:6px 0 0 6px}
 
 /* ---- log + ações ---- */
 .rodape-batalha{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-bottom:0}
@@ -455,12 +497,17 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 .sentenca{padding:32px 30px;text-align:center;color:var(--cream)}
 .sentenca .rotulo{color:var(--sand);margin-bottom:8px}
 .sentenca h3{font-family:var(--serif);font-style:italic;font-weight:600;font-size:36px;margin:0 0 10px;line-height:1.05}
+/* convicção plena: o título da sentença vira ouro laminado — o momento de gala */
+.sentenca.plena h3{background:linear-gradient(115deg,var(--gold-2) 0%,#F6E7BB 28%,var(--gold) 55%,var(--gold-2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(229,199,125,.35))}
 .sentenca .txt{font-size:13px;color:var(--sand);line-height:1.55;margin-bottom:20px}
 .tabela-pontos{text-align:left;display:grid;gap:7px;font-size:12.5px;margin-bottom:20px}
 .tabela-pontos .li{display:flex;justify-content:space-between;border-bottom:1px solid rgba(191,186,164,.2);padding-bottom:6px}
 .tabela-pontos .li span:first-child{color:var(--sand)}
 .tabela-pontos .total{display:flex;justify-content:space-between;align-items:baseline;padding-top:2px;font-weight:600}
 .tabela-pontos .total b{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--red)}
+.sentenca.plena .tabela-pontos .total b{color:var(--gold-2)}
 
 /* ---- recompensa / evento ---- */
 .grade-escolhas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin:18px 0 20px}
@@ -531,11 +578,17 @@ body.dark .log-item.adverso{color:#f0907d;border-color:rgba(238,42,66,.4)}
 .passos i.chefe{border-radius:2px;transform:rotate(45deg)}
 
 /* ---- título: botões de modo com estado ---- */
-.btn-modo{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;cursor:pointer;
-  background:var(--red);color:#fff;font-family:var(--sans);border-radius:14px;padding:14px 22px 12px;min-height:64px;
-  transition:transform .15s var(--spring),background .15s,box-shadow .2s;box-shadow:0 6px 18px rgba(238,42,66,.28)}
-.btn-modo:hover{background:var(--red-600)}
+.btn-modo{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;cursor:pointer;
+  background:linear-gradient(180deg,#F5455B 0%,var(--red) 46%,var(--red-600) 100%);color:#fff;font-family:var(--sans);border-radius:14px;padding:14px 22px 12px;min-height:64px;
+  transition:transform .15s var(--spring),filter .15s,box-shadow .2s;
+  box-shadow:0 6px 18px rgba(238,42,66,.32),inset 0 1px 0 rgba(255,255,255,.3)}
+.btn-modo:hover{filter:brightness(1.06);transform:translateY(-1px)}
 .btn-modo:active{transform:scale(.98)}
+/* glint também nos modos, só quando são o CTA de verdade (nem feitos, nem trancados) */
+.btn-modo:not(.feito):not(.bloqueada)::after{content:'';position:absolute;top:-40%;bottom:-40%;left:-70%;width:46%;pointer-events:none;
+  background:linear-gradient(105deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.32) 48%,rgba(255,255,255,0) 100%);
+  transform:skewX(-18deg);animation:glint 6.4s ease-in-out .9s infinite}
+@media (prefers-reduced-motion:reduce){.btn-modo:not(.feito):not(.bloqueada)::after{animation:none;display:none}}
 .btn-modo .bm-t{font-weight:600;font-size:16.5px;letter-spacing:.01em}
 .btn-modo .bm-sub{font-size:10.5px;font-weight:500;opacity:.88;letter-spacing:.05em}
 .btn-modo.escuro{background:var(--ink);box-shadow:0 6px 18px rgba(25,24,24,.3)}
@@ -643,7 +696,9 @@ body.dark .mer-atual{background:#1c1a1a;border:1px solid rgba(191,186,164,.2)}
 .mer-atual h3{font-family:var(--serif);font-style:italic;font-weight:600;font-size:25px;margin:3px 0 2px}
 .mer-atual .tempo{font-size:11px;color:var(--sand);margin-bottom:8px}
 .mer-barra{position:relative;height:8px;border-radius:var(--r-pill);background:rgba(239,238,234,.14);overflow:hidden}
-.mer-barra i{position:absolute;left:0;top:0;bottom:0;border-radius:var(--r-pill);background:var(--red);transition:width .6s var(--spring)}
+.mer-barra i{position:absolute;left:0;top:0;bottom:0;border-radius:var(--r-pill);
+  background:linear-gradient(90deg,var(--red) 0%,#F5455B 62%,var(--gold-2) 100%);
+  box-shadow:0 0 10px rgba(238,42,66,.55);transition:width .6s var(--spring)}
 .mer-barra-txt{font-size:10.5px;color:var(--sand);margin-top:5px}
 .escada{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
 .degrau{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--card-line);border-radius:12px;padding:9px 15px}
@@ -657,13 +712,15 @@ body.dark .mer-atual{background:#1c1a1a;border:1px solid rgba(191,186,164,.2)}
 .degrau.aqui .nm{font-weight:600}
 .voce-chip{font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:var(--red);color:#fff;
   border-radius:var(--r-pill);padding:3px 10px;flex:0 0 auto}
-.e-entrada{color:#8f8b7f}
-.e-media{color:var(--fg2)}
-.e-alta{color:var(--red-700)}
-.e-topo{color:var(--red)}
-body.dark .e-entrada{color:#a39d8f}
+/* metais de gala: entrada = bronze, média = prata, alta = ouro velho, topo = ouro vivo */
+.e-entrada{color:#9a7b58}
+.e-media{color:#8f8b7f}
+.e-alta{color:var(--gold-deep)}
+.e-topo{color:var(--gold);filter:drop-shadow(0 0 6px rgba(201,161,78,.45))}
+body.dark .e-entrada{color:#b08d66}
 body.dark .e-media{color:var(--sand)}
-body.dark .e-alta{color:#f06f80}
+body.dark .e-alta{color:var(--gold)}
+body.dark .e-topo{color:var(--gold-2);filter:drop-shadow(0 0 8px rgba(229,199,125,.5))}
 
 /* ---- boas-vindas: o elo do aluno, ao entrar ---- */
 #boasVindas{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top));transform:translateX(-50%) translateY(-140%);
@@ -715,7 +772,7 @@ body.dark .e-alta{color:#f06f80}
 </head>
 <body>
 <svg style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="ic-balanca" viewBox="0 0 100 100"><path d="M46.48 17.11 C46.06 24.45 42.87 31.61 37.62 37.05 C31.93 42.93 25.12 46.22 17.07 46.97 L14.43 47.24 L14.43 50.04 L14.43 52.85 L27.91 52.89 L41.36 52.95 L42.5 53.48 C43.96 54.17 45.22 55.43 45.91 56.89 L46.44 58.03 L46.5 71.5 L46.54 84.96 L49.35 84.96 L52.15 84.96 L52.42 82.32 C53.17 74.27 56.46 67.46 62.34 61.77 C67.78 56.52 74.94 53.33 82.28 52.91 L84.55 52.78 L84.55 49.96 L84.55 47.15 L71.57 47.15 C59.17 47.15 58.52 47.13 57.28 46.75 C55.67 46.26 54.33 45.26 53.5 43.96 C52.22 41.95 52.24 42.09 52.24 27.8 L52.24 14.84 L49.43 14.84 L46.61 14.84 L46.48 17.11Z"/></symbol></svg>
-<div id="fundo" aria-hidden="true"></div>
+<div id="fundo" aria-hidden="true"><i class="orbe-ouro"></i></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 
 <main>
@@ -738,7 +795,7 @@ body.dark .e-alta{color:#f06f80}
         <input id="loginNasc" name="nascimento" type="date" autocomplete="bday" required>
       </div>
       <div id="loginErro" class="login-erro hidden" role="alert"></div>
-      <button class="btn btn-lg" id="loginBtn" type="submit" style="width:100%">Entrar</button>
+      <button class="btn btn-lg brilhoso" id="loginBtn" type="submit" style="width:100%">Entrar</button>
     </form>
     <div id="loginMock" class="login-mock hidden"></div>
     <p class="meta-txt" style="text-align:center;margin:18px 0 0;font-size:11px">FMP · Fundação Escola Superior do Ministério Público</p>
@@ -1202,7 +1259,10 @@ function amostra(arr, rng){ return arr[Math.floor(rng()*arr.length)]; }
 /* semana ISO (segunda a domingo): a chave da pauta semanal */
 function semanaISO(d){
   d = d || new Date();
-  var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  // campos UTC (não locais): a semana vira no MESMO instante para o aluno e para o servidor
+  // (chaveSemanaServidor). Com campos locais, domingo 21h–24h em UTC-3 o cliente ainda estava
+  // na semana N enquanto o servidor gravava a partida na N+1 — e a pauta jogada "sumia".
+  var t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   var dia = t.getUTCDay() || 7;                    // 1=segunda … 7=domingo
   t.setUTCDate(t.getUTCDate() + 4 - dia);          // quinta-feira da mesma semana
   var ano = t.getUTCFullYear();
@@ -1210,7 +1270,38 @@ function semanaISO(d){
   return { ano: ano, sem: sem };
 }
 function chaveSemana(){ var w = semanaISO(); return w.ano + '-S' + (w.sem < 10 ? '0' : '') + w.sem; }
+function chaveSemanaDe(d){ var w = semanaISO(d); return w.ano + '-S' + (w.sem < 10 ? '0' : '') + w.sem; }
 function diasAteDomingo(){ var d = new Date().getUTCDay(); return d === 0 ? 0 : 7 - d; }  // UTC, coerente com semanaISO() — o prazo bate com a virada da semana
+/* contagem regressiva PRECISA da pauta: quanto falta até a virada da semana (segunda 00:00 UTC,
+   o mesmo relógio de semanaISO). É o gancho de urgência — "3d 14h" morde mais que "domingo". */
+function prazoPauta(){
+  var agora = new Date();
+  var dow = agora.getUTCDay() || 7;                               // 1=segunda … 7=domingo
+  var viraSeg = Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate() + (8 - dow));
+  var ms = viraSeg - agora.getTime();
+  var horasTot = Math.floor(ms / 3600000);
+  var dias = Math.floor(horasTot / 24), horas = horasTot % 24;
+  var txt = horasTot < 1 ? 'encerra em menos de 1h'
+    : dias === 0 ? 'encerra em ' + horas + 'h'
+    : 'encerra em ' + dias + 'd ' + horas + 'h';
+  return { dias: dias, horas: horas, txt: txt, urgente: horasTot < 24 };
+}
+/* sequência de semanas: o histórico local de pautas sustentadas (por aluno), e quantas semanas
+   SEGUIDAS até aqui. A conta anda pra trás a partir da semana corrente (se jogada) ou da
+   anterior (sequência viva, com a corrente ainda pendente). É motivacional, não vale ponto. */
+function historicoSemanas(){ return store.get('ui_semanas_hist_' + chaveAluno(), []); }
+function registrarSemanaHist(){
+  var h = historicoSemanas(), c = chaveSemana();
+  if (h.indexOf(c) < 0){ h.push(c); if (h.length > 60) h = h.slice(-60); store.set('ui_semanas_hist_' + chaveAluno(), h); }
+}
+function sequenciaSemanas(){
+  var h = historicoSemanas(); if (!h.length) return { n: 0, incluiAtual: false };
+  var incluiAtual = h.indexOf(chaveSemana()) >= 0;
+  var d = new Date(); if (!incluiAtual) d.setUTCDate(d.getUTCDate() - 7);   // começa na semana anterior
+  var n = 0;
+  while (h.indexOf(chaveSemanaDe(d)) >= 0){ n++; d.setUTCDate(d.getUTCDate() - 7); }
+  return { n: n, incluiAtual: incluiAtual };
+}
 
 var store = {
   get: function(k,fb){ try{ var v = localStorage.getItem(k); return v==null?fb:JSON.parse(v); }catch(e){ return fb; } },
@@ -1499,7 +1590,17 @@ var TEMA  = store.get('ui_tema', 'auto');
 var VIBRA = store.get('ui_vibra', true);
 var mudo  = store.get('ui_mudo', false);
 
-function salvarRun(){ if (S) store.set('ui_fmp_run', S); else store.del('ui_fmp_run'); }
+/* saves de partida em DOIS slots: a jornada do semestre e a pauta da semana NÃO dividem mais
+   a mesma chave — antes, começar a pauta da semana sobrescrevia (e ao terminar, apagava) uma
+   jornada pausada no meio, destruindo casos, deck e pontos acumulados. Cada save ainda carrega
+   o dono (aluno): num computador compartilhado, o próximo aluno nunca retoma o run do anterior. */
+function runKey(modo){ return modo === 'semana' ? 'ui_fmp_run_semana' : 'ui_fmp_run_jornada'; }
+function salvarRun(){
+  if (!S) return;
+  if (!S.aluno) S.aluno = chaveAluno();
+  store.set(runKey(S.modo), S);
+}
+function apagarRun(modo){ store.del(runKey(modo)); }
 
 /* ---------- fluxo de telas ---------- */
 var TELAS = ['scr-login','scr-title','scr-battle','scr-reward','scr-event','scr-over','scr-jornada','scr-semana','scr-merito','scr-placar','scr-guia','scr-admin','scr-config'];
@@ -1565,6 +1666,7 @@ function semanaRegistro(){
 function marcarSemana(venceu, pontos){
   store.set('ui_semana', { chave: chaveSemana(), aluno: chaveAluno(), venceu: !!venceu, pontos: pontos || 0, quando: new Date().toISOString() });
   store.set('ui_semana_jogada', true);   // libera a jornada do semestre (pré-requisito de onboarding)
+  registrarSemanaHist();                 // alimenta a sequência de semanas (o gancho de constância)
 }
 /* ---- pré-requisitos da jornada do semestre: tutorial + pelo menos um caso da semana ----
    A jornada é a campanha principal; ela só abre depois do aluno ver o tutorial e sustentar
@@ -1574,11 +1676,15 @@ function semanaJaJogada(){
   return !!store.get('ui_semana_jogada', false) || !!semanaRegistro();
 }
 function jornadaLiberada(){ return tutorialVisto() && semanaJaJogada(); }
-/* o save de jornada, ignorando pautas de semanas passadas */
-function runSalvo(){
-  var r = store.get('ui_fmp_run', null);
+/* o save pausado do slot pedido ('semana' ou, por padrão, a jornada), validado:
+   - pauta de semana passada é descartada (a pauta é desta semana ou de ninguém);
+   - save de OUTRO aluno é ignorado sem apagar (o dono pode voltar e retomar). */
+function runSalvo(modo){
+  var slot = modo === 'semana' ? 'semana' : 'semestre';
+  var r = store.get(runKey(slot), null);
   if (!r) return null;
-  if (r.modo === 'semana' && r.seed !== 'semana-' + chaveSemana()){ store.del('ui_fmp_run'); return null; }
+  if (r.aluno && r.aluno !== chaveAluno()) return null;
+  if (r.modo === 'semana' && r.seed !== 'semana-' + chaveSemana()){ apagarRun('semana'); return null; }
   // compat: antes da v6, S.detalhe só guardava casos VENCIDOS (não havia derrota em jornada).
   // Ao carregar um save antigo, marca esses registros como vitória para casosVencidos() contar certo.
   if (r.detalhe) r.detalhe.forEach(function(d){ if (d && d.venceu === undefined) d.venceu = true; });
@@ -1604,7 +1710,19 @@ function reforcosSemana(info){
   }
   return out;
 }
-function missaoSemana(info){ return amostra(MISSOES, mulberry32(hashStr(info.seed + ':missao:' + info.idx))); }
+/* sorteio de missão com uma regra de justiça: 'favor2' (2 argumentos favorecidos pelo julgador)
+   é IMPOSSÍVEL diante de um julgador metódico (multiplicadores todos 1,0) sem plenário — nesse
+   par, re-sorteia dentro do MESMO fluxo de rng (determinístico: edital e batalha, e todos os
+   alunos da FMP na semana, chegam à mesma missão). */
+function sortearMissaoRng(rng, juizMult, temVoga){
+  var m = amostra(MISSOES, rng);
+  if (juizMult && !temVoga && extremosMult(juizMult).flat){
+    var guarda = 0;
+    while (m.id === 'favor2' && guarda++ < 8) m = amostra(MISSOES, rng);
+  }
+  return m;
+}
+function missaoSemana(info, juizMult){ return sortearMissaoRng(mulberry32(hashStr(info.seed + ':missao:' + info.idx)), juizMult, false); }
 
 function novaJornada(modo, seedForcada){
   var seed, deck = DECK_INICIAL.slice(), casoIni = 0;
@@ -1629,10 +1747,20 @@ function novaJornada(modo, seedForcada){
   iniciarCaso(false);
 }
 
-function continuarJornada(){
-  var r = runSalvo();
+function continuarJornada(modo){
+  var r = runSalvo(modo === 'semana' ? 'semana' : undefined);
   if (!r){ atualizarTitulo(); return; }
   S = r;
+  if (S.fase === 'decidido' && S.decidido){
+    // a sentença do caso já tinha transitado em julgado quando a aba fechou: retoma DEPOIS
+    // dela (sem rejogar o caso — pontos e derrotas não se desfazem com F5). A recompensa de
+    // um caso vencido nesse limbo se perde: preço justo de abandonar o modal.
+    var d = S.decidido; S.decidido = null;
+    if (S.caso >= JORNADA.length - 1){ encerrarJornada(); return; }
+    if (d.venceu && d.boss){ S.fase = 'reliquia'; salvarRun(); recompensaReliquia(); return; }
+    avancarJornada();
+    return;
+  }
   if (S.fase === 'recompensa') recompensaCartas();
   else if (S.fase === 'reliquia') recompensaReliquia();
   else if (S.fase === 'evento') evento();
@@ -1693,7 +1821,7 @@ function novaBatalha(i, retry){
     linha: { f:null, p:null, a:null, ordem: [] },
     lateraisCaso: 0, histTipos: [],
     viradaFeita: false, viradaProva: false,
-    missao: amostra(MISSOES, rngM),
+    missao: sortearMissaoRng(rngM, JUIZES[dados.juiz] && JUIZES[dados.juiz].mult, !!meta.plenario),
     acordoPendente: false, acordoResolvido: false, acordoRecusado: false,
     comebackUsado: false, rodadaTevePert: false,
     teseUsada: false, tese: null, teseProxima: null, espiada: false,
@@ -1705,7 +1833,11 @@ function novaBatalha(i, retry){
 }
 function iniciarCaso(retry){
   var i = S.caso;
-  if (!retry || !S.casoDados) S.casoDados = sortearCaso(i);   // embargos reusam caso e julgador
+  uiEnsaio = false;   // o modo "escolher carta para ensaiar" nunca atravessa para outro caso
+  // reusa caso e julgador salvos (retomada E embargos): se o pool de disciplinas mudou no meio
+  // (servidor fora do ar, coordenação editou a lista), o julgador não troca em silêncio; só
+  // re-sorteia quando não há dados ou o juiz salvo não resolve mais
+  if (!S.casoDados || !JUIZES[S.casoDados.juiz]) S.casoDados = sortearCaso(i);
   B = novaBatalha(i, retry);
   S.fase = 'caso';
   salvarRun();
@@ -1822,7 +1954,8 @@ function logTese(){
 
 function computarDano(carta, situacao){
   // ordem exata: base (rascunho/ensaio) → +combo → pertinência (réplica +6 · direta +3 ·
-  //   lateral ×0,45/×0,30) → ×julgador/voga → +relíquia → ÷2 impugnada → ×2 repercussão
+  //   lateral ×0,40/×0,25, agravado pela instância: TJRS ×0,78 · STF ×0,55) → ×julgador/voga
+  //   → +relíquia → ÷2 impugnada → ×2 repercussão
   //   → ×faixa de credibilidade → contenção adversa (exceto perfurantes)
   var s = situacao || B;
   var ensaio = '';
@@ -1854,6 +1987,7 @@ function computarDano(carta, situacao){
     var casoIdx = s.caso || 0;
     fatLat *= casoIdx >= 6 ? 0.55 : casoIdx >= 3 ? 0.78 : 1;   // STF ×0,55 · TJRS ×0,78 · Foro cheio
     d = d * fatLat;
+    var fatLatEfetivo = fatLat;   // vai ao log: o número mostrado tem de bater com a conta feita
   }
   // virada: testemunha vacilou — a próxima prova vale metade
   var vacilo = false;
@@ -1879,7 +2013,8 @@ function computarDano(carta, situacao){
   var contido = 0;
   if (!(carta.fx && carta.fx.pierce) && s.conten > 0){ contido = Math.min(s.conten, d); d -= contido; }
   return { dano: Math.round(d), comboTxt: comboTxt, pert: pert, direta: direta, ensaio: ensaio, vacilo: vacilo,
-    mult: mult, reliquia: relTipo, metade: metade, dobrada: dobrada, credTxt: credTxt, contido: Math.round(contido) };
+    mult: mult, reliquia: relTipo, metade: metade, dobrada: dobrada, credTxt: credTxt, contido: Math.round(contido),
+    fatLat: fatLatEfetivo };
 }
 
 function jogarCarta(idx){
@@ -1907,7 +2042,7 @@ function jogarCarta(idx){
   if (sanou) notas.push('questionamento sanado');
   if (r.ensaio) notas.push(r.ensaio);
   if (r.pert === true){ notas.push('réplica certeira +' + REPLICA_BONUS); if (r.direta) notas.push('responde à palavra-chave +' + DIRETA_BONUS); }
-  else if (r.pert === false) notas.push('argumento lateral ×' + (((B.lateraisCaso||0) >= 2) ? '0,25' : '0,40'));
+  else if (r.pert === false) notas.push('argumento lateral ×' + (r.fatLat != null ? r.fatLat.toFixed(2) : '0,40').replace('.', ','));
   if (r.vacilo) notas.push('testemunha vacilante ×0,5');
   if (r.comboTxt) notas.push(r.comboTxt);
   if (r.mult !== 1) notas.push((B.vogaIdx>=0 && TIPO_ORDEM[B.vogaIdx]===carta.tipo ? 'voga' : (B.fase==='deliberacao' && B.vogaRevelada && B.vogaRevelada.tipo===carta.tipo ? 'sinal da deliberação' : 'julgador')) + ' ×' + String(r.mult).replace('.',','));
@@ -2297,6 +2432,27 @@ function relatorioHTML(venceu){
   return '<div style="text-align:left;font-size:11.5px;line-height:1.55;color:var(--sand);border-top:1px solid rgba(191,186,164,.2);padding-top:10px;margin-top:4px">' + linhas.join('<br>') + '</div>';
 }
 
+/* contagem animada: o total de pontos SOBE até o valor final — puro suco de jogo.
+   Com prefers-reduced-motion, o número aparece pronto. */
+function contarAte(el, total, ms){
+  if (!el) return;
+  // fora do navegador (harness) ou com reduced-motion: número pronto, sem animação
+  var podeAnimar = typeof performance !== 'undefined' && typeof requestAnimationFrame === 'function'
+    && !(typeof window !== 'undefined' && window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (!podeAnimar){ el.textContent = total; return; }
+  var t0 = performance.now(), dur = ms || 900;
+  function tick(t){
+    var p = Math.min(1, (t - t0) / dur);
+    var eased = 1 - Math.pow(1 - p, 3);              // desacelera no fim, como roleta parando
+    el.textContent = Math.round(total * eased);
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+function animarTotalSentenca(total){
+  contarAte(document.querySelector('#modalCard .tabela-pontos .total b'), total, 950);
+}
+
 function finalizarCaso(venceu, motivo){
   if (B.demo) return;                       // a demo nunca sentencia
   if (B.fim) return;
@@ -2309,14 +2465,17 @@ function finalizarCaso(venceu, motivo){
     var placar = pontuarCaso(motivo);
     S.pontos += placar.total;
     S.detalhe.push({ caso:B.caso, titulo:B.dados.titulo, pts:placar.total, venceu:true, plena:placar.plena, acordo:placar.acordo, conv:Math.round(B.p), rodadas:B.rodada, missao:placar.missaoOk });
+    // a sentença transita em julgado JÁ NO SAVE: fechar a aba no modal não desfaz o resultado
+    S.fase = 'decidido'; S.decidido = { caso: B.caso, venceu: true, boss: !!B.meta.boss };
+    salvarRun();
     som.vitoria(); fxVitoria(placar.plena);
     var linhas = '<div class="tabela-pontos">'
       + placar.comp.map(function(c){ return '<div class="li"><span>' + c[0] + '</span><span>' + (c[1]>=0?'+':'') + c[1] + '</span></div>'; }).join('')
       + (placar.acordo ? '<div class="li"><span>Acordo (60% dos pontos)</span><span>×0,6</span></div>' : '')
       + '<div class="total"><span>Total do caso</span><b>' + placar.total + '</b></div></div>';
     modal({ escuro:true, travado:true, cru:true, html:
-      '<div class="sentenca">'
-      + '<svg class="simbolo" style="width:34px;height:34px" viewBox="0 0 100 100" fill="#EE2A42"><use href="#ic-balanca"/></svg>'
+      '<div class="sentenca' + (placar.plena ? ' plena' : '') + '">'
+      + '<svg class="simbolo" style="width:34px;height:34px" viewBox="0 0 100 100" fill="' + (placar.plena ? '#E5C77D' : '#EE2A42') + '"><use href="#ic-balanca"/></svg>'
       + '<div class="rotulo" style="margin-top:12px">Sentença ' + (B.meta.boss ? 'no caso-chefe' : 'favorável') + '</div>'
       + '<h3>' + (placar.plena ? 'Convicção plena' : placar.acordo ? 'Acordo homologado' : 'Procedente') + '</h3>'
       + '<div class="txt">Convicção final ' + Math.round(B.p) + ' / 100 · ' + FASE_ROTULO[B.fase].toLowerCase() + ', rodada ' + Math.min(B.rodada,B.prazo) + ' de ' + B.prazo + '</div>'
@@ -2325,6 +2484,7 @@ function finalizarCaso(venceu, motivo){
       + '<div class="modal-botoes" id="modalBotoes"></div></div>',
       botoes: [{ t:'Seguir na jornada', fn: aposCaso }]
     });
+    animarTotalSentenca(placar.total);
   } else {
     som.derrota();
     // pontuação justa: o caso perdido conta NEGATIVO — o quanto a convicção ficou abaixo de 50
@@ -2333,6 +2493,9 @@ function finalizarCaso(venceu, motivo){
     var penal = -Math.max(0, Math.min(50, 50 - Math.round(B.p)));
     S.pontos += penal;
     S.detalhe.push({ caso:B.caso, titulo:B.dados.titulo, pts:penal, venceu:false, conv:Math.round(B.p), rodadas:B.rodada });
+    // derrota também transita em julgado no save — F5 no modal não a apaga (era save-scum)
+    S.fase = 'decidido'; S.decidido = { caso: B.caso, venceu: false };
+    salvarRun();
     var ultimo = S.caso >= JORNADA.length - 1;
     var razao = motivo === 'zero' ? 'A convicção chegou a zero.' : 'O prazo de pauta terminou com a convicção em ' + Math.round(B.p) + '.';
     modal({ escuro:true, travado:true, cru:true, html:
@@ -2364,7 +2527,7 @@ function finalizarSemana(venceu, motivo){
     pontos: pontos, casos: venceu ? 1 : 0, venceu: !!venceu,
     modo: 'semana', seed: S.seed, quando: new Date().toISOString(), v: CONFIG.VERSAO
   });
-  store.del('ui_fmp_run');
+  apagarRun('semana');   // só o slot da pauta — a jornada pausada fica intacta
   var meritoLinha = '<div class="li" style="margin-top:8px;border-top:1px solid rgba(191,186,164,.25);padding-top:9px"><span>Ordem do Mérito</span><span>'
     + esc(textoMerito(mer.m)) + (mer.delta ? ' <b style="color:' + (mer.delta > 0 ? 'var(--red)' : 'var(--fg3)') + '">(' + (mer.delta>0?'+':'') + mer.delta + ')</b>' : '') + '</span></div>';
   var corpo;
@@ -2383,9 +2546,10 @@ function finalizarSemana(venceu, motivo){
     corpo = '<div class="txt">' + razao + ' A pauta da semana não admite embargos — a próxima abre na segunda-feira.</div>'
       + '<div class="tabela-pontos">' + meritoLinha + '</div>';
   }
+  var plenaSem = venceu && placar.plena;
   modal({ escuro:true, travado:true, cru:true, html:
-    '<div class="sentenca">'
-    + '<svg class="simbolo" style="width:34px;height:34px' + (venceu ? '' : ';opacity:.6') + '" viewBox="0 0 100 100" fill="' + (venceu ? '#EE2A42' : '#BFBAA4') + '"><use href="#ic-balanca"/></svg>'
+    '<div class="sentenca' + (plenaSem ? ' plena' : '') + '">'
+    + '<svg class="simbolo" style="width:34px;height:34px' + (venceu ? '' : ';opacity:.6') + '" viewBox="0 0 100 100" fill="' + (plenaSem ? '#E5C77D' : venceu ? '#EE2A42' : '#BFBAA4') + '"><use href="#ic-balanca"/></svg>'
     + '<div class="rotulo" style="margin-top:12px">Caso da semana · sentença</div>'
     + '<h3>' + (venceu ? (placar.plena ? 'Convicção plena' : placar.acordo ? 'Acordo homologado' : 'Procedente') : 'Causa perdida') + '</h3>'
     + (venceu ? '<div class="txt">Convicção final ' + Math.round(B.p) + ' / 100 · a mesma pauta valeu para toda a FMP.</div>' : '')
@@ -2394,6 +2558,7 @@ function finalizarSemana(venceu, motivo){
     + '<div class="modal-botoes" id="modalBotoes"></div></div>',
     botoes: [{ t:'Ver a pauta da semana', fn:function(){ S = null; B = null; setTema(false); atualizarTitulo(); mostrarSemana(); } }]
   });
+  if (venceu) animarTotalSentenca(placar.total);
 }
 
 /* depois de VENCER um caso: caso-chefe abre a sustentação de IA (se houver webhook) */
@@ -2404,13 +2569,14 @@ function aposCaso(){
 }
 function aposCaso2(){
   var meta = B.meta;
+  S.decidido = null;   // seguiu pelo fluxo normal: o marcador de sentença pendente sai do save
   if (S.caso >= JORNADA.length - 1){ encerrarJornada(); return; }   // venceu o último: encerra
   // só quem VENCE ganha recompensa — o baralho é o prêmio de ganhar o caso
   if (meta.boss){ S.fase = 'reliquia'; salvarRun(); recompensaReliquia(); }
   else { S.fase = 'recompensa'; salvarRun(); recompensaCartas(); }
 }
 /* depois de PERDER um caso: sem recompensa, mas a jornada segue */
-function aposCasoPerdido(){ avancarJornada(); }
+function aposCasoPerdido(){ S.decidido = null; avancarJornada(); }
 /* o passo comum depois que um caso termina (com ou sem recompensa): intervalo entre
    instâncias (após os casos 3 e 6), ou próximo caso, ou fim da jornada no 8º */
 function avancarJornada(){
@@ -2602,9 +2768,10 @@ function telaOver(venceuTudo, cv){
   var mer = aplicarMerito('jornada', venceuTudo, S.pontos, cv);
   h += '<div class="li" style="margin-top:8px;border-top:1px solid rgba(191,186,164,.25);padding-top:9px"><span>Ordem do Mérito</span><span>' + esc(textoMerito(mer.m)) + (mer.delta ? ' <b style="color:' + (mer.delta > 0 ? 'var(--red)' : 'var(--fg3)') + '">(' + (mer.delta>0?'+':'') + mer.delta + ')</b>' : '') + '</span></div>';
   $('overTabela').innerHTML = h;
+  contarAte($('overTabela').querySelector('.total b'), S.pontos, 1100);   // o total sobe — fecho de gala
   var sim = $('overSimbolo');
   if (sim) sim.setAttribute('fill', cv > 0 ? '#EE2A42' : '#BFBAA4');
-  store.del('ui_fmp_run');
+  apagarRun('semestre');   // fim da jornada: limpa o slot dela (a pauta tem o seu próprio)
   mostrar('scr-over');
   if (venceuTudo){ som.campea(); fxVitoria(true); }
   else if (cv > 0) som.vitoria();
@@ -2871,7 +3038,12 @@ function pintarBatalha(inicial){
     mao.appendChild(cartaEl(carta, {
       podeJogar: pode, custoMostrado: custoReal, situacao: B, ensaiada: !!B.ensaiadas[id], tese: B.tese,
       aoClicar: function(){
-        if (uiEnsaio){ uiEnsaio = false; gastarPreparo('ensaiar', idx); return; }
+        if (uiEnsaio){
+          uiEnsaio = false;
+          // clique nunca morre em silêncio: sem preparo, avisa e desarma em vez de engolir
+          if (!gastarPreparo('ensaiar', idx)){ logJuiz('Preparo insuficiente para ensaiar (custa 2) — modo desarmado.'); pintarBatalha(); }
+          return;
+        }
         jogarCarta(idx);
       }
     }));
@@ -3438,7 +3610,12 @@ function mostrarErroLogin(msg){
   erro.textContent = msg; erro.classList.remove('hidden'); som.nega();
 }
 function fazerLogout(){
-  var fim = function(){ PERFIL = { nome:'', ra:'', sem:'', cpf:'', token:'' }; SERVIDOR.autenticado = false; JUIZES_COMUNS = JUIZES_FALLBACK.slice(); JUIZES_SEMANA = null; S=null; B=null; setTema(false); mostrarLogin(); };
+  var fim = function(){
+    // troca de conta num aparelho compartilhado: a fila offline do aluno que saiu NÃO pode
+    // ser reenviada sob a sessão do próximo (o servidor credita pela sessão). Os saves de run
+    // ficam — carregam o dono e runSalvo() ignora saves de outro aluno.
+    store.del('ui_fila');
+    PERFIL = { nome:'', ra:'', sem:'', cpf:'', token:'' }; SERVIDOR.autenticado = false; JUIZES_COMUNS = JUIZES_FALLBACK.slice(); JUIZES_SEMANA = null; S=null; B=null; setTema(false); mostrarLogin(); };
   if (!SERVIDOR.online){ mostrar('scr-title'); return; }
   fetchJSON(CONFIG.API_BASE + '/logout', { method:'POST' }, 4000).then(fim, fim);
 }
@@ -3706,7 +3883,7 @@ function mostrarJornada(){
     nota.textContent = 'A jornada de ' + CONFIG.SEMESTRE + ' está encerrada. A próxima abre na virada do semestre — enquanto isso, o caso da semana mantém a sua Ordem do Mérito viva.';
   } else if (emCurso){
     var btnC = el('button', 'btn btn-lg', 'Retomar — caso ' + (r.caso + 1) + ' de 8');
-    btnC.addEventListener('click', continuarJornada);
+    btnC.addEventListener('click', function(){ continuarJornada(); });      // slot da jornada
     ac.appendChild(btnC);
     nota.textContent = 'A jornada é única no semestre e fica salva entre um caso e outro. Você joga os 8 casos — a pontuação total é o que vale.';
   } else if (bloqueada){
@@ -3752,17 +3929,17 @@ function mostrarSemana(){
   setTema(false);
   var info = infoSemana();
   var reg = semanaRegistro();
-  var r = runSalvo();
-  var emCurso = !reg && r && r.modo === 'semana' && r.vivo !== false;
+  var r = runSalvo('semana');
+  var emCurso = !reg && r && r.vivo !== false;
   var meta = JORNADA[info.idx];
   var dados = sortearCasoCom(info.seed, info.idx, poolJuizesSemana());
   var juiz = JUIZES[dados.juiz];
   var opon = OPONENTES[meta.opon];
-  var missao = missaoSemana(info);
+  var missao = missaoSemana(info, juiz && juiz.mult);
   var apoio = reforcosSemana(info).map(function(id){ return CARTAS[id].nome; });
-  var dias = diasAteDomingo();
+  var pz = prazoPauta();
   var prazoTxt = reg ? 'nova pauta na segunda-feira'
-    : dias === 0 ? 'encerra hoje, domingo' : 'encerra domingo · ' + (dias === 1 ? 'falta 1 dia' : 'faltam ' + dias + ' dias');
+    : pz.txt + (pz.urgente ? ' — última chamada' : ' (domingo, fim do dia)');
 
   var selo = reg
     ? (reg.venceu ? '<span class="ed-selo vit">sustentada · vitória</span>' : '<span class="ed-selo der">sustentada · derrota</span>')
@@ -3796,7 +3973,7 @@ function mostrarSemana(){
     nota.textContent = 'Uma sustentação por semana — a sua já está nos autos. Toda a FMP enfrenta esta mesma pauta até domingo.';
   } else if (emCurso){
     var btnR = el('button', 'btn btn-lg', 'Retomar a sustentação');
-    btnR.addEventListener('click', continuarJornada);
+    btnR.addEventListener('click', function(){ continuarJornada('semana'); });   // slot da pauta
     ac.appendChild(btnR);
     nota.textContent = 'A sua sustentação desta semana está em andamento.';
   } else {
@@ -3980,7 +4157,7 @@ function atualizarTitulo(){
   var dias = diasAteDomingo();
   bs.textContent = sr
     ? 'semana ' + w.sem + ' sustentada — ' + (sr.venceu ? 'vitória' : 'derrota')
-    : 'semana ' + w.sem + ' · ' + (dias === 0 ? 'encerra hoje' : 'encerra domingo');
+    : 'semana ' + w.sem + ' · ' + prazoPauta().txt;
   var btnS = $('btnSemana'); if (btnS.classList) btnS.classList.toggle('feito', !!sr);
   $('btnMerito').textContent = 'Ordem do Mérito — ' + DIVISOES[m.div];
   $('verTxt').textContent = 'v' + CONFIG.VERSAO + ' · ' + CONFIG.SEMESTRE + (PERFIL.nome ? ' · ' + PERFIL.nome : '') + ' · ' + textoMerito(m);
@@ -3997,15 +4174,14 @@ function pintarProximoPasso(){
   var reg = jornadaRegistro();
   var r = runSalvo();
   var emCurso = !reg && r && r.vivo !== false && r.modo !== 'semana';
-  var dias = diasAteDomingo();
-  var prazoTxt = dias === 0 ? 'encerra hoje' : dias === 1 ? 'encerra amanhã' : 'encerra domingo';
+  var pz = prazoPauta();
   var agora, txt, rotulo, acao;
   if (!tut){
     agora = 1; rotulo = 'Ver como jogar'; acao = verDemo;
     txt = '<b>Novo por aqui?</b> Veja como jogar em <b>2 minutos</b> — uma rodada guiada, sem valer pontos.';
   } else if (!srSemana){
     agora = 2; rotulo = 'Jogar o caso da semana'; acao = mostrarSemana;
-    txt = 'Jogue o <b>caso da semana</b> — a mesma pauta para a turma inteira, vale pontos no ranking. A pauta ' + prazoTxt + '.';
+    txt = 'Jogue o <b>caso da semana</b> — a mesma pauta para a turma inteira, vale pontos no ranking. A pauta <b>' + pz.txt + '</b>.';
   } else if (emCurso){
     agora = 3; rotulo = 'Retomar a jornada'; acao = mostrarJornada;
     txt = 'Sua <b>jornada do semestre</b> está em andamento — caso ' + (r.caso + 1) + ' de 8. O progresso fica salvo entre um caso e outro.';
@@ -4021,11 +4197,15 @@ function pintarProximoPasso(){
     var cls = 'pt' + (p[2] ? ' done' : '') + (agora === p[0] ? ' agora' : '');
     return (i ? '<span class="sep"></span>' : '') + '<span class="' + cls + '"><i>' + (p[2] ? '✓' : p[0]) + '</i>' + p[1] + '</span>';
   }).join('');
+  // medalha de constância: quantas semanas seguidas — e o alerta de sequência em risco
+  var seq = sequenciaSemanas(), seqHTML = '';
+  if (seq.incluiAtual && seq.n >= 2) seqHTML = '<span class="seq-chip">' + seq.n + ' semanas seguidas</span>';
+  else if (!seq.incluiAtual && seq.n >= 1) seqHTML = '<span class="seq-chip risco">sequência de ' + seq.n + ' semana' + (seq.n > 1 ? 's' : '') + ' em jogo</span>';
   card.innerHTML =
     '<div class="passo-topo"><span class="rotulo">' + (agora ? 'Próximo passo' : 'Tudo em dia') + '</span>'
     + '<span class="passo-trilha">' + trilha + '</span></div>'
     + '<p class="passo-txt">' + txt + '</p>'
-    + '<button class="btn" id="passoBtn">' + rotulo + '</button>';
+    + '<button class="btn brilhoso" id="passoBtn">' + rotulo + '</button>' + seqHTML;
   $('passoBtn').onclick = acao;
 }
 
@@ -4128,7 +4308,7 @@ function ligarEventos(){
   $('cfgApagar').addEventListener('click', function(){
     modal({ titulo:'Apagar os dados deste aparelho?', html:'Placar local, jornada salva, preferências e identificação serão removidos. Essa ação não desfaz.',
       botoes:[ { t:'Apagar tudo', fn:function(){
-            ['ui_fmp_run','ui_fmp_placar','ui_perfil','ui_fila','ui_demo_vista','ui_semana_jogada','ui_mudo','ui_tema','ui_vibra','ui_merito','ui_jornada','ui_semana'].forEach(store.del);
+            ['ui_fmp_run','ui_fmp_run_jornada','ui_fmp_run_semana','ui_fmp_placar','ui_perfil','ui_fila','ui_demo_vista','ui_semana_jogada','ui_mudo','ui_tema','ui_vibra','ui_merito','ui_jornada','ui_semana','ui_semanas_hist_' + chaveAluno()].forEach(store.del);
             PERFIL={nome:'',ra:'',sem:'',token:''}; TEMA='auto'; VIBRA=true; mudo=false; setTema(false);
             // com servidor: re-sincroniza. A jornada e a semana já feitas continuam registradas
             // no servidor — apagar o aparelho não as libera de novo; iniciarSessao() as re-trava.

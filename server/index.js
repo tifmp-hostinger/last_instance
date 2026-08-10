@@ -32,6 +32,10 @@ const auth = require('./auth');
 
 const app = express();
 app.disable('x-powered-by');
+/* atrás de UM reverse proxy (EasyPanel/Traefik): req.ip vira o hop confiável do
+   X-Forwarded-For, em vez do header cru — que é forjável pelo cliente e permitia
+   burlar a trava de login por IP mandando um XFF novo a cada tentativa. */
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '32kb' }));
 app.use(cookieParser());
 
@@ -46,7 +50,9 @@ const VERSAO = require('../package.json').version;
    burlar a deduplicação (cpf,modo,seed) enviando uma seed nova a cada requisição. */
 function chaveSemanaServidor() {
   var d = new Date();
-  var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  // campos UTC (não locais): a semana vira no MESMO instante em qualquer TZ do servidor,
+  // e bate com o cliente (semanaISO também usa campos UTC)
+  var t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   var dia = t.getUTCDay() || 7;
   t.setUTCDate(t.getUTCDate() + 4 - dia);
   var ano = t.getUTCFullYear();
@@ -62,8 +68,8 @@ function chaveSemanaServidor() {
    - por CONTA (cpf): a proteção real — a partir de 5 erros, espera CRESCENTE (1,2,4,…,30min) e
      o contador só zera com um login CERTO (não com o passar do tempo). Assim adivinhar por
      força bruta fica inviável sem travar quem só errou a própria data uma ou duas vezes. */
-const tentativas = new Map();       // ip → {n, ate}
-const tentContas = new Map();        // cpf (só dígitos) → {n, ate}
+const tentativas = new Map();       // ip → {n, ate, t}
+const tentContas = new Map();        // cpf (só dígitos) → {n, ate, t}
 function normCpf(c) { return String(c || '').replace(/\D/g, ''); }
 function podeTentar(ip) {
   var reg = tentativas.get(ip) || { n: 0, ate: 0 };
@@ -72,7 +78,7 @@ function podeTentar(ip) {
 function registraTentativa(ip, ok) {
   var reg = tentativas.get(ip) || { n: 0, ate: 0 };
   if (ok) { tentativas.delete(ip); return; }
-  reg.n++;
+  reg.n++; reg.t = Date.now();
   if (reg.n >= 8) { reg.ate = Date.now() + 60 * 1000; reg.n = 0; } // 1 min de espera após 8 erros do mesmo IP
   tentativas.set(ip, reg);
 }
@@ -85,13 +91,25 @@ function registraTentativaConta(cpf, ok) {
   if (!cpf) return;
   if (ok) { tentContas.delete(cpf); return; }
   var reg = tentContas.get(cpf) || { n: 0, ate: 0 };
-  reg.n++;
+  reg.n++; reg.t = Date.now();
   if (reg.n >= 5) {                                    // espera crescente 1,2,4,…,30min; NÃO zera com o tempo
     var mins = Math.min(30, Math.pow(2, reg.n - 5));
     reg.ate = Date.now() + mins * 60 * 1000;
   }
   tentContas.set(cpf, reg);
 }
+/* faxina dos limitadores: sem ela, cada IP/CPF inventado numa tentativa errada virava uma
+   entrada eterna nos Maps — memória crescendo sem teto sob ataque. A cada 10 min, entradas
+   frias (sem atividade há 1h e sem bloqueio vigente) são descartadas; o histórico que importa
+   (bloqueio ativo/espera crescente recente) sobrevive à varredura. */
+setInterval(function () {
+  var agora = Date.now(), corte = agora - 60 * 60 * 1000;
+  [tentativas, tentContas].forEach(function (mapa) {
+    mapa.forEach(function (reg, k) {
+      if ((reg.t || 0) < corte && agora >= (reg.ate || 0)) mapa.delete(k);
+    });
+  });
+}, 10 * 60 * 1000).unref();
 
 /* ---- API ---- */
 app.get('/api/saude', async function (req, res) {
@@ -116,7 +134,8 @@ app.get('/api/session', function (req, res) {
 });
 
 app.post('/api/login', async function (req, res) {
-  var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'local';
+  // req.ip respeita trust proxy (1 hop): é o IP real do cliente, não o header forjável
+  var ip = req.ip || req.socket.remoteAddress || 'local';
   var body = req.body || {};
   var cpfNorm = normCpf(body.cpf);
   if (!podeTentar(ip)) return res.status(429).json({ erro: 'muitas_tentativas', mensagem: 'Muitas tentativas. Aguarde um minuto e tente de novo.' });
@@ -196,8 +215,11 @@ app.get('/api/progresso', auth.exigir, async function (req, res) {
   // é a memória entre aparelhos (o front funde com o estado local). A temporada é o
   // SEMESTRE do env (mesma fonte que POST /api/partidas usa ao gravar).
   var sem = SEMESTRE;
-  var chave = String(req.query.semana || '').slice(0, 12);
-  var r = await db.progressoAluno(req.usuario.cpf, sem, chave);
+  // a chave da semana é SEMPRE a do servidor — a mesma usada na GRAVAÇÃO da partida
+  // (POST /api/partidas força seed 'semana-'+chaveSemanaServidor()). Aceitar a do cliente
+  // criava janela de divergência (domingo à noite em UTC-3) em que a semana jogada
+  // "sumia" da consulta e a UI liberava jogar de novo (o dedup ainda segurava no banco).
+  var r = await db.progressoAluno(req.usuario.cpf, sem, chaveSemanaServidor());
   res.json(r);
 });
 

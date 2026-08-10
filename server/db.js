@@ -555,6 +555,16 @@ function ident(nome) {
   return nome;
 }
 
+/* o admin vale AGORA? — reconferido a cada request de rota admin (auth.exigirAdmin), para
+   revogação em usuarios.admin ter efeito imediato em vez de esperar o JWT de 12h expirar */
+async function ehAdmin(cpf) {
+  if (!hasDB) return false;   // sem banco, exigirAdmin confia no token (USUARIO_FIXO_ADMIN)
+  var sql = 'SELECT COALESCE(admin, FALSE) AS admin FROM ' + ident(T_USUARIOS) +
+    ' WHERE regexp_replace(cpf, \'[^0-9]\', \'\', \'g\') = $1 AND ativo IS NOT FALSE LIMIT 1';
+  var r = await pool.query(sql, [soNumeros(cpf)]);
+  return !!(r.rows.length && r.rows[0].admin);
+}
+
 async function ping() {
   if (!hasDB) return { db: false };
   try { await pool.query('SELECT 1'); return { db: true, ok: true }; }
@@ -574,6 +584,7 @@ module.exports = {
   listarRankTemporada: listarRankTemporada,
   listarRankHall: listarRankHall,
   posicaoRank: posicaoRank,
+  ehAdmin: ehAdmin,
   ping: ping,
   FIXO: FIXO
 };

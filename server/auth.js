@@ -15,7 +15,10 @@ if (!SECRET) {
   efemero = true;
 }
 const COOKIE = 'ui_sessao';
-const DUR = process.env.SESSION_HORAS ? parseInt(process.env.SESSION_HORAS, 10) : 12; // horas
+// horas de sessão; um valor não-numérico no env viraria NaN e faria jwt.sign lançar em TODO
+// login ('NaNh' não é um prazo) — valida e cai no padrão 12
+const DUR_RAW = parseInt(process.env.SESSION_HORAS || '12', 10);
+const DUR = Number.isFinite(DUR_RAW) && DUR_RAW > 0 ? DUR_RAW : 12;
 const PROD = process.env.NODE_ENV === 'production';
 
 function emitir(res, usuario) {
@@ -45,13 +48,22 @@ function exigir(req, res, next) {
 }
 /* rotas do professor/coordenador: exige sessão E o marcador admin no perfil (usuarios.admin
    no banco, ou USUARIO_FIXO_ADMIN no modo sem banco). Sem isto, qualquer aluno logado
-   alcançaria o ranking com identidade/export. */
+   alcançaria o ranking com identidade/export.
+   Com banco, o admin é RECONFERIDO a cada request (não só o assado no JWT): revogar
+   usuarios.admin passa a valer na hora, não só quando o token de 12h expirar. */
 function exigirAdmin(req, res, next) {
   var u = ler(req);
   if (!u) return res.status(401).json({ erro: 'sessao', mensagem: 'Faça login para continuar.' });
   if (!u.admin) return res.status(403).json({ erro: 'sem_permissao', mensagem: 'Área restrita à coordenação.' });
-  req.usuario = u;
-  next();
+  var db = require('./db');           // require tardio: evita ciclo (db não importa auth)
+  if (!db.hasDB) { req.usuario = u; return next(); }
+  db.ehAdmin(u.cpf).then(function (ainda) {
+    if (!ainda) return res.status(403).json({ erro: 'sem_permissao', mensagem: 'Área restrita à coordenação.' });
+    req.usuario = u;
+    next();
+  }).catch(function () {
+    res.status(503).json({ erro: 'erro', mensagem: 'Não foi possível validar o acesso agora.' });
+  });
 }
 
 module.exports = { emitir: emitir, ler: ler, encerrar: encerrar, exigir: exigir, exigirAdmin: exigirAdmin, efemero: efemero };
