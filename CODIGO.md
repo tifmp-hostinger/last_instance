@@ -104,6 +104,13 @@ Depois da varredura, os quatro itens de operação/segurança que dependiam de a
 - **Seed + runbook.** `db/exemplo_alunos.csv` e `db/exemplo_disciplinas.csv` são modelos de carga (`\copy`), e o README ganhou a seção "Início e virada de semestre" (carregar alunos/disciplinas, definir `SEMESTRE`, virar o semestre sem perder o Hall, e como marcar um admin).
 - **Visão da coordenação (o professor vê e premia os top-10).** Coluna `usuarios.admin` (ou `USUARIO_FIXO_ADMIN` sem banco) marca a coordenação. Rotas `GET /api/admin/placar` e `/api/admin/placar.csv` (protegidas por `auth.exigirAdmin`) devolvem o ranking por pontos **com identidade** (nome + RA + CPF) e um CSV com BOM; `db.listarPlacarAdmin` faz `LEFT JOIN usuarios` para trazer o RA. No cliente, o botão "Ranking da turma" (`#btnAdmin`, escondido para alunos) abre `#scr-admin` (`mostrarAdmin`) com a lista e o link de exportação. O ranking do aluno continua sem CPF — identidade só nas rotas de admin.
 
+## Onboarding sem curva (v6.1) — o cartão "próximo passo"
+
+Princípio: o aluno não deduz o fluxo — o jogo diz **o que fazer agora e por quê**, em uma frase, com um botão. Tudo mastigado, tela limpa:
+
+- **Cartão `#passoCard` no título** (`pintarProximoPasso()`, chamado por `atualizarTitulo()` a cada volta ao título): olha o estado do aluno e mostra a trilha fixa **① Aprenda → ② Semana → ③ Jornada** (✓ verde no que já foi, vermelho no passo atual) + uma frase de justificativa + **um** CTA. Cinco estados: novo (→ demo, "2 minutos, sem valer pontos"), semana pendente (→ pauta da semana, com o prazo "encerra domingo/amanhã/hoje"), jornada em curso (→ retomar, "caso X de 8"), jornada aberta (→ abrir os autos), tudo em dia (→ placar, "nova pauta na segunda"). Os botões de modo abaixo continuam para quem quer ir direto — o cartão só remove a necessidade de *deduzir* o fluxo.
+- **Login com pitch de uma frase**: "O jogo de estratégia jurídica da FMP: monte argumentos, convença o julgador e dispute o ranking da turma." — para dar vontade de entrar a quem nem sabe o que é.
+
 ## Clareza da pontuação (v6.1) — guia "Como pontuar e subir"
 
 O jogo pontuava bem, mas o aluno não enxergava **como** os pontos nascem nem **como** subir. Sem poluir a batalha (a explicação é opt-in), entrou:

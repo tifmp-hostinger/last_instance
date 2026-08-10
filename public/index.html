@@ -102,6 +102,25 @@ button{font-family:var(--sans)}
 main{display:flex;justify-content:center;min-height:100vh}
 /* conteúdo só para leitor de tela: fora da tela mas anunciável (aria-live) */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* ---- cartão "próximo passo" no título: o jogo diz o que fazer agora, e por quê ---- */
+.passo-card{background:var(--card);border:1px solid var(--card-line);border-radius:16px;padding:13px 16px 14px;
+  margin:2px auto 16px;max-width:560px;box-shadow:var(--sombra);text-align:left}
+.passo-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+.passo-topo .rotulo{color:var(--red)}
+.passo-trilha{display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--fg3)}
+.passo-trilha .pt{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.passo-trilha .pt i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;
+  border:1.5px solid var(--line-2);font-size:9px;line-height:1}
+.passo-trilha .pt.done{color:#2A6F6B}
+.passo-trilha .pt.done i{background:#2A6F6B;border-color:#2A6F6B;color:#fff}
+body.dark .passo-trilha .pt.done{color:#7fd6c8}
+body.dark .passo-trilha .pt.done i{background:#2A6F6B;border-color:#2A6F6B}
+.passo-trilha .pt.agora{color:var(--red)}
+.passo-trilha .pt.agora i{border-color:var(--red);color:var(--red)}
+.passo-trilha .sep{width:9px;height:1px;background:var(--line-2);flex:0 0 auto}
+.passo-txt{font-size:13.5px;line-height:1.52;color:var(--fg2);margin:0 0 11px}
+.passo-txt b{color:var(--fg)}
+.passo-card .btn{padding:11px 22px;font-size:13.5px}
 /* ---- guia "Como pontuar" ---- */
 .guia{display:flex;flex-direction:column;gap:13px}
 .guia-bloco{background:var(--card);border:1px solid var(--card-line);border-radius:14px;padding:14px 16px}
@@ -707,7 +726,8 @@ body.dark .e-alta{color:#f06f80}
     <svg class="simbolo" viewBox="0 0 100 100" aria-hidden="true" fill="#EE2A42"><use href="#ic-balanca"/></svg>
     <div class="lema" style="margin:14px 0 4px">Acesso do aluno</div>
     <h1 class="serif" style="font-size:34px;font-weight:600;margin:0 0 6px">Última <span style="color:var(--red)">Instância</span></h1>
-    <p class="meta-txt" style="text-align:center;max-width:320px;margin:0 auto 22px">Entre com o seu CPF e a data de nascimento cadastrados na FMP.</p>
+    <p class="meta-txt" style="text-align:center;max-width:330px;margin:0 auto 6px;font-size:13px;color:var(--fg2)">O jogo de estratégia jurídica da FMP: monte argumentos, convença o julgador e dispute o ranking da turma.</p>
+    <p class="meta-txt" style="text-align:center;max-width:320px;margin:0 auto 20px">Entre com o seu CPF e a data de nascimento cadastrados na FMP.</p>
     <form id="loginForm" autocomplete="on">
       <div class="campo">
         <label for="loginCpf">CPF</label>
@@ -731,6 +751,8 @@ body.dark .e-alta{color:#f06f80}
   <div class="lema">A defesa. Em oito casos.</div>
   <h1>Última <em>Instância</em></h1>
   <p class="sub">Do Foro Central de Porto Alegre ao Supremo: monte seus argumentos, leia o julgador e incline a balança da convicção.</p>
+  <!-- o jogo diz o que fazer AGORA (e por quê): zero curva de aprendizagem -->
+  <div class="passo-card" id="passoCard" aria-live="polite"></div>
   <div class="menu-title">
     <button class="btn-modo" id="btnJornada">
       <span class="bm-t">Jornada do semestre</span>
@@ -3962,6 +3984,49 @@ function atualizarTitulo(){
   var btnS = $('btnSemana'); if (btnS.classList) btnS.classList.toggle('feito', !!sr);
   $('btnMerito').textContent = 'Ordem do Mérito — ' + DIVISOES[m.div];
   $('verTxt').textContent = 'v' + CONFIG.VERSAO + ' · ' + CONFIG.SEMESTRE + (PERFIL.nome ? ' · ' + PERFIL.nome : '') + ' · ' + textoMerito(m);
+  pintarProximoPasso();
+}
+
+/* o cartão "próximo passo" do título: o jogo olha o estado do aluno e diz, em uma frase,
+   O QUE fazer agora e POR QUÊ — com a trilha Aprenda → Semana → Jornada sempre à vista.
+   É o antídoto da curva de aprendizagem: ninguém precisa deduzir o fluxo. */
+function pintarProximoPasso(){
+  var card = $('passoCard'); if (!card) return;
+  var tut = tutorialVisto();
+  var srSemana = semanaRegistro();                 // a pauta DESTA semana
+  var reg = jornadaRegistro();
+  var r = runSalvo();
+  var emCurso = !reg && r && r.vivo !== false && r.modo !== 'semana';
+  var dias = diasAteDomingo();
+  var prazoTxt = dias === 0 ? 'encerra hoje' : dias === 1 ? 'encerra amanhã' : 'encerra domingo';
+  var agora, txt, rotulo, acao;
+  if (!tut){
+    agora = 1; rotulo = 'Ver como jogar'; acao = verDemo;
+    txt = '<b>Novo por aqui?</b> Veja como jogar em <b>2 minutos</b> — uma rodada guiada, sem valer pontos.';
+  } else if (!srSemana){
+    agora = 2; rotulo = 'Jogar o caso da semana'; acao = mostrarSemana;
+    txt = 'Jogue o <b>caso da semana</b> — a mesma pauta para a turma inteira, vale pontos no ranking. A pauta ' + prazoTxt + '.';
+  } else if (emCurso){
+    agora = 3; rotulo = 'Retomar a jornada'; acao = mostrarJornada;
+    txt = 'Sua <b>jornada do semestre</b> está em andamento — caso ' + (r.caso + 1) + ' de 8. O progresso fica salvo entre um caso e outro.';
+  } else if (!reg && jornadaLiberada()){
+    agora = 3; rotulo = 'Abrir a jornada do semestre'; acao = mostrarJornada;
+    txt = 'A <b>jornada do semestre</b> está aberta: oito casos, você joga todos — ganhando ou perdendo — e a <b>pontuação total</b> vai para o ranking.';
+  } else {
+    agora = 0; rotulo = 'Ver o placar da turma'; acao = function(){ verPlacar('semestre'); };
+    txt = '<b>Semana em dia.</b> Nova pauta na segunda-feira. Enquanto isso, veja a sua posição no ranking.';
+  }
+  var passos = [ [1, 'Aprenda', tut], [2, 'Semana', semanaJaJogada()], [3, 'Jornada', !!reg] ];
+  var trilha = passos.map(function(p, i){
+    var cls = 'pt' + (p[2] ? ' done' : '') + (agora === p[0] ? ' agora' : '');
+    return (i ? '<span class="sep"></span>' : '') + '<span class="' + cls + '"><i>' + (p[2] ? '✓' : p[0]) + '</i>' + p[1] + '</span>';
+  }).join('');
+  card.innerHTML =
+    '<div class="passo-topo"><span class="rotulo">' + (agora ? 'Próximo passo' : 'Tudo em dia') + '</span>'
+    + '<span class="passo-trilha">' + trilha + '</span></div>'
+    + '<p class="passo-txt">' + txt + '</p>'
+    + '<button class="btn" id="passoBtn">' + rotulo + '</button>';
+  $('passoBtn').onclick = acao;
 }
 
 function abrirConfig(){
